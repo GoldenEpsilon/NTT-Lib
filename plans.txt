@@ -1,0 +1,19 @@
+Mortars (Vagabonds)
+Lobs (Minimod)
+Basic Enemies (bandit, raven, big bandit, all with customizable attacks)
+Defpack Tools (defbloom, superforce, charge weapons)
+Stats (stat up, stat down, for all stats (include damage and duplication in there))
+3D models (.json import, .obj import, drawing)
+Pets (TE)
+Events (TE)
+Charming (TE)
+General Scripts (Squiddy, Yokin, TE, organize into multiple categories, it'd go over the limit otherwise)
+Examples (not to be loaded, shows how to use the library mod)
+Pathfinding (Squiddy)
+Vehicles (Mix Defpack and my old stuff)
+Spritemashing (Squiddy)
+*maybe* add in GuiPack, CUltras, and Custom Settings - only if it starts getting traction, I don't want to take those mods down with this if it fails
+Hooks (on_eat, on_heal, on_death, on_kill, level_start, etc)
+Autoupdating
+Weapon Modification
+Mutation Scripts (mutations that give more options & other helpers)
