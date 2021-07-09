@@ -71,7 +71,7 @@ Returns:
     if(is_real(_name) && object_exists(_name)){
         return instance_create(_x, _y, _name);
     }
-    
+	
      // Custom Object:
     if(ds_map_exists(global.objects, _name)){
 		var obj = global.objects[? _name];
@@ -127,7 +127,7 @@ Returns:
 			obj = global.objects[? _name];
 		}
 		
-		var _inst = script_ref_call([obj.type, obj.modName, obj.name + "_create"], 0, 0);
+		var _inst = script_ref_call([obj.type, obj.modName, obj.name + "_create"], _x, _y);
             
          // No Return Value:
         if(is_undefined(_inst) || _inst == 0){
@@ -275,6 +275,36 @@ Returns:
 			}
 		}
 	}
+
+#define draw_weapon(_sprite, _image, _x, _y, _angle, _angleMelee, _kick, _flip, _blend, _alpha)
+	/*
+		Drawing weapon sprites
+		
+		Ex:
+			draw_weapon(sprBanditGun, gunshine, x, y, gunangle, 0, wkick, right, image_blend, image_alpha)
+			draw_weapon(sprPipe, 0, x, y, gunangle, wepangle, wkick, wepflip, image_blend, image_alpha)
+	*/
+	
+	 // Context Fix:
+	if(!is_real(self) || !instance_exists(self)){
+		with(UberCont){
+			return draw_weapon(_sprite, _image, _x, _y, _angle, _angleMelee, _kick, _flip, _blend, _alpha);
+		}
+	}
+	
+	 // Melee Offset:
+	if(_angleMelee != 0){
+		_angle += _angleMelee * (1 - (_kick / 20));
+	}
+	
+	 // Kick:
+	if(_kick != 0){
+		_x -= lengthdir_x(_kick, _angle);
+		_y -= lengthdir_y(_kick, _angle);
+	}
+	
+	 // Draw:
+	draw_sprite_ext(_sprite, _image, _x, _y, 1, _flip, _angle, _blend, _alpha);
 	
 #define enemy_hurt(_damage, _force, _direction)
 	my_health -= _damage;           // Damage
