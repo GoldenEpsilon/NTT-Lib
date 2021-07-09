@@ -1,6 +1,8 @@
-/*						Stats
+/*	                Stats
 	This is the Stats package of Lib, for any and
 	all modifications of player stats.
+	Because this is relatively basic, this is also
+	essentially the example module.
 */
 
 #define changeHP(player, amount)

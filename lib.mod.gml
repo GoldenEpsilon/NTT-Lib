@@ -1,4 +1,4 @@
-/*						Lib
+/*	                    Lib
 	This is Lib, an all-in-one NTT library mod meant
 	to combine all the strengths of the current
 	generation of mods into one easily-usable library.
