@@ -1,4 +1,4 @@
-/*	                    Lib
+/*						Lib
 	This is Lib, an all-in-one NTT library mod meant
 	to combine all the strengths of the current
 	generation of mods into one easily-usable library.
@@ -24,5 +24,5 @@ if(!lq_exists(global.loadedPackages, package)){
 	file_download(URL + package + ".mod.gml", "../../mods/lib/" + package + ".mod.gml");
 	while (!file_loaded("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 
-	mod_load(package);
+	mod_load("../../mods/lib/" + package);
 }
