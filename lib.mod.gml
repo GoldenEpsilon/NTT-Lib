@@ -18,5 +18,11 @@ Usage:
 */
 if(!lq_exists(global.loadedPackages, package)){
 	lq_set(global.loadedPackages, package, 1);
+	
+	file_delete("../../mods/lib/" + package + ".mod.gml");
+	while (file_exists("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
+	file_download(URL + package + ".mod.gml", "../../mods/lib/" + package + ".mod.gml");
+	while (!file_loaded("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
+
 	mod_load(package);
 }
