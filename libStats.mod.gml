@@ -3,6 +3,17 @@
 	all modifications of player stats.
 */
 
+//For internal use, adds the script to be easily usable.
+#define addScript(name)
+	mod_variable_set("mod", "lib", "scriptReferences", ["mod", mod_current, name]);
+
+#define init
+	addScript("heal");
+	addScript("changeHP");
+	addScript("changeAccuracy");
+	addScript("changeSpeed");
+	script_ref_call(["mod", "lib", "updateRef"]);
+
 #define heal(obj, amount)
 /* Creator: Golden Epsilon
 Description: 

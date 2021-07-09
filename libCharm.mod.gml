@@ -9,6 +9,13 @@
 ||||||||||||||||||||||||UNFINISHED PACKAGE||||||||||||||||||||||||||||
 */
 
+//For internal use, adds the script to be easily usable.
+#define addScript(name)
+	mod_variable_set("mod", "lib", "scriptReferences", ["mod", mod_current, name]);
+
+#define init
+	script_ref_call(["mod", "lib", "updateRef"]);
+
 #define ntte_update(_newID)
 	if(array_length(charm_instance_list)){
 		 // Grab Charmed Objects:

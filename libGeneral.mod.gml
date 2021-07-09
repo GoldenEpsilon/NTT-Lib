@@ -18,92 +18,278 @@
 		#define pool(_pool)
 */
 
+//For internal use, adds the script to be easily usable.
+#define addScript(name)
+	mod_variable_set("mod", "lib", "scriptReferences", ["mod", mod_current, name]);
+
+#define init
+	addScript("obj_create");
+	addScript("instances_in_rectangle");
+	addScript("instances_meeting");
+	addScript("instance_nearest_rectangle");
+	addScript("player_swap");
+	addScript("projectile_create");
+	addScript("projectile_euphoria");
+	addScript("sound_play_at");
+	addScript("pool");
+	script_ref_call(["mod", "lib", "updateRef"]);
+	
+	global.objects = ds_map_create();
+	
+#define obj_setup(_mod, _name)
+/* Creator: Golden Epsilon
+Description: 
+	Sets up a custom object to be created using obj_create.
+	Should only be run from .mod.gml-style mods
+Arguments:
+	_mod : the name of the mod that has the relevant scripts
+	_name : the name of the object (make sure this is unique)
+*/
+	global.objects[? _name] = {
+		setup : false,
+		type : "mod", 
+		modName : _mod, 
+		name : _name
+	};
+
 #define obj_create(_x, _y, _name)
-/* Creator: Yokin
+/* Creator: Yokin (modified by Golden Epsilon)
 Description: 
 	Creates an object, vanilla or custom, and sets up scripts for it automatically.
+	If it is a custom object, run obj_setup for it before running obj_create 
+	(you only need to run obj_setup once for each object, though)
+Arguments:
+	_x : the x position of the object when created
+	_y : the y position of the object when created
+	_mod : the name of the mod you are spawning the object from
+	_name : the name of the object to create
 Returns:
 	The created object.
 */
-     // Vanilla Objects:
-	if(is_real(_name) && object_exists(_name)){
-		return instance_create(_x, _y, _name);
-	}
-	
-	var o = noone;
-	
-	if(mod_script_exists("mod", mod_current, string(_name) + "_create")) o = mod_script_call("mod", mod_current, string(_name) + "_create", _x, _y);
-
-     // Instance Stuff:
-	if(instance_exists(o)) with(o){
-		name = _name;
-	
-		 // Auto Script Binding:
-		with([
-			
-			 // General:
-			"_begin_step",
-			"_step",
-			"_end_step",
-			"_draw",
-			"_destroy",
-			"_cleanup",
-			
-			 // Hitme/Enemy:
-			"_hurt",
-			"_death",
-			
-			 // Projectile:
-			"_anim",
-			"_wall",
-			"_hit",
-			
-			 // Slash:
-			"_grenade",
-			"_projectile"
-		]){
-			var _var =  "on" + self,
-				_scr = _name + self;
-			
-			if(mod_script_exists("mod", mod_current, _scr)){
-				var _ref = script_ref_create_ext("mod", mod_current, _scr);
-				variable_instance_set(o, _var, _ref);
+    
+     // Normal Object:
+    if(is_real(_name) && object_exists(_name)){
+        return instance_create(_x, _y, _name);
+    }
+    
+     // Custom Object:
+    if(ds_map_exists(global.objects, _name)){
+		var obj = global.objects[? _name];
+		if(!obj.setup){
+			global.objects[? _name].setup = true;
+			 // Auto Script Binding (thanks bee):
+			with([
+				
+				 // General:
+				"_begin_step",
+				"_step",
+				"_end_step",
+				"_draw",
+				"_destroy",
+				"_cleanup",
+				
+				 // Hitme/Enemy:
+				"_hurt",
+				"_death",
+				
+				 // Projectile:
+				"_anim",
+				"_wall",
+				"_hit",
+				
+				 // Slash:
+				"_grenade",
+				"_projectile"
+			]){
+				var _var =  "on" + self,
+					_scr = _name + self;
+				
+				if(mod_script_exists(obj.type, obj.modName, _scr)){
+					var _ref = script_ref_create_ext(obj.type, obj.modName, _scr);
+					variable_instance_set(global.objects[? _name], _var, _ref);
+				} else {
+					variable_instance_set(global.objects[? _name], _var, undefined);
+				}
 			}
-			
-			else {
-				switch(self) {
-					case "_step": 
-						if(instance_is(o, CustomEnemy)) o.on_step = script_ref_create_ext("mod", mod_current, "enemy_step"); 
-						else if(instance_is(o, CustomHitme)) o.on_step = script_ref_create_ext("mod", mod_current, "hitme_step"); 
-					break;
-					case "_hurt": if(instance_is(o, hitme)) o.on_hurt = script_ref_create_ext("mod", mod_current, "enemy_hurt"); break;
-					case "_death": if(instance_is(o, CustomEnemy)) o.on_death = script_ref_create_ext("mod", mod_current, "enemy_death"); break;
-					case "_draw": if(instance_is(o, CustomEnemy)) o.on_draw = script_ref_create_ext("mod", mod_current, "draw_self_enemy"); break;
+		
+			for(var i = 0; i <= 11; i++) {
+				var _alrm = "_alrm" + string(i);
+				
+				if(mod_script_exists(obj.type, obj.modName, string(_name) + _alrm)){
+					var _ref = script_ref_create_ext(obj.type, obj.modName, string(_name) + _alrm);
+					variable_instance_set(global.objects[? _name], "on" + _alrm, _ref);
+				} else {
+					variable_instance_set(global.objects[? _name], "on" + _alrm, undefined);
 				}
 			}
 			
-			if(instance_is(o, hitme)) {
-				if(variable_instance_exists(o, "spr_idle")) o.sprite_index = o.spr_idle;
-				if(instance_is(o, CustomEnemy)) o.target = noone;
-			}
+			//need to update obj because setup probably added stuff to the variable behind it
+			obj = global.objects[? _name];
 		}
 		
-		for(var i = 0; i <= 11; i++) {
-			var _alrm = "_alrm" + string(i);
+		var _inst = script_ref_call([obj.type, obj.modName, obj.name + "_create"], 0, 0);
+            
+         // No Return Value:
+        if(is_undefined(_inst) || _inst == 0){
+            _inst = noone;
+        }
+        
+         // Auto Assign Things:
+        if(is_real(_inst) && instance_exists(_inst)){
+			with([
+				
+				 // General:
+				"_begin_step",
+				"_step",
+				"_end_step",
+				"_draw",
+				"_destroy",
+				"_cleanup",
+				
+				 // Hitme/Enemy:
+				"_hurt",
+				"_death",
+				
+				 // Projectile:
+				"_anim",
+				"_wall",
+				"_hit",
+				
+				 // Slash:
+				"_grenade",
+				"_projectile"
+			]){
+				var _var =  "on" + self;
+				if(variable_instance_get(global.objects[? _name], _var) != undefined){
+					variable_instance_set(_inst, _var, variable_instance_get(global.objects[? _name], _var));
+				}
+				
+				else {
+					switch(self) {
+						case "_step": 
+							if(instance_is(_inst, CustomEnemy)) _inst.on_step = script_ref_create_ext(obj.type, obj.modName, "enemy_step"); 
+							else if(instance_is(_inst, CustomHitme)) _inst.on_step = script_ref_create_ext(obj.type, obj.modName, "hitme_step"); 
+						break;
+						case "_hurt": if(instance_is(_inst, hitme)) _inst.on_hurt = script_ref_create_ext(obj.type, obj.modName, "enemy_hurt"); break;
+						case "_death": if(instance_is(_inst, CustomEnemy)) _inst.on_death = script_ref_create_ext(obj.type, obj.modName, "enemy_death"); break;
+						case "_draw": if(instance_is(_inst, CustomEnemy)) _inst.on_draw = script_ref_create_ext(obj.type, obj.modName, "draw_self_enemy"); break;
+					}
+				}
+			}
 			
-			if(mod_script_exists("mod", mod_current, string(_name) + _alrm)){
-				var _ref = script_ref_create_ext("mod", mod_current, string(_name) + _alrm);
-				variable_instance_set(o, "on" + _alrm, _ref);
+			for(var i = 0; i <= 11; i++) {
+				var _alrm = "_alrm" + string(i);
+				
+				if(variable_instance_get(global.objects[? _name], "on" + _alrm) != undefined){
+					variable_instance_set(_inst, "on" + _alrm, variable_instance_get(global.objects[? _name], "on" + _alrm));
+				}
+			}
+					
+			if(instance_is(_inst, hitme)) {
+				if(variable_instance_exists(_inst, "spr_idle")) _inst.sprite_index = _inst.spr_idle;
+				if(instance_is(_inst, CustomEnemy)) _inst.target = noone;
+			}
+		}
+        
+        return _inst;
+    }
+    
+     // Return List of Objects:
+    if(is_undefined(_name)){
+        var _list = [];
+        
+        for(var i = lq_size(global.objects) - 1; i >= 0; i--){
+            array_push(_list, lq_get_key(global.objects, i));
+        }
+        
+        return _list;
+    }
+    
+    return noone;
+	
+//This section of code is for obj_create, based on Tildebee code from Relics. Thanks bee!
+#macro  infinity                                                                                1/0
+#macro  anim_end                                                                                (image_index + image_speed >= image_number) || (image_index + image_speed < 0)
+#macro  enemy_sprite                                                                            (sprite_index != spr_hurt || anim_end) ? ((speed == 0) ? spr_idle : spr_walk) : sprite_index
+#macro  target_visible                                                                          !collision_line(x, y, target.x, target.y, Wall, false, false)
+#macro  target_direction                                                                        point_direction(x, y, target.x, target.y)
+#macro  target_distance                                                                         point_distance(x, y, target.x, target.y)
+#macro  alarm0_run                                                                              alarm0 && !--alarm0 && !--alarm0 && (script_ref_call(on_alrm0) || !instance_exists(self))
+#macro  alarm1_run                                                                              alarm1 && !--alarm1 && !--alarm1 && (script_ref_call(on_alrm1) || !instance_exists(self))
+#macro  alarm2_run                                                                              alarm2 && !--alarm2 && !--alarm2 && (script_ref_call(on_alrm2) || !instance_exists(self))
+#macro  alarm3_run                                                                              alarm3 && !--alarm3 && !--alarm3 && (script_ref_call(on_alrm3) || !instance_exists(self))
+#macro  alarm4_run                                                                              alarm4 && !--alarm4 && !--alarm4 && (script_ref_call(on_alrm4) || !instance_exists(self))
+#macro  alarm5_run                                                                              alarm5 && !--alarm5 && !--alarm5 && (script_ref_call(on_alrm5) || !instance_exists(self))
+#macro  alarm6_run                                                                              alarm6 && !--alarm6 && !--alarm6 && (script_ref_call(on_alrm6) || !instance_exists(self))
+#macro  alarm7_run                                                                              alarm7 && !--alarm7 && !--alarm7 && (script_ref_call(on_alrm7) || !instance_exists(self))
+#macro  alarm8_run                                                                              alarm8 && !--alarm8 && !--alarm8 && (script_ref_call(on_alrm8) || !instance_exists(self))
+#macro  alarm9_run                                                                              alarm9 && !--alarm9 && !--alarm9 && (script_ref_call(on_alrm9) || !instance_exists(self))
+#define chance(_numer, _denom)                                                          		return  random(_denom) < _numer;
+#define chance_ct(_numer, _denom)                                                       		return  random(_denom) < _numer * current_time_scale;
+#define orandom(_num)                                                                   		return  random_range(-_num, _num);
+#define draw_self_enemy()                                                                       image_xscale *= right; draw_self(); image_xscale /= right;
+#define draw_self_gun()																			if(gunangle <= 180) draw_weapon(spr_weap, 0, x, y, gunangle, 0, wkick, right, image_blend, image_alpha); draw_self_enemy(); if(gunangle > 180) draw_weapon(spr_weap, 0, x, y, gunangle, 0, wkick, right, image_blend, image_alpha);
+#define enemy_walk(_dir, _num)                                                                  direction = _dir; walk = _num; if(speed < friction) speed = friction;
+#define enemy_face(_dir)                                                                        _dir = ((_dir % 360) + 360) % 360; if(_dir < 90 || _dir > 270) right = 1; else if(_dir > 90 && _dir < 270) right = -1;
+#define enemy_look(_dir)                                                                        _dir = ((_dir % 360) + 360) % 360; if(_dir < 90 || _dir > 270) right = 1; else if(_dir > 90 && _dir < 270) right = -1; if('gunangle' in self) gunangle = _dir;
+#define enemy_target(_x, _y)                                                                    target = (instance_exists(Player) ? instance_nearest(_x, _y, Player) : ((instance_exists(target) && target >= 0) ? target : noone)); return (target != noone);
+
+#define enemy_step
+	 // Alarms:
+	if("on_alrm0" in self and alarm0_run) exit;
+	if("on_alrm1" in self and alarm1_run) exit;
+	if("on_alrm2" in self and alarm2_run) exit;
+	if("on_alrm3" in self and alarm3_run) exit;
+	if("on_alrm4" in self and alarm4_run) exit;
+	if("on_alrm5" in self and alarm5_run) exit;
+	if("on_alrm6" in self and alarm6_run) exit;
+	if("on_alrm7" in self and alarm7_run) exit;
+	if("on_alrm8" in self and alarm8_run) exit;
+	if("on_alrm9" in self and alarm9_run) exit;
+	
+	 // Movement:
+	if(walk > 0){
+		walk -= current_time_scale;
+		speed += walkspeed * current_time_scale;
+	}
+	if(speed > maxspeed){
+		speed = maxspeed;
+	}
+	
+	 // Animate:
+	sprite_index = enemy_sprite;
+	
+#define hitme_step
+	if(place_meeting(x + hspeed, y + vspeed, Wall)) move_bounce_solid(true);
+	
+	 // Handle enemies:
+	with(instances_meeting(x, y, enemy)){
+		if(projectile_canhit_melee(other) && "canmelee" in self && canmelee && meleedamage > 0){
+			projectile_hit(other, meleedamage);
+		}
+		
+		with(other){
+			if(projectile_canhit_melee(other)){
+				projectile_hit(other, 3);
+				sound_play_pitch(sndFreakMelee, 1.2 + random(0.4));
 			}
 		}
 	}
 	
-	else {
-		o = global.obj_list;
-	}
+#define enemy_hurt(_damage, _force, _direction)
+	my_health -= _damage;           // Damage
+	nexthurt = current_frame + 6;   // I-Frames
+	motion_add(_direction, _force); // Knockback
+	sound_play_hit(snd_hurt, 0.2);  // Sound
 	
-	 // Important:
-	return o;
+	 // Hurt Sprite:
+	sprite_index = spr_hurt;
+	image_index  = 0;
+	
+#define enemy_death
+	pickup_drop(20, 0);
+
+//Now back to your regularly scheduled module code
 
 #define instances_in_rectangle(_x1, _y1, _x2, _y2, _obj)
 	/*
