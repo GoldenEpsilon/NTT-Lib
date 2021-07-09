@@ -23,6 +23,8 @@
 	mod_variable_set("mod", "lib", "scriptReferences", ["mod", mod_current, name]);
 
 #define init
+	addScript("obj_setup");
+	addScript("obj_setup_ext");
 	addScript("obj_create");
 	addScript("instances_in_rectangle");
 	addScript("instances_meeting");
@@ -48,6 +50,22 @@ Arguments:
 	global.objects[? _name] = {
 		setup : false,
 		type : "mod", 
+		modName : _mod, 
+		name : _name
+	};
+	
+#define obj_setup_ext(_mod, _name, _type)
+/* Creator: Golden Epsilon
+Description: 
+	Sets up a custom object to be created using obj_create.
+Arguments:
+	_mod : the name of the mod that has the relevant scripts
+	_name : the name of the object (make sure this is unique)
+	_type : the type of the mod that has the object's scripts
+*/
+	global.objects[? _name] = {
+		setup : false,
+		type : _type, 
 		modName : _mod, 
 		name : _name
 	};
