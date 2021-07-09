@@ -45,8 +45,14 @@ Description:
 	Should only be run from .mod.gml-style mods
 Arguments:
 	_mod : the name of the mod that has the relevant scripts
-	_name : the name of the object (make sure this is unique)
+	_name : the name of the object (make sure this is unique) (can be an array)
 */
+	if(is_array(_name)){
+		for(var i = 0; i < array_length(_name); i++){
+			obj_setup(_mod, _name[i]);
+		}
+		return;
+	}
 	global.objects[? _name] = {
 		setup : false,
 		type : "mod", 
@@ -60,9 +66,15 @@ Description:
 	Sets up a custom object to be created using obj_create.
 Arguments:
 	_mod : the name of the mod that has the relevant scripts
-	_name : the name of the object (make sure this is unique)
+	_name : the name of the object (make sure this is unique) (can be an array)
 	_type : the type of the mod that has the object's scripts
 */
+	if(is_array(_name)){
+		for(var i = 0; i < array_length(_name); i++){
+			obj_setup_ext(_mod, _name[i], _type);
+		}
+		return;
+	}
 	global.objects[? _name] = {
 		setup : false,
 		type : _type, 
@@ -79,11 +91,17 @@ Description:
 Arguments:
 	_x : the x position of the object when created
 	_y : the y position of the object when created
-	_mod : the name of the mod you are spawning the object from
-	_name : the name of the object to create
+	_name : the name of the object to create (can be an array bcuz wynaut)
 Returns:
 	The created object.
 */
+	if(is_array(_name)){
+		var _insts = [];
+		for(var i = 0; i < array_length(_name); i++){
+			array_push(_insts, obj_create(_x, _y, _name[i]));
+		}
+		return _insts;
+	}
     
      // Normal Object:
     if(is_real(_name) && object_exists(_name)){
