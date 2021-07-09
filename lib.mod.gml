@@ -14,7 +14,7 @@ Description:
 	If you do not use this function, you cannot access
 	the features of this mod.
 Usage:
-	script_call(["mod", "lib", "import"], "libPackageName");
+	script_ref_call(["mod", "lib", "import"], "libPackageName");
 */
 if(!lq_exists(global.loadedPackages, package)){
 	lq_set(global.loadedPackages, package, 1);
@@ -26,3 +26,5 @@ if(!lq_exists(global.loadedPackages, package)){
 
 	mod_load("../../mods/lib/" + package);
 }
+
+#macro URL "https://raw.githubusercontent.com/GoldenEpsilon/NTT-Lib/main/"

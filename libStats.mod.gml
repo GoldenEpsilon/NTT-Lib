@@ -12,7 +12,7 @@ Description:
 	Heals the player if Max HP increases, cannot kill by removing max HP.
 Usage:
 	with(Player) {
-		script_call(["mod", "libStats", "changeHP"], self, 4);
+		script_ref_call(["mod", "libStats", "changeHP"], self, 4);
 	}
 */
 player.maxhealth += amount;
@@ -27,7 +27,7 @@ Description:
 	A value of 2 means the player has half the accuracy.
 Usage:
 	with(Player) {
-		script_call(["mod", "libStats", "changeAccuracy"], self, 2);
+		script_ref_call(["mod", "libStats", "changeAccuracy"], self, 2);
 	}
 */
 player.accuracy *= amount;
