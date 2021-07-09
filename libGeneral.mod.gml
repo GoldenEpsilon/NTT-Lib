@@ -7,6 +7,8 @@
 
 /*
 	Scripts:
+		#define obj_setup(_mod, _name)
+		#define obj_setup_ext(_mod, _name, _type)
 		#define obj_create(_x, _y, _name)
 		#define instances_in_rectangle(_x1, _y1, _x2, _y2, _obj)
 		#define instances_meeting(_x, _y, _obj)
@@ -16,6 +18,7 @@
 		#define projectile_euphoria(_inst)
 		#define sound_play_at (x, y, sound, ?pitch=1, ?volume=1, ?fadeDis=64, ?fadeFactor=1)
 		#define pool(_pool)
+		#define fx(_x, _y, _motion, _object)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -34,6 +37,7 @@
 	addScript("projectile_euphoria");
 	addScript("sound_play_at");
 	addScript("pool");
+	addScript("fx");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	
 	global.objects = ds_map_create();
@@ -91,7 +95,7 @@ Description:
 Arguments:
 	_x : the x position of the object when created
 	_y : the y position of the object when created
-	_name : the name of the object to create (can be an array bcuz wynaut)
+	_name : the name/id of the object to create (can be an array bcuz wynaut)
 Returns:
 	The created object.
 */
@@ -613,3 +617,43 @@ Returns:
 	}
 	
 	return null;
+
+#define fx(_x, _y, _motion, _object)
+	/*
+		Creates a given Effect object with the given motion applied
+		Automatically reorients the effect towards its new direction
+		
+		Args:
+			x/y    - Spawn position, can be a 2-element array for [position, randomized offset]
+			motion - Can be a speed to apply toward a random direction, or a 2-element array to apply a [direction, speed]
+			object - The effect's object index, or an NT:TE object name
+			
+		Ex:
+			fx([x, 4], [y, 4], 3, Dust)
+			fx(x, y, [90 + orandom(30), random(3)], AcidStreak);
+	*/
+	
+	with(obj_create(
+		(is_array(_x) ? (_x[0] + orandom(_x[1])) : _x),
+		(is_array(_y) ? (_y[0] + orandom(_y[1])) : _y),
+		_object
+	)){
+		var _face = (image_angle == direction || (speed == 0 && (object_index == AcidStreak || object_index == BloodStreak)));
+		
+		 // Motion:
+		if(is_array(_motion)){
+			motion_add(_motion[0], _motion[1]);
+		}
+		else{
+			motion_add(random(360), _motion);
+		}
+		
+		 // Facing:
+		if(_face){
+			image_angle = direction;
+		}
+		
+		return self;
+	}
+	
+	return noone;
