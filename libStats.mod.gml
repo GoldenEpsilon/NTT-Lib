@@ -1,9 +1,19 @@
-/*	                Stats
+/*	                 Stats
 	This is the Stats package of Lib, for any and
 	all modifications of player stats.
-	Because this is relatively basic, this is also
-	essentially the example module.
 */
+
+#define heal(obj, amount)
+/* Creator: Golden Epsilon
+Description: 
+	Heals a hitme by the amount.
+	Does not heal past the hitme's Max HP.
+Usage:
+	with(Player) {
+		script_call(["mod", "libStats", "heal"], self, 4);
+	}
+*/
+obj.my_health = min(obj.my_health + amount, obj.maxhealth);
 
 #define changeHP(player, amount)
 /* Creator: Golden Epsilon
@@ -12,7 +22,7 @@ Description:
 	Heals the player if Max HP increases, cannot kill by removing max HP.
 Usage:
 	with(Player) {
-		script_ref_call(["mod", "libStats", "changeHP"], self, 4);
+		script_call(["mod", "libStats", "changeHP"], self, 4);
 	}
 */
 player.maxhealth += amount;
@@ -27,7 +37,21 @@ Description:
 	A value of 2 means the player has half the accuracy.
 Usage:
 	with(Player) {
-		script_ref_call(["mod", "libStats", "changeAccuracy"], self, 2);
+		script_call(["mod", "libStats", "changeAccuracy"], self, 2);
 	}
 */
 player.accuracy *= amount;
+
+#define changeSpeed(player, amount)
+/* Creator: Golden Epsilon
+Description: 
+	Changes a player's Speed by the amount.
+	Speed is limited to between 0.1 and 25 for being reasonable.
+	NOTE: 25 can still clip the player out of bounds just by walking around.
+Usage:
+	with(Player) {
+		script_call(["mod", "libStats", "changeAccuracy"], self, 2);
+	}
+*/
+player.maxspeed += amount;
+player.maxspeed = min(max(player.maxspeed, 0.1), 25);
