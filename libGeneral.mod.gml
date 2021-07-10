@@ -238,13 +238,7 @@ Returns:
     
      // Return List of Objects:
     if(is_undefined(_name)){
-        var _list = [];
-        
-        for(var i = ds_map_size(global.objects) - 1; i >= 0; i--){
-            array_push(_list, lq_get_key(global.objects, i).name);
-        }
-        
-        return _list;
+        return ds_map_keys(global.objects);
     }
     
     return noone;
