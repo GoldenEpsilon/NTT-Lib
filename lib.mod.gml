@@ -18,7 +18,7 @@ Description:
 Usage:
 	script_ref_call(["mod", "lib", "import"], "libPackageName");
 */
-if(!lq_exists(global.loadedPackages, package)){
+if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
 	lq_set(global.loadedPackages, package, 1);
 	
 	file_delete("../../mods/lib/" + package + ".mod.gml");
