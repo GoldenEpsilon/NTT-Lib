@@ -231,6 +231,8 @@ Returns:
 				if(variable_instance_exists(_inst, "spr_idle")) _inst.sprite_index = _inst.spr_idle;
 				if(instance_is(_inst, CustomEnemy)) _inst.target = noone;
 			}
+			
+			_inst.name = _name;
 		}
         
         return _inst;
