@@ -245,6 +245,22 @@ Returns:
     
     return noone;
 	
+#define obj_create_ext(_x, _y, _name, _mod)
+/* Creator: Golden Epsilon
+Description: 
+	Same as obj_create, but also runs obj_setup.
+	Only here for if you're lazy, using obj_setup and obj_create separately is recommended.
+Arguments:
+	_x : the x position of the object when created
+	_y : the y position of the object when created
+	_name : the name/id of the object to create (can't be an array)
+	_mod : the name of the mod the object is from
+Returns:
+	The created object.
+*/
+obj_setup(_mod, _name);
+return obj_create(_x,_y,_name);
+
 //This section of code is for obj_create, based on Tildebee code from Relics. Thanks bee!
 #macro  infinity                                                                                1/0
 #macro  anim_end                                                                                (image_index + image_speed >= image_number) || (image_index + image_speed < 0)

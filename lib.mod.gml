@@ -8,6 +8,8 @@
 global.loadedPackages = {};
 global.scriptReferences = {};
 global.activeReferences = [];
+global.lastid = instance_create(0, 0, DramaCamera);
+global.level_loading = false;
 
 #define import(package)
 /* Creator: Golden Epsilon
@@ -20,6 +22,10 @@ Usage:
 */
 if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
 	lq_set(global.loadedPackages, package, 1);
+	
+	try{
+		mod_load("../../mods/lib/" + package);
+	}catch(err){}
 	
 	file_delete("../../mods/lib/" + package + ".mod.gml");
 	while (file_exists("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
@@ -41,25 +47,59 @@ if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
 // script_ref_call(global.scr.obj_create, 0, 0, Bandit);
 // instead of
 // script_ref_call(["mod", "libGeneral", "obj_create"], 0, 0, Bandit);
-// (you can also simplify to 
-// call(scr.obj_create, 0, 0, Bandit); 
-// with macros)
+
+// ALSO, calling this function makes this mod call function hooks automatically.
+// Hooks are:
+// update : gets called whenever a new object is created, and passes in a list of the new objects. (does NOT include CustomStep or CustomDraws)
+// level_start : gets called when the level starts
 
 mod_variable_set(_type, _mod, _name, global.scriptReferences);
 array_push(global.activeReferences, [_type, _mod, _name]);
 
 #define updateRef
 // For internal use.
-for(var i = 0; i < array_length(global.activeReferences); i++){
-	mod_variable_set(global.activeReferences[i][0], global.activeReferences[i][1], global.activeReferences[i][2], global.scriptReferences);
+with(global.activeReferences){
+	mod_variable_set(self[0], self[1], self[2], global.scriptReferences);
 }
 
 #define functionList
 // prints to the chat all loaded functions.
 // Mainly for a reference for modders, I don't expect this to be used much though.
 // Only traces the module name and function name, does NOT print parameters.
-for(var i = 0; i < array_length(global.scriptReferences); i++){
-	trace(global.scriptReferences[i][1] + ": " + global.scriptReferences[i][2]);
+with(global.scriptReferences){
+	trace(self[1] + ": " + self[2]);
 }
 
 #macro URL "https://raw.githubusercontent.com/GoldenEpsilon/NTT-Lib/main/"
+
+
+#define step
+//update
+var newID = instance_create(0, 0, DramaCamera);
+var idlist = [];
+while(global.lastid++ < newID){
+    if(instance_exists(global.lastid)){
+		if("object_index" in global.lastid){
+			var obj = global.lastid.object_index;
+			if(object_get_parent(obj) != CustomScript && obj != CustomScript){
+				array_push(idlist, global.lastid);
+			}
+		}
+    }
+}
+if(array_length(idlist)){
+	with(global.activeReferences){
+		script_ref_call([self[0], self[1], "update"], idlist);
+	}
+}
+
+//level_start
+if(instance_exists(GenCont) || instance_exists(Menu)){
+	global.level_loading = true;
+}
+else if(global.level_loading){
+	global.level_loading = false;
+	with(global.activeReferences){
+		script_ref_call([self[0], self[1], "level_start"]);
+	}
+}
