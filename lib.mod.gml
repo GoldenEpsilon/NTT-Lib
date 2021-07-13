@@ -50,7 +50,8 @@ if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
 
 // ALSO, calling this function makes this mod call function hooks automatically.
 // Hooks are:
-// update : gets called whenever a new object is created, and passes in a list of the new objects. (does NOT include CustomStep or CustomDraws)
+// update : gets called whenever a new object is created, and passes in the latest ID from the frame before.
+//          (does NOT include Effect objects or Custom Script objects)
 // level_start : gets called when the level starts
 
 mod_variable_set(_type, _mod, _name, global.scriptReferences);
@@ -61,6 +62,10 @@ array_push(global.activeReferences, [_type, _mod, _name]);
 with(global.activeReferences){
 	mod_variable_set(self[0], self[1], self[2], global.scriptReferences);
 }
+
+#define loadText(path)
+// For internal use.
+mod_loadtext(path);
 
 #define functionList
 // prints to the chat all loaded functions.
@@ -76,20 +81,26 @@ with(global.scriptReferences){
 #define step
 //update
 var newID = instance_create(0, 0, DramaCamera);
-var idlist = [];
-while(global.lastid++ < newID){
-    if(instance_exists(global.lastid)){
-		if("object_index" in global.lastid){
-			var obj = global.lastid.object_index;
-			if(object_get_parent(obj) != CustomScript && obj != CustomScript){
-				array_push(idlist, global.lastid);
+var updateid = global.lastid;
+var lid = global.lastid;
+while(updateid++ < newID){
+    if(instance_exists(updateid)){
+		if("object_index" in updateid){
+			var obj = updateid.object_index;
+			if(object_get_parent(obj) == Effect || obj == Effect || object_get_parent(obj) == CustomScript || obj == CustomScript){
+				lid++;
 			}
+		}else{
+			lid++;
 		}
-    }
+    }else{
+		lid++;
+	}
 }
-if(array_length(idlist)){
+global.lastid = lid;
+if(newID > global.lastid){
 	with(global.activeReferences){
-		script_ref_call([self[0], self[1], "update"], idlist);
+		script_ref_call([self[0], self[1], "update"], global.lastid);
 	}
 }
 
