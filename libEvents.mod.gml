@@ -24,10 +24,6 @@
 		Event_cleanup : The event's cleanup code, called from its controller object when it's destroyed (usually when the level ends)
 */
 
-/*
-||||||||||||||||||||||||UNFINISHED PACKAGE||||||||||||||||||||||||||||
-*/
-
 //For internal use, adds the script to be easily usable.
 #define addScript(name)
 	var ref = mod_variable_get("mod", "lib", "scriptReferences");
@@ -51,61 +47,14 @@
 	 // Event Execution Order:
 	event_list = [];
 	
+	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
+	
 #define update
 	 // Loading Screen:
 	if(instance_exists(GenCont) && GenCont.id > _newID){
-		 // NT:TE Tips:
-		var _lastSeed = random_get_seed();
-		with(instances_matching_gt(GenCont, "id", _newID)){
-			tip_ntte = "";
-			
-			 // Scythe:
-			if(GameCont.hard > 1){
-				if(global.scythe_tip_index != -1){
-					var _scythe = false;
-					with(Player){
-						if(wep_raw(wep) == "scythe" || wep_raw(bwep) == "scythe"){
-							_scythe = true;
-							break;
-						}
-					}
-					if(_scythe){
-						tip_ntte = global.scythe_tip[global.scythe_tip_index];
-						global.scythe_tip_index = min(global.scythe_tip_index + 1, array_length(global.scythe_tip) - 1);
-					}
-				}
-			}
-			
-			 // Pets:
-			if(tip_ntte == "" && chance(1, 14)){
-				var	_player = array_shuffle(instances_matching_ne(Player, "ntte_pet", null)),
-					_tip    = "";
-					
-				with(_player){
-					var _pet = array_shuffle(array_clone(ntte_pet));
-					with(instances_matching_ne(_pet, "id", null)){
-						_tip = mod_script_call("mod", "telib", "pet_get_ttip", pet, mod_type, mod_name, bskin);
-						if(_tip != ""){
-							break;
-						}
-					}
-					if(_tip != ""){
-						break;
-					}
-				}
-				
-				tip_ntte = _tip;
-			}
-			
-			 // Set Tip:
-			if(tip_ntte != ""){
-				tip = tip_ntte;
-			}
-		}
-		random_set_seed(_lastSeed);
 		
 		 // Setup Events:
-		var _list = mod_variable_get("mod", "teevents", "event_list");
+		var _list = event_list;
 		for(var i = 0; i < array_length(_list); i++){
 			var	_scrt    = _list[i],
 				_modType = _scrt[0],
@@ -121,7 +70,7 @@
 						_chance = mod_script_call(_modType, _modName, _name + "_chance");
 					}
 					if(chance(_chance, 1)){
-						teevent_set_active(_name, true);
+						event_set_active(_name, true);
 					}
 				}
 			}
@@ -130,7 +79,7 @@
 
 #define level_start
 	 // Activate Events:
-	with(teevent_get_active(all)){
+	with(event_get_active(all)){
 		x = 0;
 		y = 0;
 		
@@ -176,7 +125,7 @@
 #define event_add(_event)
 	/*
 		Adds a given event script reference to the list of events
-		If the given event is a string then a script reference is automatically generated for teevents.mod
+		If the given event is a string then a script reference is automatically generated
 		
 		Ex:
 			event_add(script_ref_create_ext(mod_type_current, mod_current, "MaggotPark"));
@@ -226,9 +175,9 @@
 					
 					 // Tip:
 					if(is_string(other.tip) && other.tip != ""){
-						if("tip_ntte_event" not in self){
-							tip_ntte_event = other.tip;
-							tip            = tip_ntte_event;
+						if("tip_event" not in self){
+							tip_event = other.tip;
+							tip       = tip_event;
 						}
 					}
 				}
@@ -266,3 +215,5 @@
 	}
 	
 	return noone;
+	
+#define chance(_numer, _denom)                                                          		return  random(_denom) < _numer;
