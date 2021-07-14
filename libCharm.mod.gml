@@ -17,8 +17,18 @@
 
 #define init
 	script_ref_call(["mod", "lib", "updateRef"]);
+	
+	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
+	
+	charm_object        = [hitme, becomenemy, ReviveArea, NecroReviveArea, RevivePopoFreak];
+	charm_instance_list = [];
+	charm_instance_vars = [];
+	charm_bind_draw     = [];
+	for(var i = -1; i < maxp; i++){
+		array_push(charm_bind_draw, script_bind(CustomDraw, script_ref_create(charm_draw, [], i), 0, false));
+	}
 
-#define ntte_update(_newID)
+#define update(_newID)
 	if(array_length(charm_instance_list)){
 		 // Grab Charmed Objects:
 		with(charm_object){
@@ -552,86 +562,6 @@
 		}
 	}
 	
-#define ntte_end_step
-	 /// ULTRA B : Flock Together / HP Link
-	if(instance_exists(Player)){
-		var _instParrot = instances_matching(Player, "race", mod_current);
-		if(array_length(_instParrot)) with(_instParrot){
-			if(ultra_get(mod_current, ult_flock) > 0 && array_length(charm_instance_list)){
-				var _instHP = ds_list_create();
-				
-				 // Gather Charmed Bros:
-				with(instances_matching_gt(charm_instance_list, "my_health", 0)){
-					if(ntte_charm.charmed && ntte_charm.index == other.index){
-						ds_list_add(_instHP, self);
-					}
-				}
-				
-				 // Steal Charmed Bro HP:
-				var _num = ds_list_size(_instHP);
-				if(_num > 0){
-					if(sprite_index == spr_hurt && my_health < ntte_charm_flock_hp){
-						ntte_charm_flock_hp = ceil(lerp(ntte_charm_flock_hp, my_health, 0.5));
-						
-						ds_list_shuffle(_instHP);
-						
-						var _damageRaw = (ntte_charm_flock_hp - my_health) / _num;
-						
-						for(var i = 0; i < _num; i++){
-							var _damage = (
-								((i / _num) < frac(_damageRaw))
-								?  ceil(_damageRaw)
-								: floor(_damageRaw)
-							);
-							if(_damage > 0){
-								var _inst = _instHP[| i];
-								my_health += min(_damage, max(0, _inst.my_health));
-								projectile_hit_raw(_inst, _damage, true);
-								if(!instance_exists(_inst) || _inst.my_health <= 0){
-									ds_list_remove(_instHP, _inst);
-								}
-							}
-						}
-						
-						//my_health = ntte_charm_flock_hp;
-						//spiriteffect = max(spiriteffect, 6);
-					}
-					
-					 // HUD Health:
-					ntte_charm_flock_hud_hp     = 0;
-					ntte_charm_flock_hud_hp_max = 0;
-					with(ds_list_to_array(_instHP)){
-						other.ntte_charm_flock_hud_hp     += my_health;
-						other.ntte_charm_flock_hud_hp_max += maxhealth;
-					}
-				}
-				else ntte_charm_flock_hud_hp = 0;
-				
-				ds_list_destroy(_instHP);
-			}
-			else ntte_charm_flock_hud_hp = 0;
-			
-			 // Save Health:
-			ntte_charm_flock_hp = my_health;
-			
-			 // HUD Ghost Health:
-			if(ntte_charm_flock_hud_hp != ntte_charm_flock_hud_hp_lst){
-				var _add = 0.5 * current_time_scale;
-				ntte_charm_flock_hud_hp_lst += clamp(ntte_charm_flock_hud_hp - ntte_charm_flock_hud_hp_lst, -_add, _add);
-			}
-			ntte_charm_flock_hud_hp_lst = clamp(ntte_charm_flock_hud_hp_lst, ntte_charm_flock_hud_hp, ntte_charm_flock_hud_hp_max);
-			
-			 // Expand HUD:
-			var _hud = ((ntte_charm_flock_hud_hp > 0) ? 1 : 0);
-			if(ntte_charm_flock_hud != _hud){
-				if(abs(_hud - ntte_charm_flock_hud) > 0.01){
-					_hud = lerp_ct(ntte_charm_flock_hud, _hud, 1/3);
-				}
-				ntte_charm_flock_hud = _hud;
-			}
-		}
-	}
-	
 #define charm_instance_raw(_inst, _charm)
 	/*
 		Charms or uncharms the given instance(s) and returns a LWO containing their charm-related vars
@@ -961,11 +891,6 @@
 				}
 				else{
 					_inst = instances_matching(_inst, "creator", self, noone);
-				}
-				if(array_length(_inst)) with(_inst){
-					if(sprite_get_team(sprite_index) != 3){
-						team_instance_sprite(team, self);
-					}
 				}
 			}
 		}

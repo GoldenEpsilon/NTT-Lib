@@ -3,6 +3,14 @@
 	all modifications of player stats.
 */
 
+/*
+	Scripts:
+		#define heal(obj, amount)
+		#define changeHP(player, amount)
+		#define changeAccuracy(player, amount)
+		#define changeSpeed(player, amount)
+*/
+
 //For internal use, adds the script to be easily usable.
 #define addScript(name)
 	var ref = mod_variable_get("mod", "lib", "scriptReferences");
@@ -60,11 +68,14 @@ player.accuracy *= amount;
 Description: 
 	Changes a player's Speed by the amount.
 	Speed is limited to between 0.1 and 25 for being reasonable.
+	(Does not clamp speed if the player already has max speed faster or slower)
 	NOTE: 25 can still clip the player out of bounds just by walking around.
 Usage:
 	with(Player) {
 		script_call(["mod", "libStats", "changeAccuracy"], self, 2);
 	}
 */
-player.maxspeed += amount;
-player.maxspeed = min(max(player.maxspeed, 0.1), 25);
+if(player.maxspeed > 0.1 && player.maxspeed < 25){
+	player.maxspeed += amount;
+	player.maxspeed = min(max(player.maxspeed, 0.1), 25);
+}

@@ -18,6 +18,13 @@ global.forks = 0;
 
 
 #define generate_json(_version)
+/* Creator: Golden Epsilon
+Description: 
+	Generates the json to be used in the hosted directory
+Arguments:
+	_version
+	
+*/
 	if(fork()){
 		while("forks" in global && global.forks != 0){wait(0);}
 		if(!instance_exists(self)){return;}
@@ -113,7 +120,7 @@ with(global.updatables){
 			wait file_unload(self[0]+"version.json");
 			
 			updateFiles(newjson, self[0], self[1]);
-			mod_loadtext("../../mods/" + self[0] + "/" + "main.txt");
+			script_ref_call(["mod", "lib", "loadText"], "../../mods/" + self[0] + "/" + "main.txt");
 			exit;
 		}
 		return 1;

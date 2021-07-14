@@ -19,6 +19,8 @@
 		#define sound_play_at (x, y, sound, ?pitch=1, ?volume=1, ?fadeDis=64, ?fadeFactor=1)
 		#define pool(_pool)
 		#define fx(_x, _y, _motion, _object)
+		#define game_activate()
+		#define game_deactivate()
 */
 
 //For internal use, adds the script to be easily usable.
@@ -40,6 +42,8 @@
 	addScript("sound_play_at");
 	addScript("pool");
 	addScript("fx");
+	addScript("game_activate");
+	addScript("game_deactivate");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	
 	global.objects = ds_map_create();
@@ -671,3 +675,55 @@ return obj_create(_x,_y,_name);
 	}
 	
 	return noone;
+
+#define game_activate()
+	/*
+		Reactivates all objects and unpauses the game
+	*/
+	
+	with(UberCont) with(self){
+		event_perform(ev_alarm, 2);
+	}
+	
+#define game_deactivate()
+	/*
+		Deactivates all objects, except GmlMods & most controllers
+	*/
+	
+	with(UberCont) with(self){
+		var	_lastIntro = opt_bossintros,
+			_lastLoops = GameCont.loops,
+			_player    = noone;
+			
+		 // Ensure Boss Intro Plays:
+		opt_bossintros = true;
+		GameCont.loops = 0;
+		if(!instance_exists(Player)){
+			_player = instance_create(0, 0, GameObject);
+			with(_player){
+				instance_change(Player, false);
+			}
+		}
+		
+		 // Call Boss Intro:
+		with(instance_create(0, 0, GameObject)){
+			instance_change(BanditBoss, false);
+			with(self){
+				event_perform(ev_alarm, 6);
+			}
+			sound_stop(sndBigBanditIntro);
+			instance_delete(self);
+		}
+		
+		 // Reset:
+		alarm2         = -1;
+		opt_bossintros = _lastIntro;
+		GameCont.loops = _lastLoops;
+		with(_player){
+			instance_delete(self);
+		}
+		
+		 // Unpause Game, Then Deactivate Objects:
+		event_perform(ev_alarm, 2);
+		event_perform(ev_draw, ev_draw_post);
+	}

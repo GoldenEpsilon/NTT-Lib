@@ -10,6 +10,33 @@ global.scriptReferences = {};
 global.activeReferences = [];
 global.lastid = instance_create(0, 0, DramaCamera);
 global.level_loading = false;
+global.canLoad = undefined;
+//wait in case libloader's already done the work for you
+wait(2);
+if(global.canLoad == undefined){
+	//Check internet connection
+	file_download("http://worldclockapi.com/api/json/est/now", "ping.txt");
+	var d = 0;
+	while (!file_loaded("ping.txt")){
+		if d++ > 240 exit;
+		wait 1;
+	}
+	global.canLoad = true;
+	var str = string_load("ping.txt");
+	if(is_undefined(str)){
+		global.canLoad = false;
+	}else{
+		var json = json_decode(str)
+		if(json == json_error){
+			global.canLoad = false;
+		}
+	}
+
+	//Don't download anything if you're in multiplayer
+	if(player_is_active(1) || player_is_active(2) || player_is_active(3)){
+		global.canLoad = false;
+	}
+}
 
 #define import(package)
 /* Creator: Golden Epsilon
@@ -20,7 +47,8 @@ Description:
 Usage:
 	script_ref_call(["mod", "lib", "import"], "libPackageName");
 */
-if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
+while(global.canLoad == undefined){wait(1)}
+if(global.canLoad && !lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
 	lq_set(global.loadedPackages, package, 1);
 	
 	try{
@@ -53,6 +81,8 @@ if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
 // update : gets called whenever a new object is created, and passes in the latest ID from the frame before.
 //          (does NOT include Effect objects or Custom Script objects)
 // level_start : gets called when the level starts
+// You use a hook just by having a function with the right name (for example, #define update)
+// The function will be called when needed as long as the mod's called getRef at some point.
 
 mod_variable_set(_type, _mod, _name, global.scriptReferences);
 array_push(global.activeReferences, [_type, _mod, _name]);
