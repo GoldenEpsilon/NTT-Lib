@@ -23,20 +23,22 @@
 	global.forks = 0;
 
 #define autoupdate(_name, _repo)
-	if(array_length(string_split(_repo, "/")) != 2){trace("You need to format the string you pass into autoupdate this way: GitHubUsername/RepoName (it's in the url for the regular repo, there should only be 1 slash)");}
-	chat_comp_add("update"+_name, "Force-Updates "+_name+" to the latest version.");
-	array_push(global.updatables, [_name, _repo]);
+//returns 1 if it updated, 0 if it didn't.
+
+if(array_length(string_split(_repo, "/")) != 2){trace("You need to format the string you pass into autoupdate this way: GitHubUsername/RepoName (it's in the url for the regular repo, there should only be 1 slash)");}
+chat_comp_add("update"+_name, "Force-Updates "+_name+" to the latest version.");
+array_push(global.updatables, [_name, _repo]);
 
 //don't download anything in multiplayer
 if(player_is_active(1) || player_is_active(2) || player_is_active(3)){
-	return;
+	return 0;
 }
 
 //loading the previous version file. 
 //The version file is a list of commits github provides, this mod just checks the sha
 file_load(_name+"version.json");
 while (!file_loaded(_name+"version.json")) {wait 1;}
-var oldjson;
+var oldjson = false;
 if(file_exists(_name+"version.json")){
 	oldjson = json_decode(string_load(_name+"version.json"));
 }
@@ -53,12 +55,17 @@ while (!file_exists(_name+"version.json")) {wait 1;}
 var newjson = json_decode(string_load(_name+"version.json"));
 wait file_unload(_name+"version.json");
 while(global.forks > 0){wait(1);}
+if(oldjson == false){
+	return autoupdate(_name, _repo);
+}
 //When this if statement runs it replaces the files, so if you want to implement a backup here is where you do it
 if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson != json_error && is_array(newjson) && "sha" in newjson[0] && oldjson[0].sha != newjson[0].sha){
 	trace("There is an update for "+_name+"! updating...");
 	updateFiles(_name, _repo, "");
 	script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
+	return 1;
 }
+return 0;
 
 #define updateFiles(_name, _repo, _sub)
 	file_delete(_sub+"/"+_name+"files.json");
