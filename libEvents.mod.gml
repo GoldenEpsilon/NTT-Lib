@@ -134,7 +134,7 @@
 	var _scrt = (
 		is_array(argument[0])
 		? argument[0]
-		: script_ref_create_ext("mod", _mod, argument[1])
+		: script_ref_create_ext("mod", argument[0], argument[1])
 	);
 	
 	array_push(event_list, _scrt);
