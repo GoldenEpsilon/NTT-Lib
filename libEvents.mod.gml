@@ -122,7 +122,7 @@
 #macro event_tip  global.event_tip
 #macro event_list global.event_list
 
-#define event_add(_event, _mod)
+#define event_add
 	/*
 		Adds a given event script reference to the list of events
 		If the given event is a string then a script reference is automatically generated
@@ -132,9 +132,9 @@
 	*/
 	
 	var _scrt = (
-		is_array(_event)
-		? _event
-		: script_ref_create_ext("mod", _mod, _event)
+		is_array(argument[0])
+		? argument[0]
+		: script_ref_create_ext("mod", _mod, argument[1])
 	);
 	
 	array_push(event_list, _scrt);
@@ -177,7 +177,7 @@
 					if(is_string(other.tip) && other.tip != ""){
 						if("tip_event" not in self){
 							tip_event = other.tip;
-							tip       = tip_event;
+							tip       = event_tip + tip_event;
 						}
 					}
 				}
