@@ -7,18 +7,25 @@
 
 /*
 	Scripts:
-		#define autoupdate(_repo)
+		#define autoupdate(_name, _repo)
 */
 
+//For internal use, adds the script to be easily usable.
+#define addScript(name)
+	var ref = mod_variable_get("mod", "lib", "scriptReferences");
+	lq_set(ref, name, ["mod", mod_current, name]);
+	mod_variable_set("mod", "lib", "scriptReferences", ref);
 
 #define init
-global.updatables = [];
-global.forks = 0;
+	addScript("autoupdate");
+	script_ref_call(["mod", "lib", "updateRef"]);
+	global.updatables = [];
+	global.forks = 0;
 
 #define autoupdate(_name, _repo)
-if(array_length(string_split(_repo, "/")) != 2){trace("You need to format the string you pass into autoupdate this way: GitHubUsername/RepoName (it's in the url for the regular repo, there should only be 1 slash)");}
-chat_comp_add("update"+_name, "Force-Updates "+_name+" to the latest version.");
-array_push(global.updatables, [_name, _repo]);
+	if(array_length(string_split(_repo, "/")) != 2){trace("You need to format the string you pass into autoupdate this way: GitHubUsername/RepoName (it's in the url for the regular repo, there should only be 1 slash)");}
+	chat_comp_add("update"+_name, "Force-Updates "+_name+" to the latest version.");
+	array_push(global.updatables, [_name, _repo]);
 
 //don't download anything in multiplayer
 if(player_is_active(1) || player_is_active(2) || player_is_active(3)){
