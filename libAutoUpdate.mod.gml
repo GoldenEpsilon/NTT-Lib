@@ -82,34 +82,40 @@ return 0;
 	wait file_unload(_sub+"/"+_name+"files.json");
 	if(json != json_error){
 		with(json){
-			if("size" in self && size > 0){
-				//Replace a file
-				file_delete("../../mods/" + _sub + "/" + _name + "/" + name);
-				while (file_exists("../../mods/" + _sub + "/" + _name + "/" + name)) {wait 1;}
-				if(fork()){
-					global.forks++;
-					wait file_download("https://raw.githubusercontent.com/" + _repo + "/" + _sub + "/" + name, "../../mods/" + _sub + "/" + _name + "/" + name);
-					global.forks--;
-					exit;
+			if("name" in self){
+				trace(name);
+				if("size" in self && size > 0){
+					//Replace a file
+					if(fork()){
+						file_delete("../../mods/" + _sub + "/" + _name + "/" + name);
+						while (file_exists("../../mods/" + _sub + "/" + _name + "/" + name)) {wait 1;}
+						global.forks++;
+						wait file_download("https://raw.githubusercontent.com/" + _repo + "/" + _sub + "/" + name, "../../mods/" + _sub + "/" + _name + "/" + name);
+						global.forks--;
+						exit;
+					}
+				}else if("size" in self && name != ""){
+					//it was a folder, load folder stuff
+					if(fork()){
+						global.forks++;
+						var sub = _sub;
+						if(sub != ""){sub += "/";}
+						sub += name;
+						updateFiles(_name, _repo, sub);
+						global.forks--;
+						exit;
+					}
 				}
-			}else if("size" in self){
-				//it was a folder, load folder stuff
-				if(fork()){
-					global.forks++;
-					var sub = _sub;
-					if(sub != ""){sub += "/";}
-					sub += name;
-					updateFiles(_name, _repo, sub);
-					global.forks--;
-					exit;
-				}
-			}else if("message" in self){
-				trace(message);
 			}else{
 				trace("ERROR. Were you downloading too much at once?");
 			}
+			if("message" in self){
+				trace(message);
+			}
 		}
-		while(global.forks > 0){wait(1);}
+		if(_sub == ""){
+			while(global.forks > 0){wait(1);}
+		}
 	}else{
 		trace("There was an error when updating, loading mod anyway");
 	}
