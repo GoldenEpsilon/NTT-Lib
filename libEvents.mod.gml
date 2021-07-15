@@ -49,7 +49,7 @@
 	
 	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
 	
-#define update
+#define update(_newID)
 	 // Loading Screen:
 	if(instance_exists(GenCont) && GenCont.id > _newID){
 		
