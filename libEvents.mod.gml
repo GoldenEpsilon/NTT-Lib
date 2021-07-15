@@ -32,13 +32,9 @@
 
 #define init
 	addScript("event_add");
+	addScript("event_add_ext");
 	addScript("event_set_active");
 	addScript("event_get_active");
-	addScript("");
-	addScript("");
-	addScript("");
-	addScript("");
-	addScript("");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	
 	 // Event Tip Color:
@@ -62,7 +58,18 @@
 				_name    = _scrt[2],
 				_area    = mod_script_call(_modType, _modName, _name + "_area");
 				
+			var _check = false;
 			if(is_undefined(_area) || GameCont.area == _area){
+				_check = true;
+			}else if(is_array(_area)){
+				with(_area){
+					if(GameCont.area == self){
+						_check = true;
+						break;
+					}
+				}
+			}
+			if(_check){
 				var _hard = mod_script_call(_modType, _modName, _name + "_hard");
 				if(GameCont.hard >= (is_undefined(_hard) ? 2 : _hard)){
 					var _chance = 1;
@@ -124,18 +131,38 @@
 
 #define event_add
 	/*
-		Adds a given event script reference to the list of events
-		If the given event is a string then a script reference is automatically generated
+		Adds a given event to the list of events
+		If you give a list of events to add, they will be added
 		
 		Ex:
-			event_add(script_ref_create_ext(mod_type_current, mod_current, "MaggotPark"));
+			event_add(mod_current, "MaggotPark");
+			event_add([[mod_current, "MaggotPark"], [mod_current, "IceRink"]]);
 	*/
+	if(is_array(argument[0])){
+		var _scrt_list = [];
+		with(argument[0]){
+			array_push(_scrt_list, event_add(self[0], self[1]));
+		}
+		return _scrt_list;
+	}
 	
 	var _scrt = (
-		is_array(argument[0])
-		? argument[0]
-		: script_ref_create_ext("mod", argument[1], argument[0])
+		script_ref_create_ext("mod", argument[1], argument[0])
 	);
+	
+	array_push(event_list, _scrt);
+	
+	return _scrt;
+
+#define event_add_ext
+	/*
+		Adds a given event script reference to the list of events
+		
+		Ex:
+			event_add_ext(script_ref_create_ext(mod_type_current, mod_current, "MaggotPark"));
+	*/
+	
+	var _scrt = (argument[0]);
 	
 	array_push(event_list, _scrt);
 	
