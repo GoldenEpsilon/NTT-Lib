@@ -58,7 +58,7 @@ while(global.forks > 0){wait(1);}
 if(oldjson == false){
 	trace("Updating "+_name);
 	updateFiles(_name, _repo, "");
-	script_ref_call(["mod", "lib", "loadText"], "../../mods/" + self[0] + "/" + "main.txt");
+	script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
 	return 1;
 }
 //When this if statement runs it replaces the files, so if you want to implement a backup here is where you do it
@@ -84,7 +84,7 @@ return 0;
 		with(json){
 			if("name" in self){
 				trace(name);
-				if("size" in self && size > 0){
+				if("type" in self && type == "file"){
 					//Replace a file
 					if(fork()){
 						file_delete("../../mods/" + _sub + "/" + _name + "/" + name);
@@ -94,7 +94,7 @@ return 0;
 						global.forks--;
 						exit;
 					}
-				}else if("size" in self && name != ""){
+				}else if("type" in self && type == "dir" && name != ""){
 					//it was a folder, load folder stuff
 					if(fork()){
 						global.forks++;
