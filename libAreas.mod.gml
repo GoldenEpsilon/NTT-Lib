@@ -736,3 +736,591 @@
 	}
 	
 	return _inst;
+
+#define floor_set_style(_style, _area)
+	global.floor_style = _style;
+	global.floor_area  = _area;
+	
+#define floor_reset_style()
+	floor_set_style(null, null);
+	
+#define floor_set_align(_alignX, _alignY, _alignW, _alignH)
+	global.floor_align_x = _alignX;
+	global.floor_align_y = _alignY;
+	global.floor_align_w = _alignW;
+	global.floor_align_h = _alignH;
+	
+#define floor_reset_align()
+	floor_set_align(null, null, null, null);
+	
+#define floor_align(_x, _y, _w, _h, _type)
+	/*
+		Returns the given rectangle's position aligned to the floor grid
+		Has a bias towards nearby floors to help prevent the rectangle from being disconnected from the level
+	*/
+	
+	var	_gridXAuto = is_undefined(global.floor_align_x),
+		_gridYAuto = is_undefined(global.floor_align_y),
+		_gridWAuto = is_undefined(global.floor_align_w),
+		_gridHAuto = is_undefined(global.floor_align_h),
+		_gridX     = (_gridXAuto ? 10000 : global.floor_align_x),
+		_gridY     = (_gridYAuto ? 10000 : global.floor_align_y),
+		_gridW     = (_gridWAuto ? 16    : global.floor_align_w),
+		_gridH     = (_gridHAuto ? 16    : global.floor_align_h),
+		_gridXBias = 0,
+		_gridYBias = 0;
+		
+	if(_gridXAuto || _gridYAuto || _gridWAuto || _gridHAuto){
+		if(!instance_exists(FloorMaker)){
+			 // Align to Nearest Floor:
+			if(_gridXAuto || _gridYAuto){
+				with(instance_nearest_rectangle_bbox(_x, _y, _x + _w, _y + _h, Floor)){
+					if(_gridXAuto){
+						_gridX     = x;
+						_gridXBias = bbox_center_x - (_x + (_w / 2));
+					}
+					if(_gridYAuto){
+						_gridY     = y;
+						_gridYBias = bbox_center_y - (_y + (_h / 2));
+					}
+				}
+			}
+			
+			 // Align to Largest Colliding Floor:
+			var	_fx    = _gridX + floor_align_round(_x - _gridX, _gridW, _gridXBias),
+				_fy    = _gridY + floor_align_round(_y - _gridY, _gridH, _gridYBias),
+				_fwMax = _gridW,
+				_fhMax = _gridH;
+				
+			with(instance_rectangle_bbox(_fx, _fy, _fx + _w - 1, _fy + _h - 1, Floor)){
+				var	_fw = bbox_width,
+					_fh = bbox_height;
+					
+				if(_fw >= _fwMax){
+					_fwMax = _fw;
+					if(_gridWAuto){
+						_gridW = _fwMax;
+					}
+					if(_gridXAuto){
+						_gridX     = x;
+						_gridXBias = bbox_center_x - (_x + (_w / 2));
+					}
+				}
+				if(_fh >= _fhMax){
+					_fhMax = _fh;
+					if(_gridHAuto){
+						_gridH = _fhMax;
+					}
+					if(_gridYAuto){
+						_gridY     = y;
+						_gridYBias = bbox_center_y - (_y + (_h / 2));
+					}
+				}
+			}
+			
+			 // No Unnecessary Bias:
+			if(_gridXBias != 0 || _gridYBias != 0){
+				_fx = _gridX + floor_align_round(_x - _gridX, _gridW, 0);
+				_fy = _gridY + floor_align_round(_y - _gridY, _gridH, 0);
+				if(
+					(_type == "round")
+					? (
+						collision_rectangle(_fx + 32, _fy,     _fx + _w - 32 - 1, _fy + _h - 1,      Floor, false, false) ||
+						collision_rectangle(_fx,      _fy + 32, _fx + _w - 1,     _fy + _h - 32 - 1, Floor, false, false)
+					)
+					: collision_rectangle(_fx, _fy, _fx + _w - 1, _fy + _h - 1, Floor, false, false)
+				){
+					_gridXBias = 0;
+					_gridYBias = 0;
+				}
+			}
+		}
+		
+		 // FloorMaker:
+		else with(instance_nearest(_x + max(0, (_w / 2) - 16), _y + max(0, (_h / 2) - 16), FloorMaker)){
+			if(_gridXAuto) _gridX = x;
+			if(_gridYAuto) _gridY = y;
+			if(_gridWAuto) _gridW = min(_w, 32);
+			if(_gridHAuto) _gridH = min(_h, 32);
+		}
+	}
+	
+	 // Align:
+	return [
+		_gridX + floor_align_round(_x - _gridX, _gridW, _gridXBias),
+		_gridY + floor_align_round(_y - _gridY, _gridH, _gridYBias)
+	];
+	
+#define floor_align_round(_num, _precision, _bias)
+	var _value = _num;
+	if(_precision != 0){
+		_value /= _precision;
+		
+		if(_bias < 0){
+			_value = floor(_value);
+		}
+		else if(_bias > 0 || frac(_value) == 0.5){ // No sig-fig rounding
+			_value = ceil(_value);
+		}
+		else{
+			_value = round(_value);
+		}
+		
+		_value *= _precision;
+	}
+	return _value;
+	
+#define floor_set(_x, _y, _state) // imagine if floors and walls just used a ds_grid bro....
+	var _inst = noone;
+	
+	 // Create Floor:
+	if(_state){
+		var	_obj = ((_state >= 2) ? FloorExplo : Floor),
+			_msk = object_get_mask(_obj),
+			_w = ((sprite_get_bbox_right (_msk) + 1) - sprite_get_bbox_left(_msk)),
+			_h = ((sprite_get_bbox_bottom(_msk) + 1) - sprite_get_bbox_top (_msk));
+			
+		 // Align to Adjacent Floors:
+		var _gridPos = floor_align(_x, _y, _w, _h, "");
+		_x = _gridPos[0];
+		_y = _gridPos[1];
+		
+		 // Clear Floors:
+		if(!instance_exists(FloorMaker)){
+			if(_obj == FloorExplo){
+				with(instances_matching(instances_matching(_obj, "x", _x), "y", _y)){
+					instance_delete(self);
+				}
+			}
+			else{
+				floor_delete(_x, _y, _x + _w - 1, _y + _h - 1);
+			}
+		}
+		
+		 // Auto-Style:
+		var	_floormaker = noone,
+			_lastArea = GameCont.area;
+			
+		if(!is_undefined(global.floor_style)){
+			GameCont.area = area_campfire;
+			with(instance_create(_x, _y, FloorMaker)){
+				with(instances_matching_gt(Floor, "id", id)){
+					instance_delete(self);
+				}
+				styleb = global.floor_style;
+				_floormaker = self;
+			}
+			GameCont.area = _lastArea;
+		}
+		if(!is_undefined(global.floor_area)){
+			GameCont.area = global.floor_area;
+		}
+		
+		 // Floorify:
+		_inst = instance_create(_x, _y, _obj);
+		with(_floormaker) instance_destroy();
+		GameCont.area = _lastArea;
+		with(_inst){
+			if(!instance_exists(FloorMaker)){
+				 // Clear Area:
+				wall_delete(bbox_left, bbox_top, bbox_right, bbox_bottom);
+				
+				 // Details:
+				if(chance(1, 6)){
+					instance_create(random_range(bbox_left, bbox_right + 1), random_range(bbox_top, bbox_bottom + 1), Detail);
+				}
+			}
+			
+			 // Wallerize:
+			if(instance_exists(Wall)){
+				floor_walls();
+				wall_update(bbox_left - 16, bbox_top - 16, bbox_right + 16, bbox_bottom + 16);
+			}
+		}
+	}
+	
+	 // Destroy Floor:
+	else with(instances_at(_x, _y, Floor)){
+		var	_x1 = bbox_left   - 16,
+			_y1 = bbox_top    - 16,
+			_x2 = bbox_right  + 16,
+			_y2 = bbox_bottom + 16;
+			
+		with(instances_meeting(x, y, SnowFloor)){
+			if(point_in_rectangle(bbox_center_x, bbox_center_y, other.bbox_left, other.bbox_top, other.bbox_right + 1, other.bbox_bottom + 1)){
+				instance_destroy();
+			}
+		}
+		
+		instance_destroy();
+		
+		if(instance_exists(Wall)){
+			with(other){
+				 // Un-Wall:
+				wall_delete(_x1, _y1, _x2, _y2);
+				
+				 // Re-Wall:
+				for(var _fx = _x1; _fx < _x2 + 1; _fx += 16){
+					for(var _fy = _y1; _fy < _y2 + 1; _fy += 16){
+						if(!position_meeting(_fx, _fy, Floor)){
+							if(collision_rectangle(_fx - 16, _fy - 16, _fx + 31, _fy + 31, Floor, false, false)){
+								instance_create(_fx, _fy, Wall);
+							}
+						}
+					}
+				}
+				wall_update(_x1 - 16, _y1 - 16, _x2 + 16, _y2 + 16);
+			}
+		}
+	}
+	
+	return _inst;
+	
+#define floor_delete(_x1, _y1, _x2, _y2)
+	/*
+		Deletes all Floors and Floor-related objects within the given rectangular area
+	*/
+	
+	with(instance_rectangle_bbox(_x1, _y1, _x2, _y2, Floor)){
+		for(var	_x = bbox_left; _x < bbox_right + 1; _x += 16){
+			for(var	_y = bbox_top; _y < bbox_bottom + 1; _y += 16){
+				if(
+					!rectangle_in_rectangle(_x, _y, _x + 15, _y + 15, _x1, _y1, _x2, _y2)
+					&& !collision_rectangle(_x, _y, _x + 15, _y + 15, Floor, false, true)
+				){
+					var	_shake = UberCont.opt_shake,
+						_sleep = UberCont.opt_freeze,
+						_sound = sound_play_pitchvol(0, 0, 0);
+						
+					UberCont.opt_shake  = 0;
+					UberCont.opt_freeze = 0;
+					
+					with(instances_matching_gt(GameObject, "id", instance_create(_x, _y, FloorExplo))){
+						instance_delete(self);
+					}
+					
+					UberCont.opt_shake  = _shake;
+					UberCont.opt_freeze = _sleep;
+					
+					for(var i = _sound; audio_is_playing(i); i++){
+						sound_stop(i);
+					}
+				}
+			}
+		}
+		with(instance_rectangle(bbox_left, bbox_top, bbox_right + 1, bbox_bottom + 1, Detail)){
+			instance_destroy();
+		}
+		with(instances_meeting(x, y, SnowFloor)){
+			if(point_in_rectangle(bbox_center_x, bbox_center_y, other.bbox_left, other.bbox_top, other.bbox_right + 1, other.bbox_bottom + 1)){
+				instance_destroy();
+			}
+		}
+		instance_destroy();
+	}
+	
+#define floor_tunnel(_x1, _y1, _x2, _y2)
+	/*
+		Creates and returns a PortalClear that destroys all Walls between two given points, making a FloorExplo tunnel
+		Tunnel's height defaults to 32 (image_yscale=16), set its 'image_yscale' to change
+	*/
+	
+	with(instance_create(_x1, _y1, PortalClear)){
+		var	_dis = point_distance(x, y, _x2, _y2),
+			_dir = point_direction(x, y, _x2, _y2);
+			
+		sprite_index = sprBoltTrail;
+		image_speed  = 16 / _dis;
+		image_xscale = _dis;
+		image_yscale = 16;
+		image_angle  = _dir;
+		
+		 // Ensure Tunnel:
+		if(instance_exists(Wall) && !place_meeting(x, y, Wall) && !place_meeting(x, y, Floor)){
+			with(instance_nearest_bbox(x, y, Wall)){
+				instance_create(x + pfloor(other.x - x, 16), y + pfloor(other.y - y, 16), Wall);
+			}
+		}
+		
+		return self;
+	}
+	
+	return noone;
+	
+#define floor_room_start(_spawnX, _spawnY, _spawnDis, _spawnFloor)
+	/*
+		Returns a safe starting x/y and direction to use with 'floor_room_create()'
+		Searches through the given Floor tiles for one that is far enough away from the spawn and can be reached from the spawn (no Walls in between)
+		
+		Args:
+			spawnX/spawnY - The spawn point
+			spawnDis      - Minimum distance that the starting x/y must be from the spawn point
+			spawnFloor    - Potential starting floors to search
+			
+		Ex:
+			with(floor_room_start(10016, 10016, 128, FloorNormal)){
+				floor_room_create(x, y, 2, 2, "", direction, [60, 90], 96);
+			}
+	*/
+	
+	with(array_shuffle(instances_matching_ne(_spawnFloor, "id", null))){
+		var	_x = bbox_center_x,
+			_y = bbox_center_y;
+			
+		if(point_distance(_spawnX, _spawnY, _x, _y) >= _spawnDis){
+			var _spawnReached = false;
+			
+			 // Make Sure it Reaches the Spawn Point:
+			var _pathWall = [Wall, InvisiWall];
+			for(var _fx = bbox_left; _fx < bbox_right + 1; _fx += 16){
+				for(var _fy = bbox_top; _fy < bbox_bottom + 1; _fy += 16){
+					if(path_reaches(path_create(_fx + 8, _fy + 8, _spawnX, _spawnY, _pathWall), _spawnX, _spawnY, _pathWall)){
+						_spawnReached = true;
+						break;
+					}
+				}
+				if(_spawnReached) break;
+			}
+			
+			 // Success bro!
+			if(_spawnReached){
+				return {
+					"x"         : _x,
+					"y"         : _y,
+					"direction" : point_direction(_spawnX, _spawnY, _x, _y),
+					"id"        : id
+				};
+			}
+		}
+	}
+	
+	return noone;
+	
+#define floor_room_create(_x, _y, _w, _h, _type, _dirStart, _dirOff, _floorDis)
+	/*
+		Moves toward a given direction until an open space is found, then creates a room based on the width, height, and type
+		Rooms will always connect to the level as long as floorDis <= 0 (and the starting x/y is over a floor)
+		Rooms will not overlap existing Floors as long as floorDis >= 0 (they can still overlap FloorExplo)
+		
+		Args:
+			x/y      - The point to begin the search for an open space to create the room
+			w/h      - Width/height of the room to create
+			type     - The type of room to create (see 'floor_fill' script)
+			dirStart - The direction to search towards for an open space
+			dirOff   - Random directional offset to use while searching towards dirStart
+			floorDis - How far from the level to create the room
+			           Use 0 to spawn adjacent to the level, >0 to create an isolated room, <0 to overlap the level
+			
+		Ex:
+			floor_room_create(10016, 10016, 5, 3, "round", random(360), 0, 0)
+	*/
+	
+	 // Find Space:
+	var	_move       = true,
+		_floorAvoid = FloorNormal,
+		_dis        = 16,
+		_dir        = 0,
+		_ow         = (_w * 32) / 2,
+		_oh         = (_h * 32) / 2,
+		_sx         = _x,
+		_sy         = _y;
+		
+	if(!is_array(_dirOff)){
+		_dirOff = [_dirOff];
+	}
+	while(array_length(_dirOff) < 2){
+		array_push(_dirOff, 0);
+	}
+	
+	while(_move){
+		var	_x1   = _x - _ow,
+			_y1   = _y - _oh,
+			_x2   = _x + _ow,
+			_y2   = _y + _oh,
+			_inst = instance_rectangle_bbox(_x1 - _floorDis, _y1 - _floorDis, _x2 + _floorDis - 1, _y2 + _floorDis - 1, _floorAvoid);
+			
+		 // No Corner Floors:
+		if(_type == "round" && _floorDis <= 0){
+			with(_inst){
+				if((bbox_right < _x1 + 32 || bbox_left >= _x2 - 32) && (bbox_bottom < _y1 + 32 || bbox_top >= _y2 - 32)){
+					_inst = array_delete_value(_inst, self);
+				}
+			}
+		}
+		
+		 // Floors in Range:
+		_move = false;
+		if(array_length(_inst)){
+			if(_floorDis <= 0){
+				_move = true;
+			}
+			
+			 // Floor Distance Check:
+			else with(_inst){
+				var	_fx = clamp(_x, bbox_left, bbox_right + 1),
+					_fy = clamp(_y, bbox_top, bbox_bottom + 1),
+					_fDis = (
+						(_type == "round")
+						? min(
+							point_distance(_fx, _fy, clamp(_fx, _x1 + 32, _x2 - 32), clamp(_fy, _y1,      _y2     )),
+							point_distance(_fx, _fy, clamp(_fx, _x1,      _x2     ), clamp(_fy, _y1 + 32, _y2 - 32))
+						)
+						: point_distance(_fx, _fy, clamp(_fx, _x1, _x2), clamp(_fy, _y1, _y2))
+					);
+					
+				if(_fDis < _floorDis){
+					_move = true;
+					break;
+				}
+			}
+			
+			 // Keep Searching:
+			if(_move){
+				_dir = pround(_dirStart + (random_range(_dirOff[0], _dirOff[1]) * choose(-1, 1)), 90);
+				_x += lengthdir_x(_dis, _dir);
+				_y += lengthdir_y(_dis, _dir);
+			}
+		}
+	}
+	
+	 // Create Room:
+	var	_floorNumLast = array_length(FloorNormal),
+		_floors       = mod_script_call_nc(mod_current_type, mod_current, "floor_fill", _x, _y, _w, _h, _type),
+		_floorNum     = array_length(FloorNormal),
+		_x1           = _x,
+		_y1           = _y,
+		_x2           = _x,
+		_y2           = _y;
+		
+	if(array_length(_floors)){
+		with(_floors[0]){
+			_x1 = bbox_left;
+			_y1 = bbox_top;
+			_x2 = bbox_right  + 1;
+			_y2 = bbox_bottom + 1;
+		}
+		with(_floors){
+			var	_fx1 = bbox_left,
+				_fy1 = bbox_top,
+				_fx2 = bbox_right,
+				_fy2 = bbox_bottom;
+				
+			 // Determine Room's Dimensions:
+			_x1 = min(_x1, _fx1);
+			_y1 = min(_y1, _fy1);
+			_x2 = max(_x2, _fx2 + 1);
+			_y2 = max(_y2, _fy2 + 1);
+			
+			 // Fix Potential Wall Softlock:
+			if(_floorDis <= 0 && _floorNum == _floorNumLast + array_length(_floors)){
+				with(array_combine(
+					instance_rectangle_bbox(_fx1 - 1, _fy1,     _fx2 + 1, _fy2,     Wall),
+					instance_rectangle_bbox(_fx1,     _fy1 - 1, _fx2,     _fy2 + 1, Wall)
+				)){
+					if(instance_exists(self) && place_meeting(x, y, Floor)){
+						with(instances_meeting(x, y, [Bones, TopPot])){
+							if(place_meeting(x, y, other)){
+								instance_delete(self);
+							}
+						}
+						instance_delete(self);
+					}
+				}
+			}
+		}
+	}
+	
+	 // Done:
+	return {
+		"floors" : _floors,
+		"x"      : (_x1 + _x2) / 2,
+		"y"      : (_y1 + _y2) / 2,
+		"x1"     : _x1,
+		"y1"     : _y1,
+		"x2"     : _x2,
+		"y2"     : _y2,
+		"xstart" : _sx,
+		"ystart" : _sy
+	};
+	
+#define floor_room(_spawnX, _spawnY, _spawnDis, _spawnFloor, _w, _h, _type, _dirOff, _floorDis)
+	/*
+		Automatically creates a room a safe distance from the spawn point
+		Rooms will always connect to the level as long as floorDis <= 0
+		Rooms will not overlap existing Floors as long as floorDis >= 0 (they can still overlap FloorExplo)
+		
+		Args:
+			spawnX/spawnY - The spawn point
+			spawnDis      - Minimum distance from the spawn point to begin searching for an open space
+			spawnFloor    - Potential starting floors to begin searching for an open space from
+			w/h           - Width/height of the room to create
+			type          - The type of room to create (see 'floor_fill' script)
+			dirOff        - Random directional offset to use while moving away from the spawn point to find an open space
+			floorDis      - How far from the level to create the room
+			                Use 0 to spawn adjacent to the level, >0 to create an isolated room, <0 to overlap the level
+			
+		Ex:
+			floor_room(10016, 10016, 96, FloorNormal, 4, 4, "round", 60, -32)
+	*/
+	
+	with(floor_room_start(_spawnX, _spawnY, _spawnDis, _spawnFloor)){
+		return floor_room_create(x, y, _w, _h, _type, direction, _dirOff, _floorDis);
+	}
+	
+	return noone;
+	
+#define wall_clear(_x, _y)
+	/*
+		Creates and returns a PortalClear that destroys all Walls touching the calling instance at the given position
+	*/
+	
+	with(instance_create(_x, _y, PortalClear)){
+		sprite_index = ((other.mask_index < 0) ? other.sprite_index : other.mask_index);
+		image_xscale = other.image_xscale;
+		image_yscale = other.image_yscale;
+		image_angle  = other.image_angle;
+		
+		return self;
+	}
+	
+#define wall_delete(_x1, _y1, _x2, _y2)
+	/*
+		Deletes all Walls and Wall-related objects within the given rectangular area
+	*/
+	
+	with(instance_rectangle_bbox(_x1, _y1, _x2, _y2, [Wall, InvisiWall])){
+		with(instances_matching(instances_matching(TrapScorchMark, "x", x), "y", y)){
+			instance_delete(self);
+		}
+		instance_delete(self);
+	}
+	with(instance_rectangle_bbox(_x1, _y1, _x2, _y2, [TopSmall, TopPot, Bones])){
+		instance_delete(self);
+	}
+	
+#define wall_tops()
+	/*
+		Creates the outer TopSmall tiles around the calling Wall instance
+	*/
+	
+	var _minID = instance_max;
+	
+	instance_create(x - 16, y - 16, Top);
+	instance_create(x - 16, y,      Top);
+	instance_create(x,      y - 16, Top);
+	instance_create(x,      y,      Top);
+	
+	return instances_matching_gt(TopSmall, "id", _minID);
+	
+#define wall_update(_x1, _y1, _x2, _y2)
+	with(instance_rectangle(_x1, _y1, _x2, _y2, Wall)){
+		 // Fix:
+		visible = place_meeting(x, y + 16, Floor);
+		l = (place_free(x - 16, y) ?  0 :  4);
+		w = (place_free(x + 16, y) ? 24 : 20) - l;
+		r = (place_free(x, y - 16) ?  0 :  4);
+		h = (place_free(x, y + 16) ? 24 : 20) - r;
+		
+		 // TopSmalls:
+		wall_tops();
+	}

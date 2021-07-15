@@ -7,8 +7,7 @@
 
 /*
 	Scripts:
-		#define autoupdate(_name, _url, _version)
-		#define generate_json
+		#define autoupdate(_repo)
 */
 
 
@@ -16,39 +15,10 @@
 global.updatables = [];
 global.forks = 0;
 
-
-#define generate_json(_version)
-/* Creator: Golden Epsilon
-Description: 
-	Generates the json to be used in the hosted directory
-Arguments:
-	_version
-	
-*/
-	if(fork()){
-		while("forks" in global && global.forks != 0){wait(0);}
-		if(!instance_exists(self)){return;}
-		var arr = [];
-		global.forks = 0;
-		wait file_find_all("", arr);
-		files = [];
-		if(array_length(arr) == 0){
-			files = [selected];
-		}else{
-			recursive_search(self, arr, "", "");
-		}
-		while(global.forks != 0){wait(0);}
-		var json = {
-			version : _version,
-			files : files
-		};
-		string_save(json_encode(json), "version.json");
-		exit;
-	}
-
-#define autoupdate(_name, _url, _version)
+#define autoupdate(_name, _repo)
+if(array_length(string_split(_repo, "/")) != 2){trace("You need to format the string you pass into autoupdate this way: GitHubUsername/RepoName (it's in the url for the regular repo, there should only be 1 slash)");}
 chat_comp_add("update"+_name, "Force-Updates "+_name+" to the latest version.");
-array_push(global.updatables, [_name, _url, _version]);
+array_push(global.updatables, [_name, _repo]);
 
 //don't download anything in multiplayer
 if(player_is_active(1) || player_is_active(2) || player_is_active(3)){
@@ -56,9 +26,7 @@ if(player_is_active(1) || player_is_active(2) || player_is_active(3)){
 }
 
 //loading the previous version file. 
-//The version file is a json-encoded file that has "version" as the version number 
-//and an array "files" as the files to grab from the github.
-//This file is how the mod knows whether to download a new version.
+//The version file is a list of commits github provides, this mod just checks the sha
 file_load(_name+"version.json");
 while (!file_loaded(_name+"version.json")) {wait 1;}
 var oldjson;
@@ -71,31 +39,57 @@ if(file_exists(_name+"version.json")){
 file_delete(_name+"version.json");
 while (file_exists(_name+"version.json")) {wait 1;}
 wait file_unload(_name+"version.json");
-wait file_download(_url + "version.json", _name+"version.json");
+wait file_download("https://api.github.com/repos/" + _repo + "/commits", _name+"version.json");
 file_load(_name+"version.json");
 while (!file_loaded(_name+"version.json")) {wait 1;}
 while (!file_exists(_name+"version.json")) {wait 1;}
 var newjson = json_decode(string_load(_name+"version.json"));
 wait file_unload(_name+"version.json");
-
+while(global.forks > 0){wait(1);}
 //When this if statement runs it replaces the files, so if you want to implement a backup here is where you do it
-if(!is_undefined(oldjson) && newjson != json_error && real(oldjson.version) < real(newjson.version) || newjson != json_error && _version < real(newjson.version)){
+if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson != json_error && is_array(newjson) && "sha" in newjson[0] && oldjson[0].sha != newjson[0].sha){
 	trace("There is an update for "+_name+"! updating...");
-	updateFiles(newjson, _name, _url);
+	updateFiles(_name, _repo, "");
 	script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
 }
 
-#define updateFiles(json, _name, _url)
+#define updateFiles(_name, _repo, _sub)
+	file_delete(_sub+"/"+_name+"files.json");
+	while (file_exists(_sub+"/"+_name+"files.json")) {wait 1;}
+	wait file_unload(_sub+"/"+_name+"files.json");
+	wait file_download("https://api.github.com/repos/" + _repo + "/contents/" + _sub, _sub+"/"+_name+"files.json");
+	file_load(_sub+"/"+_name+"files.json");
+	while (!file_loaded(_sub+"/"+_name+"files.json")) {wait 1;}
+	while (!file_exists(_sub+"/"+_name+"files.json")) {wait 1;}
+	var json = json_decode(string_load(_sub+"/"+_name+"files.json"));
+	wait file_unload(_sub+"/"+_name+"files.json");
 	if(json != json_error){
-		for(var i = 0; i < array_length(json.files); i++){
-			//This appears to be safe, not deleting anything from the mods directory.
-			file_delete(json.files[i]);
-			while (file_exists(json.files[i])) {wait 1;}
-			if(fork()){
-				global.forks++;
-				wait file_download(_url + json.files[i], "../../mods/" + _name + "/" + json.files[i]);
-				global.forks--;
-				exit;
+		with(json){
+			if("size" in self && size > 0){
+				//Replace a file
+				file_delete("../../mods/" + _sub + "/" + _name + "/" + name);
+				while (file_exists("../../mods/" + _sub + "/" + _name + "/" + name)) {wait 1;}
+				if(fork()){
+					global.forks++;
+					wait file_download("https://raw.githubusercontent.com/" + _repo + "/" + _sub + "/" + name, "../../mods/" + _sub + "/" + _name + "/" + name);
+					global.forks--;
+					exit;
+				}
+			}else if("size" in self){
+				//it was a folder, load folder stuff
+				if(fork()){
+					global.forks++;
+					var sub = _sub;
+					if(sub != ""){sub += "/";}
+					sub += name;
+					updateFiles(_name, _repo, sub);
+					global.forks--;
+					exit;
+				}
+			}else if("message" in self){
+				trace(message);
+			}else{
+				trace("ERROR. Were you downloading too much at once?");
 			}
 		}
 		while(global.forks > 0){wait(1);}
@@ -107,47 +101,12 @@ if(!is_undefined(oldjson) && newjson != json_error && real(oldjson.version) < re
 with(global.updatables){
 	if(command == "update"+self[0]){
 		if(fork()){
-			//downloading the new version file over the old one
-			//I delete for safety, there's a chance it isn't necessary
-			file_delete(self[0]+"version.json");
-			while (file_exists(self[0]+"version.json")) {wait 1;}
-			wait file_unload(self[0]+"version.json");
-			wait file_download(self[1] + "version.json", self[0]+"version.json");
-			file_load(self[0]+"version.json");
-			while (!file_loaded(self[0]+"version.json")) {wait 1;}
-			while (!file_exists(self[0]+"version.json")) {wait 1;}
-			var newjson = json_decode(string_load(self[0]+"version.json"));
-			wait file_unload(self[0]+"version.json");
-			
-			updateFiles(newjson, self[0], self[1]);
+			trace("Updating "+self[0]);
+			while(global.forks > 0){wait(1);}
+			updateFiles(self[0], self[1], "");
 			script_ref_call(["mod", "lib", "loadText"], "../../mods/" + self[0] + "/" + "main.txt");
 			exit;
 		}
 		return 1;
 	}
-}
-
-
-
-#define recursive_search(window, arr, _path, p)
-if(fork()){
-	global.forks++;
-	for(var i = 0; i < array_length(arr); i++){
-		if(arr[i].is_dir){
-			if(arr[i].name == ".git"){
-				continue;
-			}
-			var _arr = [];
-			wait file_find_all(_path + "/" + p + "/" + arr[i].name, _arr);
-			if(!instance_exists(window)){global.forks--;exit;}
-			recursive_search(window, _arr, _path, (p == "" ? "" : p + "/") + arr[i].name);
-		}else{
-			if(arr[i].name == ".gitattributes"){
-				continue;
-			}
-			array_push(window.files, (p == "" ? "" : p + "/") + arr[i].name);
-		}
-	}
-	global.forks--;
-	exit;
 }
