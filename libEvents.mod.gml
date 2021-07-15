@@ -70,7 +70,7 @@
 						_chance = mod_script_call(_modType, _modName, _name + "_chance");
 					}
 					if(chance(_chance, 1)){
-						event_set_active(_name, true);
+						event_set_active(_modType, _modName, _name, true);
 					}
 				}
 			}
@@ -88,7 +88,7 @@
 		on_cleanup = script_ref_create_ext(mod_type, mod_name, event + "_cleanup");
 		
 		 // Generate Event:
-		var _minID = instance_max;
+		var _minID = instance_create(0, 0, DramaCamera);
 		mod_script_call(mod_type, mod_name, event + "_create");
 		floors = instances_matching_gt(Floor, "id", _minID);
 		
@@ -122,7 +122,7 @@
 #macro event_tip  global.event_tip
 #macro event_list global.event_list
 
-#define event_add(_event)
+#define event_add(_event, _mod)
 	/*
 		Adds a given event script reference to the list of events
 		If the given event is a string then a script reference is automatically generated
@@ -134,14 +134,14 @@
 	var _scrt = (
 		is_array(_event)
 		? _event
-		: script_ref_create_ext("mod", mod_current, _event)
+		: script_ref_create_ext("mod", _mod, _event)
 	);
 	
 	array_push(event_list, _scrt);
 	
 	return _scrt;
 	
-#define event_set_active(_name, _active)
+#define event_set_active(_modType, _modName, _name, _active)
 	/*
 		Activates or deactivates a given event and returns its controller object
 		Use the 'all' keyword to activate every event and return all of their controller objects as an array, wtf
@@ -152,7 +152,7 @@
 		 // All:
 		if(_name == all){
 			with(event_list){
-				event_set_active(self[2], _active);
+				event_set_active(_modType, _modName, self[2], _active);
 			}
 		}
 		
@@ -160,8 +160,8 @@
 		else if(!event_get_active(_name)){
 			with(instance_create(0, 0, CustomObject)){
 				name     = "Event";
-				mod_type = mod_type_current;
-				mod_name = mod_current;
+				mod_type = _modType;
+				mod_name = _modName;
 				event    = _name;
 				tip      = mod_script_call(mod_type, mod_name, event + "_text");
 				floors   = [];

@@ -127,12 +127,12 @@ while(updateid++ < newID){
 		lid++;
 	}
 }
-global.lastid = lid;
-if(newID > global.lastid){
+if(newID > lid){
 	with(global.activeReferences){
 		script_ref_call([self[0], self[1], "update"], global.lastid);
 	}
 }
+global.lastid = newID;
 
 //level_start
 if(instance_exists(GenCont) || instance_exists(Menu)){
