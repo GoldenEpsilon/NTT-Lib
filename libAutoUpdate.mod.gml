@@ -56,7 +56,10 @@ var newjson = json_decode(string_load(_name+"version.json"));
 wait file_unload(_name+"version.json");
 while(global.forks > 0){wait(1);}
 if(oldjson == false){
-	return autoupdate(_name, _repo);
+	trace("Updating "+_name);
+	updateFiles(_name, _repo, "");
+	script_ref_call(["mod", "lib", "loadText"], "../../mods/" + self[0] + "/" + "main.txt");
+	return 1;
 }
 //When this if statement runs it replaces the files, so if you want to implement a backup here is where you do it
 if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson != json_error && is_array(newjson) && "sha" in newjson[0] && oldjson[0].sha != newjson[0].sha){
