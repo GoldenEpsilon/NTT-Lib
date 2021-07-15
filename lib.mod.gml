@@ -51,10 +51,6 @@ while(global.canLoad == undefined){wait(1)}
 if(global.canLoad && !lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
 	lq_set(global.loadedPackages, package, 1);
 	
-	try{
-		mod_load("../../mods/lib/" + package);
-	}catch(err){}
-	
 	file_delete("../../mods/lib/" + package + ".mod.gml");
 	while (file_exists("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 	file_download(URL + package + ".mod.gml", "../../mods/lib/" + package + ".mod.gml");

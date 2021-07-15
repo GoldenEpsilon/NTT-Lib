@@ -90,7 +90,7 @@ return 0;
 						file_delete("../../mods/" + _sub + "/" + _name + "/" + name);
 						while (file_exists("../../mods/" + _sub + "/" + _name + "/" + name)) {wait 1;}
 						global.forks++;
-						wait file_download("https://raw.githubusercontent.com/" + _repo + "/" + _sub + "/" + name, "../../mods/" + _sub + "/" + _name + "/" + name);
+						wait file_download("https://raw.githubusercontent.com/" + _repo + (_sub != "" ? "/" + _sub : "") + "/" + name, "../../mods/" + _sub + "/" + _name + "/" + name);
 						global.forks--;
 						exit;
 					}
@@ -107,6 +107,8 @@ return 0;
 					}
 				}
 			}else{
+				//set it to download again when it can
+				file_delete(_name+"version.json");
 				trace("ERROR. Were you downloading too much at once?");
 			}
 			if("message" in self){
