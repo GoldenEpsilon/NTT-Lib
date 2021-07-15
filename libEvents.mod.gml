@@ -14,7 +14,7 @@
 	1) Add an event using 'event_add(_event)'
 	
 	2) Define scripts:
-		Event_text    : Returns the event's loading tip, leave undefined or return a blank string for no loading tip
+		Event_text    : Returns the event's loading tip, leave undefined or return a blank string for no loading tip (NOTE: @e in this works like @s,@r,etc, but for the default color)
 		Event_area    : Returns the event's spawn area, leave undefined if it can spawn on any area
 		Event_hard    : Returns the event's minimum difficulty, leave undefined to default to 2 (Desert-2)
 		Event_chance  : Returns the event's spawn chance from 0 to 1, leave undefined if it always spawns
@@ -177,7 +177,7 @@
 					if(is_string(other.tip) && other.tip != ""){
 						if("tip_event" not in self){
 							tip_event = other.tip;
-							tip       = event_tip + tip_event;
+							tip       = event_tip + string_replace(tip_event, "@e", event_tip);
 						}
 					}
 				}
