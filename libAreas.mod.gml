@@ -1324,3 +1324,6 @@
 		 // TopSmalls:
 		wall_tops();
 	}
+	
+#macro  scr																						global.scr
+#macro  call																					script_ref_call

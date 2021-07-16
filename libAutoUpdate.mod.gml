@@ -23,11 +23,19 @@
 	global.forks = 0;
 
 #define autoupdate(_name, _repo)
-//returns 1 if it updated, 0 if it didn't.
 
 if(array_length(string_split(_repo, "/")) != 2){trace("You need to format the string you pass into autoupdate this way: GitHubUsername/RepoName (it's in the url for the regular repo, there should only be 1 slash)");}
-chat_comp_add("update"+_name, "Force-Updates "+_name+" to the latest version.");
-array_push(global.updatables, [_name, _repo]);
+var new = true;
+with(global.updatables){
+	if(self[0] == _name && self[1] == _repo){
+		new = false; 
+		break;
+	}
+}
+if(new){
+	chat_comp_add("update"+_name, "Force-Updates "+_name+" to the latest version.");
+	array_push(global.updatables, [_name, _repo]);
+}
 
 //don't download anything in multiplayer
 if(player_is_active(1) || player_is_active(2) || player_is_active(3)){
@@ -99,11 +107,13 @@ return 0;
 						//Replace a file
 						file_delete("../../mods/" + _name + "/" + path);
 						while (file_exists("../../mods/" + _name + "/" + path)) {wait 1;}
-						wait file_download("https://raw.githubusercontent.com/" + _repo + "/" + path, "../../mods/" + _name + "/" + path);
+						wait file_download("https://raw.githubusercontent.com/" + _repo + "/" + branches[0].name + "/" + path, "../../mods/" + _name + "/" + path);
+						while (!file_exists("../../mods/" + _name + "/" + path)) {wait 1;}
 						global.forks--;
 						exit;
 					}
 				}
+				wait(1);
 				while(global.forks > 0){wait(1);}
 			}else{
 				//set it to download again when it can
@@ -122,6 +132,7 @@ return 0;
 			trace(branches.message);
 		}
 	}
+	trace("Update for " + _name + " complete!");
 
 #define chat_command(command, parameter, player)
 with(global.updatables){

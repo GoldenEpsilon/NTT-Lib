@@ -12,7 +12,6 @@
 		#define obj_create(_x, _y, _name)
 		#define instances_in_rectangle(_x1, _y1, _x2, _y2, _obj)
 		#define instances_meeting(_x, _y, _obj)
-		#define instance_nearest_rectangle(_x1, _y1, _x2, _y2, _obj)
 		#define player_swap(_player)
 		#define projectile_create(inst, x, y, obj, ?dir=0, ?spd=0)
 		#define projectile_euphoria(_inst)
@@ -21,6 +20,14 @@
 		#define fx(_x, _y, _motion, _object)
 		#define game_activate()
 		#define game_deactivate()
+		#define array_delete(_array, _index)
+		#define array_delete_value(_array, _value)
+		#define instance_get_name(_inst)
+		#define instance_nearest_array(_x, _y, _obj)
+		#define instance_nearest_bbox(_x, _y, _obj)
+		#define instance_nearest_rectangle(_x1, _y1, _x2, _y2, _obj)
+		#define instance_nearest_rectangle_bbox(_x1, _y1, _x2, _y2, _obj)
+		#define instances_at(_x, _y, _obj)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -35,7 +42,6 @@
 	addScript("obj_create");
 	addScript("instances_in_rectangle");
 	addScript("instances_meeting");
-	addScript("instance_nearest_rectangle");
 	addScript("player_swap");
 	addScript("projectile_create");
 	addScript("projectile_euphoria");
@@ -44,6 +50,14 @@
 	addScript("fx");
 	addScript("game_activate");
 	addScript("game_deactivate");
+	addScript("array_delete");
+	addScript("array_delete_value");
+	addScript("instance_get_name");
+	addScript("instance_nearest_array");
+	addScript("instance_nearest_bbox");
+	addScript("instance_nearest_rectangle");
+	addScript("instance_nearest_rectangle_bbox");
+	addScript("instances_at");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	
 	global.objects = ds_map_create();
@@ -401,54 +415,6 @@ return obj_create(_x,_y,_name);
 		"y", _y2)
 	);
 
-#define instances_meeting(_x, _y, _obj)
-	/*
-		Returns all instances whose bounding boxes overlap the calling instance's bounding box at the given position
-		Much better performance than manually performing 'place_meeting(x, y, other)' on every instance
-	*/
-	
-	var	_tx = x,
-		_ty = y;
-		
-	x = _x;
-	y = _y;
-	
-	var _inst = instances_matching_ne(instances_matching_le(instances_matching_ge(instances_matching_le(instances_matching_ge(_obj, "bbox_right", bbox_left), "bbox_left", bbox_right), "bbox_bottom", bbox_top), "bbox_top", bbox_bottom), "id", id);
-	
-	x = _tx;
-	y = _ty;
-	
-	return _inst;
-
-#define instance_nearest_rectangle(_x1, _y1, _x2, _y2, _obj)
-	/*
-		Returns the instance closest to a given rectangle based on their position
-		If multiple instances are equally distant from the rectangle, a bias exists for the one closer to its center
-		Accepts an array argument like 'instance_nearest_array()' does
-		
-		Ex:
-			instance_nearest_rectangle(x, y, x + 160, y + 64, chestprop)
-	*/
-	
-	var	_cx      = (_x1 + _x2) / 2,
-		_cy      = (_y1 + _y2) / 2,
-		_disAMax = infinity,
-		_disBMax = infinity,
-		_nearest = noone;
-		
-	with(instances_matching_ne(_obj, "id")){
-		var	_disA = point_distance(x, y, clamp(x, _x1, _x2), clamp(y, _y1, _y2)),
-			_disB = point_distance(x, y, _cx, _cy);
-			
-		if(_disA < _disAMax || (_disA == _disAMax && _disB < _disBMax)){
-			_disAMax = _disA;
-			_disBMax = _disB;
-			_nearest = self;
-		}
-	}
-	
-	return _nearest;
-
 #define player_swap(_player)
 	/*
 		Cycles the given player's weapon slots
@@ -727,3 +693,713 @@ return obj_create(_x,_y,_name);
 		event_perform(ev_alarm, 2);
 		event_perform(ev_draw, ev_draw_post);
 	}
+	
+#define array_delete(_array, _index)
+	/*
+		Returns a new array with the value at the given index removed
+		
+		Ex:
+			array_delete([1, 2, 3], 1) == [1, 3]
+	*/
+	
+	var _new = array_slice(_array, 0, _index);
+	
+	array_copy(_new, array_length(_new), _array, _index + 1, array_length(_array) - (_index + 1));
+	
+	return _new;
+	
+#define array_delete_value(_array, _value)
+	/*
+		Returns a new array with the given value removed
+		
+		Ex:
+			array_delete_value([1, 2, 3, 2], 2) == [1, 3]
+	*/
+	
+	var _new = _array;
+	
+	while(array_find_index(_new, _value) >= 0){
+		_new = array_delete(_new, array_find_index(_new, _value));
+	}
+	
+	return _new;
+	
+#define instance_get_name(_inst)
+	/*
+		Returns a displayable name for a given instance or object
+	*/
+	
+	var _name  = "";
+	
+	 // Instance:
+	if(instance_exists(_inst) && !object_exists(_inst)){
+		 // Cause of Death:
+		if("hitid" in _inst){
+			var _hitid = _inst.hitid;
+			
+			if(is_real(_hitid)){
+				_hitid = floor(_hitid);
+				
+				 // Built-In:
+				var _list = ["bandit", "maggot", "rad maggot", "big maggot", "scorpion", "golden scorpion", "big bandit", "rat", "big rat", "green rat", "gator", "frog", "super frog", "mom", "assassin", "raven", "salamander", "sniper", "big dog", "spider", "new cave thing", "laser crystal", "hyper crystal", "snow bandit", "snowbot", "wolf", "snowtank", "lil hunter", "freak", "explo freak", "rhino freak", "necromancer", "turret", "technomancer", "guardian", "explo guardian", "dog guardian", "throne", "throne II", "bonefish", "crab", "turtle", "molefish", "molesarge", "fireballer", "super fireballer", "jock", "@p@qc@qu@qr@qs@qe@qd @qs@qp@qi@qd@qe@qr", "@p@qc@qu@qr@qs@qe@qd @qc@qr@qy@qs@qt@qa@ql", "mimic", "health mimic", "grunt", "inspector", "shielder", "crown guardian", "explosion", "small explosion", "fire trap", "shield", "toxic", "horror", "barrel", "toxic barrel", "golden barrel", "car", "venus car", "venus car fixed", "venus car 2", "icy car" , "thrown car", "mine", "crown of death", "rogue strike", "blood launcher", "blood cannon", "blood hammer", "disc", "@p@qc@qu@qr@qs@qe", "big dog missile", "halloween bandit", "lil hunter fly", "throne death", "jungle bandit", "jungle assassin", "jungle fly", "crown of hatred", "ice flower", "@p@qc@qu@qr@qs@qe@qd @qa@qm@qm@qo @qp@qi@qc@qk@qu@qp", "electrocution", "elite grunt", "blood gamble", "elite shielder", "elite inspector", "captain", "van", "buff gator", "generator", "lightning crystal", "golden snowtank", "green explosion", "small generator", "golden disc", "big dog explosion", "popo freak", "throne II death", "big fish"];
+				if(_hitid >= 0 && _hitid < array_length(_list)){
+					_name = loc(`CauseOfDeath:${_hitid}`, _list[_hitid]);
+				}
+				
+				 // Sprite:
+				else if(sprite_exists(_hitid)){
+					_name = sprite_get_name(_hitid);
+				}
+			}
+			
+			 // Custom:
+			else if(is_array(_hitid) && array_length(_hitid)){
+				_name = string(_hitid[1]);
+			}
+		}
+		
+		 // Named:
+		if(_name == ""){
+			if("name" in _inst && string_pos("Custom", object_get_name(variable_instance_get(_inst, "object_index", -1))) == 1){
+				_name = string(_inst.name);
+				if(string_pos(" ", _name) <= 0){
+					_name = string_space(_name);
+				}
+			}
+		}
+	}
+	
+	 // Object:
+	if(_name == ""){
+		var _obj = (
+			object_exists(_inst)
+			? _inst
+			: variable_instance_get(_inst, "object_index", -1)
+		);
+		if(object_exists(_obj)){
+			switch(_obj){
+				case Bullet1      : _name = "Bullet";            break;
+				case Bullet2      : _name = "Shell";             break;
+				case EnemyBullet1 : _name = "Enemy Bullet";      break;
+				case EnemyBullet2 : _name = "Venom";             break;
+				case EnemyBullet3 : _name = "Enemy Shell";       break;
+				case EnemyBullet4 : _name = "Sniper Bullet";     break;
+				case EFlakBullet  : _name = "Enemy Flak Bullet"; break;
+				case PlasmaBig    : _name = "Big Plasma";        break;
+				case PlasmaHuge   : _name = "Huge Plasma";       break;
+				default           : _name  = string_space(object_get_name(_obj));
+			}
+		}
+	}
+	
+	return _name;
+	
+#define instance_nearest_array(_x, _y, _obj)
+	/*
+		Returns the instance closest to a given point from an array of instances
+		
+		Ex:
+			instance_nearest_array(x, y, instances_matching_ne(hitme, "team", 2));
+	*/
+	
+	var	_disMax  = infinity,
+		_nearest = noone;
+		
+	with(instances_matching_ne(_obj, "id", null)){
+		var _dis = point_distance(_x, _y, x, y);
+		if(_dis < _disMax){
+			_disMax  = _dis;
+			_nearest = self;
+		}
+	}
+	
+	return _nearest;
+	
+#define instance_nearest_bbox(_x, _y, _obj)
+	/*
+		Returns the instance closest to a given point based on their bounding box
+		Accepts an array argument like 'instance_nearest_array()' does
+		
+		Ex:
+			instance_nearest_bbox(x, y, Floor);
+	*/
+	
+	var	_disMax  = infinity,
+		_nearest = noone;
+		
+	with(instances_matching_ne(_obj, "id", null)){
+		var _dis = distance_to_point(_x, _y);
+		if(_dis < _disMax){
+			_disMax  = _dis;
+			_nearest = self;
+		}
+	}
+	
+	return _nearest;
+	
+#define instance_nearest_rectangle(_x1, _y1, _x2, _y2, _obj)
+	/*
+		Returns the instance closest to a given rectangle based on their position
+		If multiple instances are equally distant from the rectangle, a bias exists for the one closer to its center
+		Accepts an array argument like 'instance_nearest_array()' does
+		
+		Ex:
+			instance_nearest_rectangle(x, y, x + 160, y + 64, chestprop)
+	*/
+	
+	var	_cx      = (_x1 + _x2) / 2,
+		_cy      = (_y1 + _y2) / 2,
+		_disAMax = infinity,
+		_disBMax = infinity,
+		_nearest = noone;
+		
+	with(instances_matching_ne(_obj, "id", null)){
+		var	_disA = point_distance(x, y, clamp(x, _x1, _x2), clamp(y, _y1, _y2)),
+			_disB = point_distance(x, y, _cx, _cy);
+			
+		if(_disA < _disAMax || (_disA == _disAMax && _disB < _disBMax)){
+			_disAMax = _disA;
+			_disBMax = _disB;
+			_nearest = self;
+		}
+	}
+	
+	return _nearest;
+	
+#define instance_nearest_rectangle_bbox(_x1, _y1, _x2, _y2, _obj)
+	/*
+		Returns the instance closest to a given rectangle based on their bounding box
+		If multiple instances are equally distant from the rectangle, a bias exists for the one closer to its center
+		Accepts an array argument like 'instance_nearest_array()' does
+		
+		Ex:
+			instance_nearest_rectangle_bbox(x - 16, y - 16, x + 16, y + 16, Floor)
+	*/
+	
+	var	_cx      = (_x1 + _x2) / 2,
+		_cy      = (_y1 + _y2) / 2,
+		_disAMax = infinity,
+		_disBMax = infinity,
+		_nearest = noone;
+		
+	with(instances_matching_ne(_obj, "id", null)){
+		var	_x    = clamp(_cx, bbox_left, bbox_right + 1),
+			_y    = clamp(_cy, bbox_top, bbox_bottom + 1),
+			_disA = point_distance(_x, _y, clamp(_x, _x1, _x2), clamp(_y, _y1, _y2)),
+			_disB = point_distance(_x, _y, _cx, _cy);
+			
+		if(_disA < _disAMax || (_disA == _disAMax && _disB < _disBMax)){
+			_disAMax = _disA;
+			_disBMax = _disB;
+			_nearest = self;
+		}
+	}
+	
+	return _nearest;
+	
+#define instances_at(_x, _y, _obj)
+	/*
+		Returns all given instances with their bounding boxes touching a given position
+		Much better performance than manually performing 'position_meeting()' on every instance
+	*/
+	
+	return instances_matching_le(instances_matching_ge(instances_matching_le(instances_matching_ge(_obj, "bbox_right", _x), "bbox_left", _x), "bbox_bottom", _y), "bbox_top", _y);
+	
+#define instance_rectangle(_x1, _y1, _x2, _y2, _obj)
+	/*
+		Returns all given instances with their coordinates touching a given rectangle
+		Much better performance than manually performing 'point_in_rectangle()' on every instance
+	*/
+	
+	return instances_matching_le(instances_matching_ge(instances_matching_le(instances_matching_ge(_obj, "x", _x1), "x", _x2), "y", _y1), "y", _y2);
+	
+#define instance_rectangle_bbox(_x1, _y1, _x2, _y2, _obj)
+	/*
+		Returns all given instances with their bounding box touching a given rectangle
+		Much better performance than manually performing 'place_meeting()' on every instance
+	*/
+	
+	return instances_matching_le(instances_matching_ge(instances_matching_le(instances_matching_ge(_obj, "bbox_right", _x1), "bbox_left", _x2), "bbox_bottom", _y1), "bbox_top", _y2);
+	
+#define instances_meeting(_x, _y, _obj)
+	/*
+		Returns all instances whose bounding boxes overlap the calling instance's bounding box at the given position
+		Much better performance than manually performing 'place_meeting(x, y, other)' on every instance
+	*/
+	
+	var	_tx = x,
+		_ty = y;
+		
+	x = _x;
+	y = _y;
+	
+	var _inst = instances_matching_ne(instances_matching_le(instances_matching_ge(instances_matching_le(instances_matching_ge(_obj, "bbox_right", bbox_left), "bbox_left", bbox_right), "bbox_bottom", bbox_top), "bbox_top", bbox_bottom), "id", id);
+	
+	x = _tx;
+	y = _ty;
+	
+	return _inst;
+	
+#define instances_seen(_obj, _bx, _by, _index)
+	/*
+		Returns all given instances currently on a given player's screen
+		Much better performance than manually performing 'point_seen()' or 'point_seen_ext()' on every instance
+		
+		Args:
+			obj   - The object or instances to search
+			bx/by - X/Y border offsets, like 'point_seen_ext()'
+			index - The index of the player's screen, use -1 to search the overall bounding area of every player's screen
+	*/
+	
+	var	_x1 = 0,
+		_y1 = 0,
+		_x2 = 0,
+		_y2 = 0;
+		
+	 // All:
+	if(_index < 0){
+		_x1 = +infinity;
+		_y1 = +infinity;
+		_x2 = -infinity;
+		_y2 = -infinity;
+		for(var i = 0; i < maxp; i++){
+			if(player_is_active(i)){
+				var	_x = view_xview[i],
+					_y = view_yview[i];
+					
+				if(_x < _x1) _x1 = _x;
+				if(_y < _y1) _y1 = _y;
+				if(_x > _x2) _x2 = _x;
+				if(_y > _y2) _y2 = _y;
+			}
+		}
+		_x2 += game_width;
+		_y2 += game_width;
+	}
+	
+	 // Normal:
+	else{
+		_x1 = view_xview[_index];
+		_y1 = view_yview[_index];
+		_x2 = _x1 + game_width;
+		_y2 = _y1 + game_height;
+	}
+	
+	return instances_matching_le(instances_matching_ge(instances_matching_le(instances_matching_ge(_obj, "bbox_right", _x1 - _bx), "bbox_left", _x2 + _bx), "bbox_bottom", _y1 - _by), "bbox_top", _y2 + _by);
+	
+#define instances_seen_nonsync(_obj, _bx, _by)
+	/*
+		Returns all given instances currently on the local player's screen
+		Much better performance than manually performing 'point_seen()' or 'point_seen_ext()' on every instance
+		!!! Beware of DESYNCS
+		
+		Args:
+			obj   - The object or instances to search
+			bx/by - X/Y border offsets, like 'point_seen_ext()'
+	*/
+	
+	var	_x1 = view_xview_nonsync,
+		_y1 = view_yview_nonsync,
+		_x2 = _x1 + game_width,
+		_y2 = _y1 + game_height;
+		
+	return instances_matching_le(instances_matching_ge(instances_matching_le(instances_matching_ge(_obj, "bbox_right", _x1 - _bx), "bbox_left", _x2 + _bx), "bbox_bottom", _y1 - _by), "bbox_top", _y2 + _by);
+	
+#define instance_random(_obj)
+	/*
+		Returns a random instance of the given object
+		Also accepts an array of instances
+	*/
+	
+	var	_inst = instances_matching_ne(_obj, "id", null),
+		_size = array_length(_inst);
+		
+	return (
+		(_size > 0)
+		? _inst[irandom(_size - 1)]
+		: noone
+	);
+	
+#define instance_clone()
+	/*
+		Duplicates an instance like 'instance_copy(false)', but clones all of their variables
+	*/
+	
+	var _inst = instance_copy(false);
+	
+	with(variable_instance_get_names(_inst)){
+		var	_value = variable_instance_get(_inst, self),
+			_clone = data_clone(_value, 0);
+			
+		if(_value != _clone){
+			variable_instance_set(_inst, self, _clone);
+		}
+	}
+	
+	return _inst;
+	
+#define data_clone(_value, _depth)
+	/*
+		Returns an exact copy of the given value, and any data stored within the value based on the given depth
+		
+		Ex:
+			list = [1, [ds_list_create(), 3], surface_create(1, 1)];
+			data_clone(list, 0) == Returns a clone of the main array
+			data_clone(list, 1) == Returns a clone of the main array, sub array, and surface
+			data_clone(list, 2) == Returns a clone of the main array, sub array, surface, and ds_list
+	*/
+	
+	if(_depth >= 0){
+		_depth--;
+		
+		 // Array:
+		if(is_array(_value)){
+			var _clone = array_clone(_value);
+			
+			if(_depth >= 0){
+				for(var i = array_length(_value) - 1; i >= 0; i--){
+					_clone[i] = data_clone(_value[i], _depth);
+				}
+			}
+			
+			return _clone;
+		}
+		
+		 // LWO:
+		if(is_object(_value)){
+			var _clone = lq_clone(_value);
+			
+			if(_depth >= 0){
+				for(var i = lq_size(_value) - 1; i >= 0; i--){
+					lq_set(_clone, lq_get_key(_value, i), data_clone(lq_get_value(_value, i), _depth));
+				}
+			}
+			
+			return _clone;
+		}
+		
+		/* GM data structures are tied to mod files
+		 // DS List:
+		if(ds_list_valid(_value)){
+			var _clone = ds_list_clone(_value);
+			
+			if(_depth >= 0){
+				for(var i = ds_list_size(_value) - 1; i >= 0; i--){
+					_clone[| i] = data_clone(_value[| i], _depth);
+				}
+			}
+			
+			return _clone;
+		}
+		
+		 // DS Map:
+		if(ds_map_valid(_value)){
+			var _clone = ds_map_create();
+			
+			with(ds_map_keys(_value)){
+				_clone[? self] = data_clone(_value[? self], _depth);
+			}
+			
+			return _clone;
+		}
+		
+		 // DS Grid:
+		if(ds_grid_valid(_value)){
+			var	_w     = ds_grid_width(_value),
+				_h     = ds_grid_height(_value),
+				_clone = ds_grid_create(_w, _h);
+				
+			for(var _x = _w - 1; _x >= 0; _x--){
+				for(var _y = _h - 1; _y >= 0; _y--){
+					_value[# _x, _y] = data_clone(_value[# _x, _y], _depth);
+				}
+			}
+			
+			return _clone;
+		}
+		*/
+		
+		 // Surface:
+		if(surface_exists(_value)){
+			return surface_clone(_value);
+		}
+	}
+	
+	return _value;
+	
+#define ds_list_clone(_list)
+	/*
+		Returns an exact copy of the given ds_list
+	*/
+	
+	var _clone = ds_list_create();
+	
+	ds_list_add_array(_clone, ds_list_to_array(_list));
+	
+	return _clone;
+	
+#define surface_clone(_surf)
+	/*
+		Returns an exact copy of the given surface
+	*/
+	
+	var _clone = surface_create(surface_get_width(_surf), surface_get_height(_surf));
+	
+	surface_set_target(_clone);
+	draw_clear_alpha(0, 0);
+	draw_surface(_surf, 0, 0);
+	surface_reset_target();
+	
+	return _clone;
+	
+#define variable_instance_get_list(_inst)
+	/*
+		Returns all of a given instance's variable names and values as a LWO
+	*/
+	
+	var _list = {};
+	
+	with(variable_instance_get_names(_inst)){
+		lq_set(_list, self, variable_instance_get(_inst, self));
+	}
+	
+	return _list;
+	
+#define variable_instance_set_list(_inst, _list)
+	/*
+		Sets all of a given LWO's variable names and values on a given instance
+	*/
+	
+	if(instance_exists(_inst)){
+		var	_listMax  = lq_size(_list),
+			_isCustom = (string_pos("Custom", object_get_name(_inst.object_index)) == 1);
+			
+		for(var i = 0; i < _listMax; i++){
+			var _name = lq_get_key(_list, i);
+			if(!variable_is_readonly(_inst, _name)){
+				if(_isCustom && string_pos("on_", _name) == 1){
+					if(variable_instance_get(_inst, _name) != lq_get_value(_list, i)){
+						try variable_instance_set(_inst, _name, lq_get_value(_list, i));
+						catch(_error){}
+					}
+				}
+				else variable_instance_set(_inst, _name, lq_get_value(_list, i));
+			}
+		}
+	}
+	
+#define variable_is_readonly(_inst, _varName)
+	/*
+		Returns 'true' if the given variable on the given instance is read-only, 'false' otherwise
+	*/
+	
+	if(array_find_index(["id", "object_index", "bbox_bottom", "bbox_top", "bbox_right", "bbox_left", "image_number", "sprite_yoffset", "sprite_xoffset", "sprite_height", "sprite_width"], _varName) >= 0){
+		return true;
+	}
+	
+	if(instance_is(_inst, Player)){
+		if(array_find_index(["p", "index", "alias"], _varName) >= 0){
+			return true;
+		}
+	}
+	
+	return false;
+	
+#define draw_lasersight(_x, _y, _dir, _disMax, _width)
+	/*
+		Performs hitscan and draws a laser sight line
+		Returns the line's ending position
+	*/
+	
+	var	_dis  = _disMax,
+		_disX = lengthdir_x(_dis, _dir),
+		_disY = lengthdir_y(_dis, _dir);
+		
+	 // Major Hitscan Mode (Start at max, halve distance until no collision line):
+	while(_dis >= 1 && collision_line(_x, _y, _x + _disX, _y + _disY, Wall, false, false)){
+		_dis  /= 2;
+		_disX /= 2;
+		_disY /= 2;
+	}
+	
+	 // Minor Hitscan Mode (Increment until walled):
+	if(_dis < _disMax){
+		var	_disAdd  = max(2, _dis / 32),
+			_disAddX = lengthdir_x(_disAdd, _dir),
+			_disAddY = lengthdir_y(_disAdd, _dir);
+			
+		while(_dis > 0 && !position_meeting(_x + _disX, _y + _disY, Wall)){
+			_dis  -= _disAdd;
+			_disX += _disAddX;
+			_disY += _disAddY;
+		}
+	}
+	
+	 // Draw:
+	draw_line_width(
+		_x - 1,
+		_y - 1,
+		_x - 1 + _disX,
+		_y - 1 + _disY,
+		_width
+	);
+	
+	return [_x + _disX, _y + _disY];
+	
+#define draw_surface_scale(_surf, _x, _y, _scale)
+	/*
+		Draws a given surface at a given position with a given scale
+		Useful when working with surfaces that support pixel scaling
+	*/
+	
+	draw_surface_ext(_surf, _x, _y, _scale, _scale, 0, c_white, draw_get_alpha());
+	
+#define draw_text_bn(_x, _y, _string, _angle)
+	/*
+		Draw big portrait name text
+		Portrait names use an angle of 1.5
+		
+		Ex:
+			draw_set_font(fntBigName)
+			draw_text_bn(x, y, "FISH", 1.5);
+	*/
+	
+	_string = string_upper(_string);
+	
+	var _col = draw_get_color();
+	draw_set_color(c_black);
+	draw_text_transformed(_x + 1, _y,     _string, 1, 1, _angle);
+	draw_text_transformed(_x,     _y + 2, _string, 1, 1, _angle);
+	draw_text_transformed(_x + 1, _y + 2, _string, 1, 1, _angle);
+	draw_set_color(_col);
+	draw_text_transformed(_x,     _y,     _string, 1, 1, _angle);
+	
+#define string_delete_nt(_string)
+	/*
+		Returns a given string with "draw_text_nt()" formatting removed
+		
+		Ex:
+			string_delete_nt("@2(sprBanditIdle:0)@rBandit") == "  Bandit"
+			string_width(string_delete_nt("@rHey")) == 3
+	*/
+	
+	var	_split          = "@",
+		_stringSplit    = string_split(_string, _split),
+		_stringSplitMax = array_length(_stringSplit);
+		
+	for(var i = 1; i < _stringSplitMax; i++){
+		if(_stringSplit[i - 1] != _split){
+			var	_current = _stringSplit[i],
+				_char    = string_upper(string_char_at(_current, 1));
+				
+			switch(_char){
+				
+				case "": // CANCEL : "@@rHey" -> "@rHey"
+					
+					if(i < _stringSplitMax - 1){
+						_current = _split;
+					}
+					
+					break;
+					
+				case "W":
+				case "S":
+				case "D":
+				case "R":
+				case "G":
+				case "B":
+				case "P":
+				case "Y":
+				case "Q": // BASIC : "@qHey" -> "Hey"
+					
+					_current = string_delete(_current, 1, 1);
+					
+					break;
+					
+				case "0":
+				case "1":
+				case "2":
+				case "3":
+				case "4":
+				case "5":
+				case "6":
+				case "7":
+				case "8":
+				case "9": // SPRITE OFFSET : "@2(sprBanditIdle:1)Hey" -> "  Hey"
+					
+					if(string_char_at(_current, 2) == "("){
+						_current = string_delete(_current, 1, 1);
+						
+						 // Offset if Drawing Sprite:
+						var _spr = string_split(string_copy(_current, 2, string_pos(")", _current) - 2), ":")[0];
+						if(
+							real(_spr) > 0
+							|| sprite_exists(asset_get_index(_spr))
+							|| _spr == "sprKeySmall"
+							|| _spr == "sprButSmall"
+							|| _spr == "sprButBig"
+						){
+							// draw_text_nt uses width of "A" instead of " ", so this is slightly off on certain fonts
+							if(string_width(" ") > 0){
+								_current = string_repeat(" ", real(_char) * (string_width("A") / string_width(" "))) + _current;
+							}
+						}
+					}
+					
+					 // NONE : "@2Hey" -> "@2Hey"
+					else{
+						_current = _split + _current;
+						break;
+					}
+					
+				case "(": // ADVANCED : "@(sprBanditIdle:1)Hey" -> "Hey"
+					
+					var	_bgn = string_pos("(", _current),
+						_end = string_pos(")", _current);
+						
+					if(_bgn < _end){
+						_current = string_delete(_current, _bgn, 1 + _end - _bgn);
+						break;
+					}
+					
+				default: // NONE : "@Hey" -> "@Hey"
+					
+					_current = _split + _current;
+					
+			}
+			
+			_stringSplit[i] = _current;
+		}
+	}
+	
+	return array_join(_stringSplit, "");
+	
+#define string_space(_string)
+	/*
+		Returns the given string with spaces inserted between numbers<->letters, letters<->numbers, and lowercase<->uppercase
+		
+		Ex:
+			string_space("CoolGuy123") == "Cool Guy 123"
+	*/
+	
+	var	_char     = "",
+		_charLast = "",
+		_charNext = "";
+		
+	for(var i = 0; i <= string_length(_string); i++){
+		_charNext = string_char_at(_string, i + 1);
+		
+		if(
+			(_char != string_lower(_char) && (_charLast != string_upper(_charLast) || (_charLast != string_lower(_charLast) && _charNext != string_upper(_charNext))))
+			|| (string_digits(_char) != "" && string_letters(_charLast) != "")
+			|| (string_letters(_char) != "" && string_digits(_charLast) != "") 
+		){
+			_string = string_insert(" ", _string, i);
+			i++;
+		}
+		
+		_charLast = _char;
+		_char = _charNext;
+	}
+	
+	return _string;
