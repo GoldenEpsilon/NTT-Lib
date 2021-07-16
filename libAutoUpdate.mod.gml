@@ -1,8 +1,6 @@
 /*	                AutoUpdate
 	This is the AutoUpdate package of Lib, for
 	automatically updating your mods!
-	It takes a bit more setup than other packages,
-	but the payoff is quite nice.
 */
 
 /*
@@ -21,10 +19,20 @@
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.updatables = [];
 	global.forks = 0;
+	global.updating = 0; //if you want to check for the autoupdate to finish, this will only be 0 when it's not updating something
 
 #define autoupdate(_name, _repo)
+/* Creator: Golden Epsilon
+Description: 
+	Checks for an update, updates if there is one.
+	Also adds in a chat command to force updating.
+Arguments:
+	_name : The name of the mod. This *must* be the name of the folder the person loads for this system to work correctly.
+	_repo : The github repository for the mod. Other sites don't work. you need to pass in the string in the format "GitHubUsername/RepoName".
+*/
 
 if(array_length(string_split(_repo, "/")) != 2){trace("You need to format the string you pass into autoupdate this way: GitHubUsername/RepoName (it's in the url for the regular repo, there should only be 1 slash)");}
+global.updating++;
 var new = true;
 with(global.updatables){
 	if(self[0] == _name && self[1] == _repo){
@@ -37,8 +45,9 @@ if(new){
 	array_push(global.updatables, [_name, _repo]);
 }
 
-//don't download anything in multiplayer
-if(player_is_active(1) || player_is_active(2) || player_is_active(3)){
+//check if lib can download; if it can't, this can't.
+if(!mod_variable_get("mod", "lib", "canLoad")){
+	global.updating--;
 	return 0;
 }
 
@@ -67,6 +76,7 @@ if(oldjson == false){
 	trace("Updating "+_name);
 	updateFiles(_name, _repo);
 	script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
+	global.updating--;
 	return 1;
 }
 //When this if statement runs it replaces the files, so if you want to implement a backup here is where you do it
@@ -74,8 +84,10 @@ if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson 
 	trace("There is an update for "+_name+"! updating...");
 	updateFiles(_name, _repo);
 	script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
+	global.updating--;
 	return 1;
 }
+global.updating--;
 return 0;
 
 #define updateFiles(_name, _repo)
@@ -138,10 +150,17 @@ return 0;
 with(global.updatables){
 	if(command == "update"+self[0]){
 		if(fork()){
+			global.updating++;
+			if(!mod_variable_get("mod", "lib", "canLoad")){
+				trace("can't autoupdate - you're either in multiplayer or can't connect to the internet");
+				global.updating--;
+				exit;
+			}
 			trace("Updating "+self[0]);
 			while(global.forks > 0){wait(1);}
 			updateFiles(self[0], self[1]);
 			script_ref_call(["mod", "lib", "loadText"], "../../mods/" + self[0] + "/" + "main.txt");
+			global.updating--;
 			exit;
 		}
 		return 1;

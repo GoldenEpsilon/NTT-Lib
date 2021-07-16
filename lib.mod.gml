@@ -14,28 +14,7 @@ global.canLoad = undefined;
 //wait in case libloader's already done the work for you
 wait(2);
 if(global.canLoad == undefined){
-	//Check internet connection
-	file_download("http://worldclockapi.com/api/json/est/now", "ping.txt");
-	var d = 0;
-	while (!file_loaded("ping.txt")){
-		if d++ > 240 exit;
-		wait 1;
-	}
-	global.canLoad = true;
-	var str = string_load("ping.txt");
-	if(is_undefined(str)){
-		global.canLoad = false;
-	}else{
-		var json = json_decode(str)
-		if(json == json_error){
-			global.canLoad = false;
-		}
-	}
-
-	//Don't download anything if you're in multiplayer
-	if(player_is_active(1) || player_is_active(2) || player_is_active(3)){
-		global.canLoad = false;
-	}
+	ping();
 }
 
 #define import(package)
@@ -48,15 +27,22 @@ Usage:
 	script_ref_call(["mod", "lib", "import"], "libPackageName");
 */
 while(global.canLoad == undefined){wait(1)}
-if(global.canLoad && !lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
-	lq_set(global.loadedPackages, package, 1);
-	
-	file_delete("../../mods/lib/" + package + ".mod.gml");
-	while (file_exists("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
-	file_download(URL + package + ".mod.gml", "../../mods/lib/" + package + ".mod.gml");
-	while (!file_loaded("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
+if(global.canLoad){
+	if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
+		lq_set(global.loadedPackages, package, 1);
+		
+		file_delete("../../mods/lib/" + package + ".mod.gml");
+		while (file_exists("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
+		file_download(URL + package + ".mod.gml", "../../mods/lib/" + package + ".mod.gml");
+		while (!file_loaded("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 
-	mod_load("../../mods/lib/" + package);
+		mod_load("../../mods/lib/" + package);
+	}
+}else{
+	if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
+		lq_set(global.loadedPackages, package, 1);
+		mod_load("../../mods/lib/" + package);
+	}
 }
 
 #define getRef(_type, _mod, _name)
@@ -90,6 +76,38 @@ with(global.activeReferences){
 }
 array_push(global.activeReferences, [_type, _mod, _name]);
 
+#define functionList
+// prints to the chat all loaded functions.
+// Mainly for a reference for modders, I don't expect this to be used much though.
+// Only traces the module name and function name, does NOT print parameters.
+with(global.scriptReferences){
+	trace(self[1] + ": " + self[2]);
+}
+
+#define ping()
+	//Check internet connection
+	file_download("http://worldclockapi.com/api/json/est/now", "ping.txt");
+	var d = 0;
+	while (!file_loaded("ping.txt")){
+		if d++ > 240 exit;
+		wait 1;
+	}
+	global.canLoad = true;
+	var str = string_load("ping.txt");
+	if(is_undefined(str)){
+		global.canLoad = false;
+	}else{
+		var json = json_decode(str)
+		if(json == json_error){
+			global.canLoad = false;
+		}
+	}
+
+	//Don't download anything if you're in multiplayer
+	if(player_is_active(1) || player_is_active(2) || player_is_active(3)){
+		global.canLoad = false;
+	}
+
 #define updateRef
 // For internal use.
 with(global.activeReferences){
@@ -99,14 +117,6 @@ with(global.activeReferences){
 #define loadText(path)
 // For internal use.
 mod_loadtext(path);
-
-#define functionList
-// prints to the chat all loaded functions.
-// Mainly for a reference for modders, I don't expect this to be used much though.
-// Only traces the module name and function name, does NOT print parameters.
-with(global.scriptReferences){
-	trace(self[1] + ": " + self[2]);
-}
 
 #macro URL "https://raw.githubusercontent.com/GoldenEpsilon/NTT-Lib/main/"
 
