@@ -81,6 +81,13 @@ if(global.canLoad && !lq_exists(global.loadedPackages, package) && !mod_exists("
 // The function will be called when needed as long as the mod's called getRef at some point.
 
 mod_variable_set(_type, _mod, _name, global.scriptReferences);
+
+//ensure that there are no duplicates
+with(global.activeReferences){
+	if(self[0] == _type && self[1] == _mod && self[2] == _name){
+		return;
+	}
+}
 array_push(global.activeReferences, [_type, _mod, _name]);
 
 #define updateRef

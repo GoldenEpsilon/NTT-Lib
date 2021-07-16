@@ -57,69 +57,70 @@ wait file_unload(_name+"version.json");
 while(global.forks > 0){wait(1);}
 if(oldjson == false){
 	trace("Updating "+_name);
-	updateFiles(_name, _repo, "");
+	updateFiles(_name, _repo);
 	script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
 	return 1;
 }
 //When this if statement runs it replaces the files, so if you want to implement a backup here is where you do it
 if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson != json_error && is_array(newjson) && "sha" in newjson[0] && oldjson[0].sha != newjson[0].sha){
 	trace("There is an update for "+_name+"! updating...");
-	updateFiles(_name, _repo, "");
+	updateFiles(_name, _repo);
 	script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
 	return 1;
 }
 return 0;
 
-#define updateFiles(_name, _repo, _sub)
-	file_delete(_sub+"/"+_name+"files.json");
-	while (file_exists(_sub+"/"+_name+"files.json")) {wait 1;}
-	wait file_unload(_sub+"/"+_name+"files.json");
-	wait file_download("https://api.github.com/repos/" + _repo + "/contents/" + _sub, _sub+"/"+_name+"files.json");
-	file_load(_sub+"/"+_name+"files.json");
-	while (!file_loaded(_sub+"/"+_name+"files.json")) {wait 1;}
-	while (!file_exists(_sub+"/"+_name+"files.json")) {wait 1;}
-	var json = json_decode(string_load(_sub+"/"+_name+"files.json"));
-	wait file_unload(_sub+"/"+_name+"files.json");
-	if(json != json_error){
-		with(json){
-			if("name" in self){
-				trace(name);
-				if("type" in self && type == "file"){
-					//Replace a file
-					if(fork()){
-						file_delete("../../mods/" + _sub + "/" + _name + "/" + name);
-						while (file_exists("../../mods/" + _sub + "/" + _name + "/" + name)) {wait 1;}
+#define updateFiles(_name, _repo)
+	file_delete(_name+"branches.json");
+	while (file_exists(_name+"branches.json")) {wait 1;}
+	wait file_unload(_name+"branches.json");
+	wait file_download("https://api.github.com/repos/" + _repo + "/branches", _name+"branches.json");
+	file_load(_name+"branches.json");
+	while (!file_loaded(_name+"branches.json")) {wait 1;}
+	while (!file_exists(_name+"branches.json")) {wait 1;}
+	var branches = json_decode(string_load(_name+"branches.json"));
+	wait file_unload(_name+"branches.json");
+	
+	if(branches != json_error){
+		if(is_array(branches)){
+			file_delete(_name+"tree.json");
+			while (file_exists(_name+"tree.json")) {wait 1;}
+			wait file_unload(_name+"tree.json");
+			wait file_download("https://api.github.com/repos/" + _repo + "/git/trees/"+branches[0].commit.sha+"?recursive=1", _name+"tree.json");
+			file_load(_name+"tree.json");
+			while (!file_loaded(_name+"tree.json")) {wait 1;}
+			while (!file_exists(_name+"tree.json")) {wait 1;}
+			var tree = json_decode(string_load(_name+"tree.json"));
+			wait file_unload(_name+"tree.json");
+			if(tree != json_error){
+				with(tree.tree){
+					if(type == "blob" && fork()){
 						global.forks++;
-						wait file_download("https://raw.githubusercontent.com/" + _repo + (_sub != "" ? "/" + _sub : "") + "/" + name, "../../mods/" + _sub + "/" + _name + "/" + name);
-						global.forks--;
-						exit;
-					}
-				}else if("type" in self && type == "dir" && name != ""){
-					//it was a folder, load folder stuff
-					if(fork()){
-						global.forks++;
-						var sub = _sub;
-						if(sub != ""){sub += "/";}
-						sub += name;
-						updateFiles(_name, _repo, sub);
+						//Replace a file
+						file_delete("../../mods/" + _name + "/" + path);
+						while (file_exists("../../mods/" + _name + "/" + path)) {wait 1;}
+						wait file_download("https://raw.githubusercontent.com/" + _repo + "/" + path, "../../mods/" + _name + "/" + path);
 						global.forks--;
 						exit;
 					}
 				}
+				while(global.forks > 0){wait(1);}
 			}else{
 				//set it to download again when it can
-				file_delete(_name+"version.json");
+				file_delete(_name+"tree.json");
 				trace("ERROR. Were you downloading too much at once?");
 			}
-			if("message" in self){
-				trace(message);
+			if("message" in tree){
+				trace(tree.message);
 			}
+		}else{
+			//set it to download again when it can
+			file_delete(_name+"branches.json");
+			trace("ERROR. Were you downloading too much at once?");
 		}
-		if(_sub == ""){
-			while(global.forks > 0){wait(1);}
+		if("message" in branches){
+			trace(branches.message);
 		}
-	}else{
-		trace("There was an error when updating, loading mod anyway");
 	}
 
 #define chat_command(command, parameter, player)
@@ -128,7 +129,7 @@ with(global.updatables){
 		if(fork()){
 			trace("Updating "+self[0]);
 			while(global.forks > 0){wait(1);}
-			updateFiles(self[0], self[1], "");
+			updateFiles(self[0], self[1]);
 			script_ref_call(["mod", "lib", "loadText"], "../../mods/" + self[0] + "/" + "main.txt");
 			exit;
 		}

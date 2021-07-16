@@ -150,6 +150,11 @@
 		script_ref_create_ext("mod", argument[1], argument[0])
 	);
 	
+	with(event_list){
+		if(self[0] == _scrt[0] && self[1] == _scrt[1] && self[2] == _scrt[2]){
+			return undefined;
+		}
+	}
 	array_push(event_list, _scrt);
 	
 	return _scrt;
@@ -162,8 +167,13 @@
 			event_add_ext(script_ref_create_ext(mod_type_current, mod_current, "MaggotPark"));
 	*/
 	
-	var _scrt = (argument[0]);
+	var _scrt = argument[0];
 	
+	with(event_list){
+		if(self[0] == _scrt[0] && self[1] == _scrt[1] && self[2] == _scrt[2]){
+			return undefined;
+		}
+	}
 	array_push(event_list, _scrt);
 	
 	return _scrt;
