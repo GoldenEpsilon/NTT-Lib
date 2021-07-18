@@ -12,14 +12,16 @@ global.lastid = instance_create(0, 0, DramaCamera);
 global.level_loading = false;
 global.canLoad = undefined;
 
-//libGeneral is important for the rest of lib, so it's loaded by default
-import("libGeneral");
+//wait for sideloading
+while(!mod_sideload()){wait 1;}
 
 //wait in case libloader's already done the work for you
 wait(2);
 if(global.canLoad == undefined){
 	ping();
 }
+//libGeneral is important for the rest of lib, so it's loaded by default
+import("libGeneral");
 
 #define import(package)
 /* Creator: Golden Epsilon
@@ -34,7 +36,6 @@ while(global.canLoad == undefined){wait(1)}
 if(global.canLoad){
 	if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
 		lq_set(global.loadedPackages, package, 1);
-		
 		file_delete("../../mods/lib/" + package + ".mod.gml");
 		while (file_exists("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 		file_download(URL + package + ".mod.gml", "../../mods/lib/" + package + ".mod.gml");
@@ -42,7 +43,7 @@ if(global.canLoad){
 
 		if(file_exists("../../mods/lib/" + package + ".mod.gml")){
 			mod_load("../../mods/lib/" + package);
-			while(!mod_exists("mod", "package")){wait(1);}
+			while(!mod_exists("mod", package)){wait(1);}
 		}else{
 			trace("Could not find package " + package);
 		}
@@ -53,7 +54,7 @@ if(global.canLoad){
 		while (!file_loaded("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 		if(file_exists("../../mods/lib/" + package + ".mod.gml")){
 			mod_load("../../mods/lib/" + package);
-			while(!mod_exists("mod", "package")){wait(1);}
+			while(!mod_exists("mod", package)){wait(1);}
 		}else{
 			trace("Could not find package " + package);
 		}
