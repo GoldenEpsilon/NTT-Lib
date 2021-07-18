@@ -15,7 +15,51 @@
 	mod_variable_set("mod", "lib", "scriptReferences", ref);
 
 #define init
+	//macros for calling functions easier
+	#macro scr global.scr
+	#macro call script_ref_call
+	//Other macros
+	#macro area_campfire     0
+	#macro area_desert       1
+	#macro area_sewers       2
+	#macro area_scrapyards   3
+	#macro area_caves        4
+	#macro area_city         5
+	#macro area_labs         6
+	#macro area_palace       7
+	#macro area_vault        100
+	#macro area_oasis        101
+	#macro area_pizza_sewers 102
+	#macro area_mansion      103
+	#macro area_cursed_caves 104
+	#macro area_jungle       105
+	#macro area_hq           106
+	#macro area_crib         107
+
+	#macro infinity 1/0
+
+	#macro mod_current_type script_ref_create(0)[0]
+
+	#macro instance_max instance_create(0, 0, DramaCamera)
+
+	#macro current_frame_active ((current_frame % 1) < current_time_scale)
+
+	#macro anim_end (image_index + image_speed_raw >= image_number || image_index + image_speed_raw < 0)
+
+	#macro bbox_center_x (bbox_left + bbox_right + 1) / 2
+	#macro bbox_center_y (bbox_top + bbox_bottom + 1) / 2
+	#macro bbox_width    (bbox_right  + 1) - bbox_left
+	#macro bbox_height   (bbox_bottom + 1) - bbox_top
+
+	#macro FloorNormal instances_matching(Floor, "object_index", Floor)
+	
+	addScript("floor_fill");
 	script_ref_call(["mod", "lib", "updateRef"]);
+	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
+	
+	//Setup functions for this module
+	floor_reset_style();
+	floor_reset_align();
 	
 #define floor_fill(_x, _y, _w, _h, _type)
 	/*
@@ -146,9 +190,9 @@
 		}
 		
 		 // Clamp to Grid:
-		with(instance_nearest_bbox(_x, _y, Floor)){
-			_x = x + pfloor(_x - x, 16);
-			_y = y + pfloor(_y - y, 16);
+		with(call(scr.instance_nearest_bbox, _x, _y, Floor)){
+			_x = x + call(scr.pfloor, _x - x, 16);
+			_y = y + call(scr.pfloor, _y - y, 16);
 		}
 		
 		 // Floor Overlap Fixing:
@@ -159,7 +203,7 @@
 			var	_floor = FloorNormal,
 				_num = array_length(_floor) * (1 - _overlapFloor);
 				
-			with(array_shuffle(_floor)){
+			with(call(scr.array_shuffle, _floor)){
 				if(_num-- > 0){
 					array_push(_overlapFloorBBox, [bbox_left, bbox_top, bbox_right, bbox_bottom]);
 				}
@@ -182,7 +226,7 @@
 		}
 		
 		 // Deactivate Objects:
-		game_deactivate();
+		call(scr.game_deactivate);
 		
 		 // No Boss Death Music:
 		if(_setArea){
@@ -247,16 +291,16 @@
 					_x2 = self[2] - _ox,
 					_y2 = self[3] - _oy;
 					
-				with(instance_rectangle_bbox(_x1, _y1, _x2, _y2, Floor)){
+				with(call(scr.instance_rectangle_bbox, _x1, _y1, _x2, _y2, Floor)){
 					array_push(_overlapFloorFill, [bbox_left + _ox, bbox_top + _oy, bbox_right + _ox, bbox_bottom + _oy]);
 					instance_destroy();
 				}
-				with(instance_rectangle_bbox(_x1, _y1, _x2, _y2, SnowFloor)){
+				with(call(scr.instance_rectangle_bbox, _x1, _y1, _x2, _y2, SnowFloor)){
 					if(point_in_rectangle(bbox_center_x, bbox_center_y, _x1, _y1, _x2 + 1, _y2 + 1)){
 						instance_destroy();
 					}
 				}
-				with(instance_rectangle_bbox(_x1, _y1, _x2, _y2, [chestprop, RadChest])){
+				with(call(scr.instance_rectangle_bbox, _x1, _y1, _x2, _y2, [chestprop, RadChest])){
 					instance_delete(self);
 				}
 			}
@@ -333,7 +377,7 @@
 		}
 		
 		 // Reactivate Objects:
-		game_activate();
+		call(scr.game_activate);
 		with(_lastSolid){
 			solid = true;
 		}
@@ -348,7 +392,7 @@
 			 // New Overwriting Old:
 			var _objNew = instances_matching_gt(_obj, "id", _genID);
 			with(instances_matching_lt(_overlapObj, "id", _genID)){
-				if(place_meeting(x, y, _obj) && array_length(instances_meeting(x, y, _objNew))){
+				if(place_meeting(x, y, _obj) && array_length(call(scr.instances_meeting, x, y, _objNew))){
 					if(object_index == Floor){
 						array_push(_overlapFloorFill, [bbox_left, bbox_top, bbox_right, bbox_bottom]);
 					}
@@ -362,14 +406,14 @@
 			 // Old Overwriting New:
 			var _objOld = instances_matching_lt(_obj, "id", _genID);
 			with(instances_matching_gt(_overlapObj, "id", _genID)){
-				if(place_meeting(x, y, _obj) && array_length(instances_meeting(x, y, _objOld))){
+				if(place_meeting(x, y, _obj) && array_length(call(scr.instances_meeting, x, y, _objOld))){
 					instance_delete(self);
 				}
 			}
 		}
 		var _wallOld = instances_matching_lt(Wall, "id", _genID);
 		with(instances_matching_lt(hitme, "id", _genID)){
-			if(place_meeting(x, y, Wall) && !array_length(instances_meeting(x, y, _wallOld))){
+			if(place_meeting(x, y, Wall) && !array_length(call(scr.instances_meeting, x, y, _wallOld))){
 				wall_clear(x, y);
 			}
 		}
@@ -386,7 +430,7 @@
 					for(var _fy = _y1; _fy < _y2; _fy += 16){
 						if(!position_meeting(_fx, _fy, Floor)){
 							with(instance_create(_fx, _fy, FloorExplo)){
-								with(instances_meeting(x, y, _overlapObject)){
+								with(call(scr.instances_meeting, x, y, _overlapObject)){
 									instance_delete(self);
 								}
 							}
@@ -726,7 +770,7 @@
 				}
 				if(_create){
 					var _x = lerp(bbox_left, bbox_right + 1, _side);
-					with(obj_create(_x, _y, "WallDecal")){
+					with(call(scr.obj_create, _x, _y, "WallDecal")){
 						image_xscale = ((_side > 0.5) ? -1 : 1);
 						array_push(_inst, self);
 					}
@@ -774,7 +818,7 @@
 		if(!instance_exists(FloorMaker)){
 			 // Align to Nearest Floor:
 			if(_gridXAuto || _gridYAuto){
-				with(instance_nearest_rectangle_bbox(_x, _y, _x + _w, _y + _h, Floor)){
+				with(call(scr.instance_nearest_rectangle_bbox, _x, _y, _x + _w, _y + _h, Floor)){
 					if(_gridXAuto){
 						_gridX     = x;
 						_gridXBias = bbox_center_x - (_x + (_w / 2));
@@ -792,7 +836,7 @@
 				_fwMax = _gridW,
 				_fhMax = _gridH;
 				
-			with(instance_rectangle_bbox(_fx, _fy, _fx + _w - 1, _fy + _h - 1, Floor)){
+			with(call(scr.instance_rectangle_bbox, _fx, _fy, _fx + _w - 1, _fy + _h - 1, Floor)){
 				var	_fw = bbox_width,
 					_fh = bbox_height;
 					
@@ -926,7 +970,7 @@
 				wall_delete(bbox_left, bbox_top, bbox_right, bbox_bottom);
 				
 				 // Details:
-				if(chance(1, 6)){
+				if(call(scr.chance, 1, 6)){
 					instance_create(random_range(bbox_left, bbox_right + 1), random_range(bbox_top, bbox_bottom + 1), Detail);
 				}
 			}
@@ -940,13 +984,13 @@
 	}
 	
 	 // Destroy Floor:
-	else with(instances_at(_x, _y, Floor)){
+	else with(call(scr.instances_at, _x, _y, Floor)){
 		var	_x1 = bbox_left   - 16,
 			_y1 = bbox_top    - 16,
 			_x2 = bbox_right  + 16,
 			_y2 = bbox_bottom + 16;
 			
-		with(instances_meeting(x, y, SnowFloor)){
+		with(call(scr.instances_meeting, x, y, SnowFloor)){
 			if(point_in_rectangle(bbox_center_x, bbox_center_y, other.bbox_left, other.bbox_top, other.bbox_right + 1, other.bbox_bottom + 1)){
 				instance_destroy();
 			}
@@ -981,7 +1025,7 @@
 		Deletes all Floors and Floor-related objects within the given rectangular area
 	*/
 	
-	with(instance_rectangle_bbox(_x1, _y1, _x2, _y2, Floor)){
+	with(call(scr.instance_rectangle_bbox, _x1, _y1, _x2, _y2, Floor)){
 		for(var	_x = bbox_left; _x < bbox_right + 1; _x += 16){
 			for(var	_y = bbox_top; _y < bbox_bottom + 1; _y += 16){
 				if(
@@ -1008,10 +1052,10 @@
 				}
 			}
 		}
-		with(instance_rectangle(bbox_left, bbox_top, bbox_right + 1, bbox_bottom + 1, Detail)){
+		with(call(scr.instance_rectangle, bbox_left, bbox_top, bbox_right + 1, bbox_bottom + 1, Detail)){
 			instance_destroy();
 		}
-		with(instances_meeting(x, y, SnowFloor)){
+		with(call(scr.instances_meeting, x, y, SnowFloor)){
 			if(point_in_rectangle(bbox_center_x, bbox_center_y, other.bbox_left, other.bbox_top, other.bbox_right + 1, other.bbox_bottom + 1)){
 				instance_destroy();
 			}
@@ -1037,8 +1081,8 @@
 		
 		 // Ensure Tunnel:
 		if(instance_exists(Wall) && !place_meeting(x, y, Wall) && !place_meeting(x, y, Floor)){
-			with(instance_nearest_bbox(x, y, Wall)){
-				instance_create(x + pfloor(other.x - x, 16), y + pfloor(other.y - y, 16), Wall);
+			with(call(scr.instance_nearest_bbox, x, y, Wall)){
+				instance_create(x + call(scr.pfloor, other.x - x, 16), y + call(scr.pfloor, other.y - y, 16), Wall);
 			}
 		}
 		
@@ -1063,7 +1107,7 @@
 			}
 	*/
 	
-	with(array_shuffle(instances_matching_ne(_spawnFloor, "id", null))){
+	with(call(scr.array_shuffle, instances_matching_ne(_spawnFloor, "id", null))){
 		var	_x = bbox_center_x,
 			_y = bbox_center_y;
 			
@@ -1074,7 +1118,7 @@
 			var _pathWall = [Wall, InvisiWall];
 			for(var _fx = bbox_left; _fx < bbox_right + 1; _fx += 16){
 				for(var _fy = bbox_top; _fy < bbox_bottom + 1; _fy += 16){
-					if(path_reaches(path_create(_fx + 8, _fy + 8, _spawnX, _spawnY, _pathWall), _spawnX, _spawnY, _pathWall)){
+					if(call(scr.path_reaches, call(scr.path_create, _fx + 8, _fy + 8, _spawnX, _spawnY, _pathWall), _spawnX, _spawnY, _pathWall)){
 						_spawnReached = true;
 						break;
 					}
@@ -1137,13 +1181,13 @@
 			_y1   = _y - _oh,
 			_x2   = _x + _ow,
 			_y2   = _y + _oh,
-			_inst = instance_rectangle_bbox(_x1 - _floorDis, _y1 - _floorDis, _x2 + _floorDis - 1, _y2 + _floorDis - 1, _floorAvoid);
+			_inst = call(scr.instance_rectangle_bbox, _x1 - _floorDis, _y1 - _floorDis, _x2 + _floorDis - 1, _y2 + _floorDis - 1, _floorAvoid);
 			
 		 // No Corner Floors:
 		if(_type == "round" && _floorDis <= 0){
 			with(_inst){
 				if((bbox_right < _x1 + 32 || bbox_left >= _x2 - 32) && (bbox_bottom < _y1 + 32 || bbox_top >= _y2 - 32)){
-					_inst = array_delete_value(_inst, self);
+					_inst = call(scr.array_delete_value, _inst, self);
 				}
 			}
 		}
@@ -1176,7 +1220,7 @@
 			
 			 // Keep Searching:
 			if(_move){
-				_dir = pround(_dirStart + (random_range(_dirOff[0], _dirOff[1]) * choose(-1, 1)), 90);
+				_dir = call(scr.pround, _dirStart + (random_range(_dirOff[0], _dirOff[1]) * choose(-1, 1)), 90);
 				_x += lengthdir_x(_dis, _dir);
 				_y += lengthdir_y(_dis, _dir);
 			}
@@ -1213,12 +1257,12 @@
 			
 			 // Fix Potential Wall Softlock:
 			if(_floorDis <= 0 && _floorNum == _floorNumLast + array_length(_floors)){
-				with(array_combine(
-					instance_rectangle_bbox(_fx1 - 1, _fy1,     _fx2 + 1, _fy2,     Wall),
-					instance_rectangle_bbox(_fx1,     _fy1 - 1, _fx2,     _fy2 + 1, Wall)
+				with(call(scr.array_combine, 
+					call(scr.instance_rectangle_bbox, _fx1 - 1, _fy1,     _fx2 + 1, _fy2,     Wall),
+					call(scr.instance_rectangle_bbox, _fx1,     _fy1 - 1, _fx2,     _fy2 + 1, Wall)
 				)){
 					if(instance_exists(self) && place_meeting(x, y, Floor)){
-						with(instances_meeting(x, y, [Bones, TopPot])){
+						with(call(scr.instances_meeting, x, y, [Bones, TopPot])){
 							if(place_meeting(x, y, other)){
 								instance_delete(self);
 							}
@@ -1288,13 +1332,13 @@
 		Deletes all Walls and Wall-related objects within the given rectangular area
 	*/
 	
-	with(instance_rectangle_bbox(_x1, _y1, _x2, _y2, [Wall, InvisiWall])){
+	with(call(scr.instance_rectangle_bbox, _x1, _y1, _x2, _y2, [Wall, InvisiWall])){
 		with(instances_matching(instances_matching(TrapScorchMark, "x", x), "y", y)){
 			instance_delete(self);
 		}
 		instance_delete(self);
 	}
-	with(instance_rectangle_bbox(_x1, _y1, _x2, _y2, [TopSmall, TopPot, Bones])){
+	with(call(scr.instance_rectangle_bbox, _x1, _y1, _x2, _y2, [TopSmall, TopPot, Bones])){
 		instance_delete(self);
 	}
 	
@@ -1313,7 +1357,7 @@
 	return instances_matching_gt(TopSmall, "id", _minID);
 	
 #define wall_update(_x1, _y1, _x2, _y2)
-	with(instance_rectangle(_x1, _y1, _x2, _y2, Wall)){
+	with(call(scr.instance_rectangle, _x1, _y1, _x2, _y2, Wall)){
 		 // Fix:
 		visible = place_meeting(x, y + 16, Floor);
 		l = (place_free(x - 16, y) ?  0 :  4);

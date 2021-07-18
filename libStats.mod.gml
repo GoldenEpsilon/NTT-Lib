@@ -31,7 +31,7 @@ Description:
 	Does not heal past the hitme's Max HP.
 Usage:
 	with(Player) {
-		script_call(["mod", "libStats", "heal"], self, 4);
+		script_ref_call(["mod", "libStats", "heal"], self, 4);
 	}
 */
 obj.my_health = min(obj.my_health + amount, obj.maxhealth);
@@ -43,7 +43,7 @@ Description:
 	Heals the player if Max HP increases, cannot kill by removing max HP.
 Usage:
 	with(Player) {
-		script_call(["mod", "libStats", "changeHP"], self, 4);
+		script_ref_call(["mod", "libStats", "changeHP"], self, 4);
 	}
 */
 player.maxhealth += amount;
@@ -58,7 +58,7 @@ Description:
 	A value of 2 means the player has half the accuracy.
 Usage:
 	with(Player) {
-		script_call(["mod", "libStats", "changeAccuracy"], self, 2);
+		script_ref_call(["mod", "libStats", "changeAccuracy"], self, 2);
 	}
 */
 player.accuracy *= amount;
@@ -72,7 +72,7 @@ Description:
 	NOTE: 25 can still clip the player out of bounds just by walking around.
 Usage:
 	with(Player) {
-		script_call(["mod", "libStats", "changeAccuracy"], self, 2);
+		script_ref_call(["mod", "libStats", "changeAccuracy"], self, 2);
 	}
 */
 if(player.maxspeed > 0.1 && player.maxspeed < 25){

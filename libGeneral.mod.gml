@@ -1,8 +1,7 @@
 /*	                General
 	This is the General package of Lib, for
-	most of your Lib needs.
-	If you're using Lib, you probably want
-	to load this.
+	your basic Lib needs.
+	Because Lib uses this for most 
 */
 
 /*
@@ -11,7 +10,6 @@
 		#define obj_setup_ext(_mod, _name, _type)
 		#define obj_create(_x, _y, _name)
 		#define instances_in_rectangle(_x1, _y1, _x2, _y2, _obj)
-		#define instances_meeting(_x, _y, _obj)
 		#define player_swap(_player)
 		#define projectile_create(inst, x, y, obj, ?dir=0, ?spd=0)
 		#define projectile_euphoria(_inst)
@@ -28,6 +26,45 @@
 		#define instance_nearest_rectangle(_x1, _y1, _x2, _y2, _obj)
 		#define instance_nearest_rectangle_bbox(_x1, _y1, _x2, _y2, _obj)
 		#define instances_at(_x, _y, _obj)
+		#define instance_rectangle(_x1, _y1, _x2, _y2, _obj)
+		#define instance_rectangle_bbox(_x1, _y1, _x2, _y2, _obj)
+		#define instances_meeting(_x, _y, _obj)
+		#define instances_seen(_obj, _bx, _by, _index)
+		#define instances_seen_nonsync(_obj, _bx, _by)
+		#define instance_random(_obj)
+		#define instance_clone()
+		#define data_clone(_value, _depth)
+		#define ds_list_clone(_list)
+		#define surface_clone(_surf)
+		#define variable_instance_get_list(_inst)
+		#define variable_instance_set_list(_inst, _list)
+		#define variable_is_readonly(_inst, _varName)
+		#define draw_lasersight(_x, _y, _dir, _disMax, _width)
+		#define draw_surface_scale(_surf, _x, _y, _scale)
+		#define draw_text_bn(_x, _y, _string, _angle)
+		#define string_delete_nt(_string)
+		#define string_space(_string)
+		#define orandom(_num)
+		#define pround(_num, _precision)
+		#define pfloor(_num, _precision)
+		#define pceil(_num, _precision)
+		#define array_count(_array, _value)
+		#define array_flip(_array)
+		#define array_combine(_array1, _array2)
+		#define array_shuffle(_array)
+		#define enemy_target(_x, _y)
+		#define chest_create(_x, _y, _obj, _levelStart)
+		#define object_is(_object, _parent)
+		#define chance(_numer, _denom)
+		#define chance_ct(_numer, _denom)
+		#define lerp_ct(_val1, _val2, _amount)
+		#define angle_lerp(_ang1, _ang2, _num)
+		#define angle_lerp_ct(_ang1, _ang2, _num)
+		#define path_create(_xstart, _ystart, _xtarget, _ytarget, _wall)
+		#define path_shrink(_path, _wall, _skipMax)
+		#define path_reaches(_path, _xtarget, _ytarget, _wall)
+		#define path_direction(_path, _x, _y, _wall)
+		#define path_draw(_path, _width)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -41,7 +78,6 @@
 	addScript("obj_setup_ext");
 	addScript("obj_create");
 	addScript("instances_in_rectangle");
-	addScript("instances_meeting");
 	addScript("player_swap");
 	addScript("projectile_create");
 	addScript("projectile_euphoria");
@@ -58,6 +94,47 @@
 	addScript("instance_nearest_rectangle");
 	addScript("instance_nearest_rectangle_bbox");
 	addScript("instances_at");
+	addScript("instance_rectangle");
+	addScript("instance_rectangle_bbox");
+	addScript("instances_meeting");
+	addScript("instances_seen");
+	addScript("instances_seen_nonsync");
+	addScript("instance_random");
+	addScript("instance_clone");
+	addScript("data_clone");
+	addScript("ds_list_clone");
+	addScript("surface_clone");
+	addScript("variable_instance_get_list");
+	addScript("variable_instance_set_list");
+	addScript("variable_is_readonly");
+	addScript("draw_lasersight");
+	addScript("draw_surface_scale");
+	addScript("draw_text_bn");
+	addScript("string_delete_nt");
+	addScript("string_space");
+	addScript("orandom");
+	addScript("pround");
+	addScript("pfloor");
+	addScript("pceil");
+	addScript("array_count");
+	addScript("array_flip");
+	addScript("array_combine");
+	addScript("array_shuffle");
+	addScript("enemy_target");
+	addScript("chest_create");
+	addScript("object_is");
+	addScript("chance");
+	addScript("chance_ct");
+	addScript("lerp_ct");
+	addScript("angle_lerp");
+	addScript("angle_lerp_ct");
+	addScript("path_create");
+	addScript("path_shrink");
+	addScript("path_reaches");
+	addScript("path_direction");
+	addScript("path_draw");
+	
+	
 	script_ref_call(["mod", "lib", "updateRef"]);
 	
 	global.objects = ds_map_create();
@@ -296,15 +373,6 @@ return obj_create(_x,_y,_name);
 #macro  alarm7_run                                                                              alarm7 && !--alarm7 && !--alarm7 && (script_ref_call(on_alrm7) || !instance_exists(self))
 #macro  alarm8_run                                                                              alarm8 && !--alarm8 && !--alarm8 && (script_ref_call(on_alrm8) || !instance_exists(self))
 #macro  alarm9_run                                                                              alarm9 && !--alarm9 && !--alarm9 && (script_ref_call(on_alrm9) || !instance_exists(self))
-#define chance(_numer, _denom)                                                          		return  random(_denom) < _numer;
-#define chance_ct(_numer, _denom)                                                       		return  random(_denom) < _numer * current_time_scale;
-#define orandom(_num)                                                                   		return  random_range(-_num, _num);
-#define draw_self_enemy()                                                                       image_xscale *= right; draw_self(); image_xscale /= right;
-#define draw_self_gun()																			if(gunangle <= 180) draw_weapon(spr_weap, 0, x, y, gunangle, 0, wkick, right, image_blend, image_alpha); draw_self_enemy(); if(gunangle > 180) draw_weapon(spr_weap, 0, x, y, gunangle, 0, wkick, right, image_blend, image_alpha);
-#define enemy_walk(_dir, _num)                                                                  direction = _dir; walk = _num; if(speed < friction) speed = friction;
-#define enemy_face(_dir)                                                                        _dir = ((_dir % 360) + 360) % 360; if(_dir < 90 || _dir > 270) right = 1; else if(_dir > 90 && _dir < 270) right = -1;
-#define enemy_look(_dir)                                                                        _dir = ((_dir % 360) + 360) % 360; if(_dir < 90 || _dir > 270) right = 1; else if(_dir > 90 && _dir < 270) right = -1; if('gunangle' in self) gunangle = _dir;
-#define enemy_target(_x, _y)                                                                    target = (instance_exists(Player) ? instance_nearest(_x, _y, Player) : ((instance_exists(target) && target >= 0) ? target : noone)); return (target != noone);
 
 #define enemy_step
 	 // Alarms:
@@ -1403,3 +1471,532 @@ return obj_create(_x,_y,_name);
 	}
 	
 	return _string;
+
+#define orandom(_num)
+	/*
+		For offsets
+	*/
+	
+	return random_range(-_num, _num);
+	
+#define pround(_num, _precision)
+	/*
+		Precision 'round()'
+		
+		Ex:
+			pround(7, 3) == 6
+	*/
+	
+	if(_precision != 0){
+		return round(_num / _precision) * _precision;
+	}
+	
+	return _num;
+	
+#define pfloor(_num, _precision)
+	/*
+		Precision 'floor()'
+		
+		Ex:
+			pfloor(2.7, 0.5) == 2.5
+	*/
+	
+	if(_precision != 0){
+		return floor(_num / _precision) * _precision;
+	}
+	
+	return _num;
+	
+#define pceil(_num, _precision)
+	/*
+		Precision 'ceil()'
+		
+		Ex:
+			pceil(-9, 5) == -5
+	*/
+	
+	if(_precision != 0){
+		return ceil(_num / _precision) * _precision;
+	}
+	
+	return _num;
+	
+#define array_count(_array, _value)
+	/*
+		Returns the number of times a given value was found in the given array
+	*/
+	
+	var _count = 0;
+	
+	if(array_find_index(_array, _value) >= 0){
+		with(_array){
+			if(self == _value){
+				_count++;
+			}
+		}
+	}
+	
+	return _count;
+	
+#define array_flip(_array)
+	/*
+		Flips a given array
+		
+		Ex:
+			array_flip([1, 7, 5, 9]) == [9, 5, 7, 1]
+	*/
+	
+	var	a = array_clone(_array),
+		m = array_length(_array);
+		
+	for(var i = 0; i < m; i++){
+		_array[@i] = a[(m - 1) - i];
+	}
+	
+	return _array;
+	
+#define array_combine(_array1, _array2)
+	/*
+		Returns a new array made by joining the two given arrays
+	*/
+	
+	var _new = array_clone(_array1);
+	
+	array_copy(_new, array_length(_new), _array2, 0, array_length(_array2));
+	
+	return _new;
+
+#define array_shuffle(_array)
+	var	_size = array_length(_array),
+		j, t;
+		
+	for(var i = 0; i < _size; i++){
+		j = irandom_range(i, _size - 1);
+		if(i != j){
+			t = _array[i];
+			_array[@i] = _array[j];
+			_array[@j] = t;
+		}
+	}
+	
+	return _array;
+	
+#define enemy_target(_x, _y)
+	/*
+		Base game targeting for consistency, cause with consistency u can have clever solutions
+	*/
+	
+	if(instance_exists(Player)){
+		target = instance_nearest(_x, _y, Player);
+	}
+	else if(target < 0){
+		target = noone;
+	}
+	
+	return instance_exists(target);
+	
+#define chest_create(_x, _y, _obj, _levelStart)
+	/*
+		Creates a given chest/mimic with some special spawn conditions applied, such as Crown of Love, Crown of Life, and Rogue
+		!!! Don't use this for creating a custom area's basic chests during level gen, the game should handle that
+		!!! Don't use this for replacing chests with custom chests, put that in level_start or something
+		
+		Ex:
+			chest_create(x, y, WeaponChest, true)
+			chest_create(x, y, "BatChest", false)
+	*/
+	
+	if(
+		is_string(_obj)
+		|| object_is(_obj, chestprop)
+		|| object_is(_obj, RadChest)
+		|| object_is(_obj, Mimic)
+		|| object_is(_obj, SuperMimic)
+	){
+		 // Rad Canisters:
+		if(is_real(_obj) && object_is(_obj, RadChest)){
+			if(_levelStart){
+				 // Rogue:
+				for(var i = 0; i < maxp; i++){
+					if(player_get_race(i) == "rogue"){
+						_obj = RogueChest;
+						break;
+					}
+				}
+				
+				 // Low HP:
+				if(chance(1, 2)){
+					with(Player){
+						if(my_health < (maxhealth + chickendeaths) / 2){
+							_obj = HealthChest;
+							break;
+						}
+					}
+				}
+				
+				 // Legacy Revive Mode:
+				var _players = 0;
+				for(var i = 0; i < maxp; i++){
+					_players += player_is_active(i);
+				}
+				if(instance_number(Player) < _players){
+					_obj = HealthChest;
+				}
+			}
+			
+			 // More Health Chests:
+			if(chance(2, 3) && crown_current == crwn_life){
+				_obj = HealthChest;
+			}
+		}
+		
+		 // Only Ammo Chests:
+		if(crown_current == crwn_love){
+			if(!is_real(_obj) || !object_is(_obj, AmmoChest)){
+				if(array_find_index([ProtoChest, RogueChest, "Backpack", "BonusAmmoChest", "BonusAmmoMimic", "BuriedVaultChest", "CatChest", "CursedAmmoChest", "CursedMimic", "SunkenChest"], _obj) < 0){
+					var _name = (is_real(_obj) ? object_get_name(_obj) : _obj);
+					if(string_pos("Mimic", _name) > 0){
+						_obj = Mimic;
+					}
+					else if(string_pos("Giant", _name) > 0){
+						_obj = GiantAmmoChest;
+					}
+					else{
+						_obj = AmmoChest;
+					}
+				}
+			}
+		}
+		
+		if(_levelStart){
+			 // Big Weapon Chests:
+			if(chance(GameCont.nochest, 4) && _obj == WeaponChest){
+				_obj = BigWeaponChest;
+			}
+			
+			 // Mimics:
+			if(!is_real(GameCont.area) || GameCont.area >= 2 || GameCont.loops >= 1){
+				if(chance(1, 11) && is_real(_obj) && object_is(_obj, AmmoChest)){
+					_obj = Mimic;
+				}	
+				if(chance(1, 51) && is_real(_obj) && object_is(_obj, HealthChest)){
+					_obj = SuperMimic;
+				}
+			}
+		}
+	}
+	
+	 // Create:
+	var	_inst   = noone,
+		_rads   = GameCont.norads,
+		_health = [];
+		
+	if(!_levelStart){
+		GameCont.norads = 0;
+		with(Player){
+			array_push(_health, [self, my_health]);
+			my_health = maxhealth;
+		}
+	}
+	
+	_inst = obj_create(_x, _y, _obj);
+	
+	if(!_levelStart){
+		GameCont.norads = _rads;
+		with(_health) with(self[0]){
+			my_health = other[1];
+		}
+	}
+	
+	 // Replaced:
+	if(!instance_exists(_inst)){
+		with(instances_matching_gt([chestprop, RadChest, Mimic, SuperMimic], "id", _inst)){
+			if(!instance_exists(_inst) || id < _inst){
+				_inst = id;
+			}
+		}
+	}
+	
+	return _inst;
+	
+#define object_is(_object, _parent)
+	/*
+		Returns whether the given object is a child of, or equal to, the given parent object (true) or not (false)
+	*/
+	
+	return (_object == _parent || object_is_ancestor(_object, _parent));
+	
+#define chance(_numer, _denom)
+	/*
+		Returns true or false randomly, based on the given probability
+		
+		Ex:
+			if(chance(1, 3)) trace("1/3 chance");
+	*/
+	
+	return (random(_denom) < _numer);
+	
+#define chance_ct(_numer, _denom)
+	/*
+		Like 'chance()', but used when being called every frame (for timescale support)
+	*/
+	
+	return (random(_denom) < _numer * current_time_scale);
+	
+#define lerp_ct(_val1, _val2, _amount)
+	/*
+		Like 'lerp()', but used when modifying a persistent value every frame (for timescale support)
+	*/
+	
+	return lerp(_val2, _val1, power(1 - _amount, current_time_scale));
+	
+#define angle_lerp(_ang1, _ang2, _num)
+	/*
+		Linearly interpolates between the two given angles
+		
+		Ex:
+			lerp(90, 180, 0.5) == 135
+			lerp(20, 270, 0.1) == 9
+	*/
+	
+	return _ang1 + (angle_difference(_ang2, _ang1) * _num);
+	
+#define angle_lerp_ct(_ang1, _ang2, _num)
+	/*
+		Like 'angle_lerp()', but used when modifying a persistent value every frame (for timescale support)
+	*/
+	
+	return _ang2 + (angle_difference(_ang1, _ang2) * power(1 - _num, current_time_scale));
+
+#define path_create(_xstart, _ystart, _xtarget, _ytarget, _wall)
+	 // Auto-Determine Grid Size:
+	var	_tileSize   = 16,
+		_areaWidth  = pceil(abs(_xtarget - _xstart), _tileSize) + 320,
+		_areaHeight = pceil(abs(_ytarget - _ystart), _tileSize) + 320;
+		
+	_areaWidth  = max(_areaWidth, _areaHeight);
+	_areaHeight = max(_areaWidth, _areaHeight);
+	
+	var _triesMax = 4 * ceil((_areaWidth + _areaHeight) / _tileSize);
+	
+	 // Clamp Path X/Y:
+	_xstart  = pfloor(_xstart,  _tileSize);
+	_ystart  = pfloor(_ystart,  _tileSize);
+	_xtarget = pfloor(_xtarget, _tileSize);
+	_ytarget = pfloor(_ytarget, _tileSize);
+	
+	 // Grid Setup:
+	var	_gridw    = ceil(_areaWidth  / _tileSize),
+		_gridh    = ceil(_areaHeight / _tileSize),
+		_gridx    = pround(((_xstart + _xtarget) / 2) - (_areaWidth  / 2), _tileSize),
+		_gridy    = pround(((_ystart + _ytarget) / 2) - (_areaHeight / 2), _tileSize),
+		_grid     = ds_grid_create(_gridw, _gridh),
+		_gridCost = ds_grid_create(_gridw, _gridh);
+		
+	ds_grid_clear(_grid, -1);
+	
+	 // Mark Walls:
+	with(instance_rectangle(_gridx, _gridy, _gridx + _areaWidth, _gridy + _areaHeight, _wall)){
+		if(position_meeting(x, y, self)){
+			_grid[# (x - _gridx) / _tileSize, (y - _gridy) / _tileSize] = -2;
+		}
+	}
+	
+	 // Pathing:
+	var	_x1         = (_xtarget - _gridx) / _tileSize,
+		_y1         = (_ytarget - _gridy) / _tileSize,
+		_x2         = (_xstart  - _gridx) / _tileSize,
+		_y2         = (_ystart  - _gridy) / _tileSize,
+		_searchList = [[_x1, _y1, 0]],
+		_tries      = _triesMax;
+		
+	while(_tries-- > 0){
+		var	_search = _searchList[0],
+			_sx     = _search[0],
+			_sy     = _search[1],
+			_sp     = _search[2];
+			
+		if(_sp >= infinity) break; // No more searchable tiles
+		_search[2] = infinity;
+		
+		 // Sort Through Neighboring Tiles:
+		var _costSoFar = _gridCost[# _sx, _sy];
+		for(var i = 0; i < 2*pi; i += pi/2){
+			var	_nx = _sx + cos(i),
+				_ny = _sy - sin(i),
+				_nc = _costSoFar + 1;
+				
+			if(
+				_nx >= 0     &&
+				_ny >= 0     &&
+				_nx < _gridw &&
+				_ny < _gridh &&
+				_grid[# _nx, _ny] == -1
+			){
+				_gridCost[# _nx, _ny] = _nc;
+				_grid[# _nx, _ny] = point_direction(_nx, _ny, _sx, _sy);
+				
+				 // Add to Search List:
+				array_push(_searchList, [
+					_nx,
+					_ny,
+					point_distance(_x2, _y2, _nx, _ny) + (abs(_x2 - _nx) + abs(_y2 - _ny)) + _nc
+				]);
+			}
+			
+			 // Path Complete:
+			if(_nx == _x2 && _ny == _y2){
+				_tries = 0;
+				break;
+			}
+		}
+		
+		 // Next:
+		array_sort_sub(_searchList, 2, true);
+	}
+	
+	 // Pack Path into Array:
+	var	_x     = _xstart,
+		_y     = _ystart,
+		_path  = [[_x + (_tileSize / 2), _y + (_tileSize / 2)]],
+		_tries = _triesMax;
+		
+	while(_tries-- > 0){
+		var _dir = _grid[# ((_x - _gridx) / _tileSize), ((_y - _gridy) / _tileSize)];
+		if(_dir >= 0){
+			_x += lengthdir_x(_tileSize, _dir);
+			_y += lengthdir_y(_tileSize, _dir);
+			array_push(_path, [_x + (_tileSize / 2), _y + (_tileSize / 2)]);
+		}
+		else{
+			_path = []; // Couldn't find path
+			break;
+		}
+		
+		 // Done:
+		if(_x == _xtarget && _y == _ytarget){
+			break;
+		}
+	}
+	if(_tries <= 0) _path = []; // Couldn't find path
+	
+	ds_grid_destroy(_grid);
+	ds_grid_destroy(_gridCost);
+	
+	return _path;
+	
+#define path_shrink(_path, _wall, _skipMax)
+	var	_pathNew = [],
+		_link    = 0;
+		
+	if(!is_array(_wall)){
+		_wall = [_wall];
+	}
+	
+	for(var i = 0; i < array_length(_path); i++){
+		 // Save Important Points on Path:
+		var _save = (
+			i <= 0                       ||
+			i >= array_length(_path) - 1 ||
+			i - _link >= _skipMax
+		);
+		
+		 // Save Points Going Around Walls:
+		if(!_save){
+			var	_x1 = _path[i + 1, 0],
+				_y1 = _path[i + 1, 1],
+				_x2 = _path[_link, 0],
+				_y2 = _path[_link, 1];
+				
+			for(var j = 0; j < array_length(_wall); j++){
+				if(collision_line(_x1, _y1, _x2, _y2, _wall[j], false, false)){
+					_save = true;
+					break;
+				}
+			}
+		}
+		
+		 // Store:
+		if(_save){
+			array_push(_pathNew, _path[i]);
+			_link = i;
+		}
+	}
+	
+	return _pathNew;
+	
+#define path_reaches(_path, _xtarget, _ytarget, _wall)
+	if(!is_array(_wall)) _wall = [_wall];
+	
+	var m = array_length(_path);
+	if(m > 0){
+		var	_x = _path[m - 1, 0],
+			_y = _path[m - 1, 1];
+			
+		for(var i = 0; i < array_length(_wall); i++){
+			if(collision_line(_x, _y, _xtarget, _ytarget, _wall[i], false, false)){
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	return false;
+	
+#define path_direction(_path, _x, _y, _wall)
+	if(!is_array(_wall)) _wall = [_wall];
+	
+	 // Find Nearest Unobstructed Point on Path:
+	var	_disMax  = infinity,
+		_nearest = -1;
+		
+	for(var i = 0; i < array_length(_path); i++){
+		var	_px = _path[i, 0],
+			_py = _path[i, 1],
+			_dis = point_distance(_x, _y, _px, _py);
+			
+		if(_dis < _disMax){
+			var _walled = false;
+			for(var j = 0; j < array_length(_wall); j++){
+				if(collision_line(_x, _y, _px, _py, _wall[j], false, false)){
+					_walled = true;
+					break;
+				}
+			}
+			if(!_walled){
+				_disMax = _dis;
+				_nearest = i;
+			}
+		}
+	}
+	
+	 // Find Direction to Next Point on Path:
+	if(_nearest >= 0){
+		var	_follow = min(_nearest + 1, array_length(_path) - 1),
+			_nx = _path[_follow, 0],
+			_ny = _path[_follow, 1];
+			
+		 // Go to Nearest Point if Path to Next Point Obstructed:
+		for(var j = 0; j < array_length(_wall); j++){
+			if(collision_line(x, y, _nx, _ny, _wall[j], false, false)){
+				_nx = _path[_nearest, 0];
+				_ny = _path[_nearest, 1];
+				break;
+			}
+		}
+		
+		return point_direction(x, y, _nx, _ny);
+	}
+	
+	return null;
+	
+#define path_draw(_path, _width)
+	var	_x = x,
+		_y = y;
+		
+	with(_path){
+		draw_line_width(self[0], self[1], _x, _y, _width);
+		_x = self[0];
+		_y = self[1];
+	}
