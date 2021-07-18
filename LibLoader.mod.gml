@@ -34,9 +34,12 @@ if(!mod_exists("mod", "lib")){
 	}
 
 	//Don't download anything if you're in multiplayer
-	if(player_is_active(1) || player_is_active(2) || player_is_active(3)){
-		trace("Cannot download in multiplayer, using already downloaded files");
-		global.err = true;
+	for(var i = 1;i<maxp;i++){
+		if player_get_active(i){
+			trace("Cannot download in multiplayer, using already downloaded files");
+			global.err = true;
+			break;
+		}
 	}
 	
 	if(!global.err){
@@ -54,6 +57,9 @@ if(!mod_exists("mod", "lib")){
 		while (!file_loaded("../../mods/lib/lib.mod.gml")) {wait 1;}
 		while (!file_loaded("../../mods/lib/main.txt")) {wait 1;}
 		while (!file_loaded("../../mods/lib/main2.txt")) {wait 1;}
+		while (!file_exists("../../mods/lib/lib.mod.gml")) {wait 1;}
+		while (!file_exists("../../mods/lib/main.txt")) {wait 1;}
+		while (!file_exists("../../mods/lib/main2.txt")) {wait 1;}
 	}
 
 	mod_loadtext("../../mods/lib/main.txt");

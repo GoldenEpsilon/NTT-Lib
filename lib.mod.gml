@@ -108,8 +108,8 @@ with(global.scriptReferences){
 		if d++ > 240 exit;
 		wait 1;
 	}
-	global.canLoad = true;
 	var str = string_load("ping.txt");
+	global.canLoad = true;
 	if(is_undefined(str)){
 		global.canLoad = false;
 	}else{
@@ -120,8 +120,12 @@ with(global.scriptReferences){
 	}
 
 	//Don't download anything if you're in multiplayer
-	if(player_is_active(1) || player_is_active(2) || player_is_active(3)){
-		global.canLoad = false;
+	for(var i = 1;i<maxp;i++){
+		if player_get_active(i){
+			trace("Cannot download in multiplayer, using already downloaded files");
+			global.canLoad = false;
+			break;
+		}
 	}
 
 #define updateRef
