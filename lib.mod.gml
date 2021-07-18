@@ -121,7 +121,7 @@ with(global.scriptReferences){
 
 	//Don't download anything if you're in multiplayer
 	for(var i = 1;i<maxp;i++){
-		if player_get_active(i){
+		if player_is_active(i){
 			trace("Cannot download in multiplayer, using already downloaded files");
 			global.canLoad = false;
 			break;
