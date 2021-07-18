@@ -20,6 +20,7 @@
 	global.updatables = [];
 	global.forks = 0;
 	global.updating = 0; //if you want to check for the autoupdate to finish, this will only be 0 when it's not updating something
+	global.autoupdate = false; //if this is set to true mods will autoupdate without asking the user - for the user to set, not mod devs
 
 #define autoupdate(_name, _repo)
 /* Creator: Golden Epsilon
@@ -73,17 +74,29 @@ var newjson = json_decode(string_load(_name+"version.json"));
 wait file_unload(_name+"version.json");
 while(global.forks > 0){wait(1);}
 if(oldjson == false){
-	trace("Updating "+_name);
-	updateFiles(_name, _repo);
-	script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
+	if(global.autoupdate){
+		trace("Updating "+_name);
+		updateFiles(_name, _repo);
+		script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
+	}else{
+		wait(0);
+		trace("There is an update available for "+_name+"!");
+		trace("Run the command /update"+_name" to download it!");
+	}
 	global.updating--;
 	return 1;
 }
 //When this if statement runs it replaces the files, so if you want to implement a backup here is where you do it
 if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson != json_error && is_array(newjson) && "sha" in newjson[0] && oldjson[0].sha != newjson[0].sha){
-	trace("There is an update for "+_name+"! updating...");
-	updateFiles(_name, _repo);
-	script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
+	if(global.autoupdate){
+		trace("There is an update for "+_name+"! updating...");
+		updateFiles(_name, _repo);
+		script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
+	}else{
+		wait(0);
+		trace("There is an update available for "+_name+"!");
+		trace("Run the command /update"+_name" to download it!");
+	}
 	global.updating--;
 	return 1;
 }
