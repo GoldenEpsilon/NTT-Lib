@@ -65,6 +65,11 @@
 		#define path_reaches(_path, _xtarget, _ytarget, _wall)
 		#define path_direction(_path, _x, _y, _wall)
 		#define path_draw(_path, _width)
+		#define prompt_create(_text)
+		#define boss_hp(_hp)
+		#define boss_intro_setup(_name, _mainspr, _backspr, _namespr)
+		#define boss_intro(_name, _introSound, _music)
+		#define boss_dead
 */
 
 //For internal use, adds the script to be easily usable.
@@ -133,11 +138,128 @@
 	addScript("path_reaches");
 	addScript("path_direction");
 	addScript("path_draw");
+	addScript("prompt_create");
+	addScript("boss_hp");
+	addScript("boss_intro_setup");
+	addScript("boss_intro");
+	addScript("boss_dead");
 	
 	
 	script_ref_call(["mod", "lib", "updateRef"]);
 	
 	global.objects = ds_map_create();
+	
+	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
+	
+	obj_setup(mod_current, "LibPrompt");
+
+#define post_step
+	 // Prompts:
+	//Note: This code IS basically just taken from TE, but it means that it works alongside TE prompts.
+	var _inst = instances_matching(CustomObject, "name", "LibPrompt");
+	if(array_length(_inst)){
+		 // Reset:
+		var _instReset = instances_matching_ne(_inst, "pick", -1);
+		if(array_length(_instReset)){
+			with(_instReset){
+				pick = -1;
+			}
+		}
+		
+		 // Player Collision:
+		if(instance_exists(Player)){
+			_inst = instances_matching(_inst, "visible", true);
+			if(array_length(_inst)){
+				with(instances_matching(Player, "visible", true)){
+					if(
+						place_meeting(x, y, CustomObject)
+						&& !place_meeting(x, y, IceFlower)
+						&& !place_meeting(x, y, CarVenusFixed)
+					){
+						var _noVan = true;
+						
+						 // Van Check:
+						if(instance_exists(Van) && place_meeting(x, y, Van)){
+							with(instances_meeting(x, y, instances_matching(Van, "drawspr", sprVanOpenIdle))){
+								if(place_meeting(x, y, other)){
+									_noVan = false;
+									break;
+								}
+							}
+						}
+						
+						if(_noVan){
+							var	_nearest  = noone,
+								_maxDis   = null,
+								_maxDepth = null;
+								
+							// Find Nearest Touching Indicator:
+							if(instance_exists(nearwep)){
+								_maxDis   = point_distance(x, y, nearwep.x, nearwep.y);
+								_maxDepth = nearwep.depth;
+							}
+							with(instances_meeting(x, y, _inst)){
+								if(place_meeting(x, y, other)){
+									if(!instance_exists(creator) || creator.visible){
+										if(!is_array(on_meet) || mod_script_call(on_meet[0], on_meet[1], on_meet[2])){
+											if(_maxDepth == null || depth < _maxDepth){
+												_maxDepth = depth;
+												_maxDis   = null;
+											}
+											if(depth == _maxDepth){
+												var _dis = point_distance(x, y, other.x, other.y);
+												if(_maxDis == null || _dis < _maxDis){
+													_maxDis  = _dis;
+													_nearest = self;
+												}
+											}
+										}
+									}
+								}
+							}
+							
+							 // Secret IceFlower:
+							with(_nearest){
+								nearwep = instance_create(x + xoff, y + yoff, IceFlower);
+								with(nearwep){
+									name         = other.text;
+									x            = xstart;
+									y            = ystart;
+									xprevious    = x;
+									yprevious    = y;
+									visible      = false;
+									mask_index   = mskNone;
+									sprite_index = mskNone;
+									spr_idle     = mskNone;
+									spr_walk     = mskNone;
+									spr_hurt     = mskNone;
+									spr_dead     = mskNone;
+									spr_shadow   = -1;
+									snd_hurt     = -1;
+									snd_dead     = -1;
+									size         = 0;
+									team         = 0;
+									my_health    = 99999;
+									nexthurt     = current_frame + 99999;
+								}
+								with(other){
+									nearwep = other.nearwep;
+									if(button_pressed(index, "pick")){
+										other.pick = index;
+										if(instance_exists(other.creator) && "on_pick" in other.creator){
+											with(other.creator){
+												script_ref_call(on_pick, other.index);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 	
 #define obj_setup(_mod, _name)
 /* Creator: Golden Epsilon
@@ -193,6 +315,9 @@ Arguments:
 	_x : the x position of the object when created
 	_y : the y position of the object when created
 	_name : the name/id of the object to create (can be an array bcuz wynaut)
+New Script Hooks: (in other words, stuff like Bandit_create)
+	*_create(_x, _y) : This function will be run as the object is created. Should return the created object.
+	*_pick(_index) : if you run create_prompt on this object and the player presses E to activate it, this script will run.
 Returns:
 	The created object.
 */
@@ -236,7 +361,10 @@ Returns:
 				
 				 // Slash:
 				"_grenade",
-				"_projectile"
+				"_projectile",
+				
+				 // Lib stuff
+				"_pick"// When there's an E prompt picked on this object
 			]){
 				var _var =  "on" + self,
 					_scr = _name + self;
@@ -294,7 +422,10 @@ Returns:
 				
 				 // Slash:
 				"_grenade",
-				"_projectile"
+				"_projectile",
+				
+				 // Lib stuff
+				"_pick"// When there's an E prompt picked on this object
 			]){
 				var _var =  "on" + self;
 				if(variable_instance_get(global.objects[? _name], _var) != undefined){
@@ -2000,3 +2131,210 @@ return obj_create(_x,_y,_name);
 		_x = self[0];
 		_y = self[1];
 	}
+	
+#define prompt_create(_text)
+	/*
+		Creates an E key prompt with the given text that targets the current instance
+	*/
+	
+	with(obj_create(x, y, "LibPrompt")){
+		text    = _text;
+		creator = other;
+		depth   = other.depth;
+		
+		return self;
+	}
+	
+	return noone;
+	
+#define LibPrompt_create(_x, _y)
+	with(instance_create(_x, _y, CustomObject)){
+		 // Vars:
+		mask_index = mskWepPickup;
+		persistent = true;
+		creator    = noone;
+		nearwep    = noone;
+		depth      = 0; // Priority (0==WepPickup)
+		pick       = -1;
+		xoff       = 0;
+		yoff       = 0;
+		
+		 // Events:
+		on_meet = null;
+		
+		return self;
+	}
+	
+#define LibPrompt_begin_step
+	with(nearwep){
+		instance_delete(self);
+	}
+	
+#define LibPrompt_end_step
+	 // Follow Creator:
+	if(creator != noone){
+		if(instance_exists(creator)){
+			if(instance_exists(nearwep)){
+				with(nearwep){
+					x += other.creator.x - other.x;
+					y += other.creator.y - other.y;
+					visible = true;
+				}
+			}
+			x = creator.x;
+			y = creator.y;
+		}
+		else instance_destroy();
+	}
+	
+#define LibPrompt_cleanup
+	with(nearwep){
+		instance_delete(self);
+	}
+	
+#define boss_hp(_hp)
+	var _players = 0;
+	for(var i = 0; i < maxp; i++){
+		_players += player_is_active(i);
+	}
+	return round(_hp * (1 + (1/3 * GameCont.loops)) * (1 + (0.5 * (_players - 1))));
+	
+#define boss_intro_setup(_name, _mainspr, _backspr, _namespr)
+	/*
+		Sets up a boss intro
+		//You can pass a string in for _namespr
+		//UNTESTED, LMK IF THERE ARE ISSUES
+	*/
+var main = surface_create(492,240);
+surface_set_target(main);
+draw_clear_alpha(c_white, 0);
+draw_sprite(_mainspr, 0, 0, 0);
+surface_reset_target();
+surface_save(main, _name+"_main.png");
+surface_destroy(main);
+
+var back = surface_create(492,240);
+surface_set_target(back);
+draw_clear_alpha(c_white, 0);
+draw_sprite(_backspr, 0, 0, 0);
+surface_reset_target();
+surface_save(back, _name+"_main.png");
+surface_destroy(back);
+
+var name = surface_create(181,75);
+surface_set_target(name);
+draw_clear_alpha(c_white, 0);
+if(is_string(_namespr)){
+	draw_text_bn(0, 20, string_upper(_namespr), 1.5);
+}else{
+	draw_sprite(_namespr, 0, 0, 0);
+}
+surface_reset_target();
+surface_save(name, _name+"_main.png");
+surface_destroy(name);
+
+	
+#define boss_intro(_name, _introSound, _music)
+	/*
+		Plays a given boss's intro and their music.
+		//You can pass null in for _introSound and _music
+	*/
+	
+	 // Music:
+	with(MusCont){
+		alarm_set(2, 1);
+		alarm_set(3, -1);
+	}
+	
+	 // Bind begin_step to fix TopCont.darkness flash
+	if(_name != ""){
+		with(script_bind_begin_step(boss_intro_step, 0)){
+			boss    = _name;
+			loops   = 0;
+			intro   = true;
+			sprites = [
+				[_name+"_main.png", sprBossIntro,          0],
+				[_name+"_back.png", sprBossIntroBackLayer, 0],
+				[_name+"_name.png", sprBossName,           0]
+			];
+			
+			music = _music;
+			
+			 // Preload Sprites:
+			with(sprites){
+				if(!file_loaded(self[0])){
+					file_load(self[0]);
+				}
+			}
+			
+			return self;
+		}
+	}
+	
+	if(_introSound != null){
+		sound_play(_introSound);
+	}
+	
+	return noone;
+
+#define boss_intro_step
+	if(intro){
+		intro = false;
+		
+		 // Preload Sprites:
+		with(sprites){
+			if(!file_loaded(self[0])){
+				other.intro = true;
+				break;
+			}
+		}
+		
+		 // Boss Intro Time:
+		if(!intro && UberCont.opt_bossintros == true && GameCont.loops <= loops){
+			 // Replace Big Bandit's Intro:
+			with(sprites){
+				if(file_exists(self[0])){
+					sprite_replace_image(self[1], self[0], self[2]);
+				}
+			}
+			
+			 // Call Big Bandit's Intro:
+			var	_lastSub   = GameCont.subarea,
+				_lastLoop  = GameCont.loops,
+				_lastIntro = UberCont.opt_bossintros;
+				
+			GameCont.loops          = 0;
+			UberCont.opt_bossintros = true;
+			
+			with(instance_create(0, 0, BanditBoss)){
+				with(self){
+					event_perform(ev_alarm, 6);
+				}
+				sound_stop(sndBigBanditIntro);
+				instance_delete(self);
+			}
+			
+			with(MusCont){
+				alarm_set(3, -1);
+			}
+			if(music != null){
+				sound_play_music(music);
+			}
+			
+			GameCont.subarea        = _lastSub;
+			GameCont.loops          = _lastLoop;
+			UberCont.opt_bossintros = _lastIntro;
+		}
+	}
+	
+	 // End:
+	else{
+		with(sprites){
+			sprite_restore(self[1]);
+		}
+		instance_destroy();
+	}
+
+#define boss_dead
+	//Call this when your boss dies to set the music... I might add more later, but for now it's just a nice thing to have
+	with(MusCont) alarm_set(1, 1);
