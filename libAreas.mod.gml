@@ -6,6 +6,33 @@
 /*
 	Scripts:
 		#define floor_fill(_x, _y, _w, _h, _type)
+		#define area_generate(_area, _subarea, _loops, _x, _y, _setArea, _overlapFloor, _scrSetup)
+		#define area_set(_area, _subarea, _loops)
+		#define area_get_name(_area, _subarea, _loops)
+		#define area_get_subarea(_area)
+		#define area_get_secret(_area)
+		#define area_get_underwater(_area)
+		#define area_get_back_color(_area)
+		#define area_get_shad_color(_area)
+		#define area_get_sprite(_area, _spr)
+		#define floor_walls()
+		#define floor_bones(_num, _chance, _linked)
+		#define floor_set_style(_style, _area)
+		#define floor_reset_style()
+		#define floor_set_align(_alignX, _alignY, _alignW, _alignH)
+		#define floor_reset_align()
+		#define floor_align(_x, _y, _w, _h, _type)
+		#define floor_align_round(_num, _precision, _bias)
+		#define floor_set(_x, _y, _state)
+		#define floor_delete(_x1, _y1, _x2, _y2)
+		#define floor_tunnel(_x1, _y1, _x2, _y2)
+		#define floor_room_start(_spawnX, _spawnY, _spawnDis, _spawnFloor)
+		#define floor_room_create(_x, _y, _w, _h, _type, _dirStart, _dirOff, _floorDis)
+		#define floor_room(_spawnX, _spawnY, _spawnDis, _spawnFloor, _w, _h, _type, _dirOff, _floorDis)
+		#define wall_clear(_x, _y)
+		#define wall_delete(_x1, _y1, _x2, _y2)
+		#define wall_tops()
+		#define wall_update(_x1, _y1, _x2, _y2)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -54,6 +81,33 @@
 	#macro FloorNormal instances_matching(Floor, "object_index", Floor)
 	
 	addScript("floor_fill");
+	addScript("area_generate");
+	addScript("area_set");
+	addScript("area_get_name");
+	addScript("area_get_subarea");
+	addScript("area_get_secret");
+	addScript("area_get_underwater");
+	addScript("area_get_back_color");
+	addScript("area_get_shad_color");
+	addScript("area_get_sprite");
+	addScript("floor_walls");
+	addScript("floor_bones");
+	addScript("floor_set_style");
+	addScript("floor_reset_style");
+	addScript("floor_set_align");
+	addScript("floor_reset_align");
+	addScript("floor_align");
+	addScript("floor_align_round");
+	addScript("floor_set");
+	addScript("floor_delete");
+	addScript("floor_tunnel");
+	addScript("floor_room_start");
+	addScript("floor_room_create");
+	addScript("floor_room");
+	addScript("wall_clear");
+	addScript("wall_delete");
+	addScript("wall_tops");
+	addScript("wall_update");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
 	
