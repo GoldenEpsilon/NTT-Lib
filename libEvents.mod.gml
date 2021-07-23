@@ -31,6 +31,9 @@
 	mod_variable_set("mod", "lib", "scriptReferences", ref);
 
 #define init
+
+	#macro infinity 1/0
+	
 	addScript("event_add");
 	addScript("event_add_ext");
 	addScript("event_set_active");
