@@ -81,7 +81,7 @@ if(oldjson == false){
 	}else{
 		wait(0);
 		trace("There is an update available for "+_name+"!");
-		trace("Run the command /update"+_name" to download it!");
+		trace("Run the command /update"+_name+" to download it!");
 	}
 	global.updating--;
 	return 1;
@@ -95,7 +95,7 @@ if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson 
 	}else{
 		wait(0);
 		trace("There is an update available for "+_name+"!");
-		trace("Run the command /update"+_name" to download it!");
+		trace("Run the command /update"+_name+" to download it!");
 	}
 	global.updating--;
 	return 1;
