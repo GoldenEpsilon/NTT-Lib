@@ -11,7 +11,7 @@ global.activeReferences = [];
 global.lastid = instance_create(0, 0, DramaCamera);
 global.level_loading = false;
 global.canLoad = undefined;
-global.bind_post_step = noone;
+global.bind_late_step = noone;
 global.bind_end_step = noone;
 
 //wait for sideloading
@@ -65,7 +65,7 @@ if(global.canLoad){
 
 #define cleanup
      // Unbind Script on Mod Unload:
-    with(global.bind_post_step){
+    with(global.bind_late_step){
         instance_destroy();
     }
     with(global.bind_end_step){
@@ -153,6 +153,26 @@ mod_loadtext(path);
 
 
 #define step
+	//level_start
+	if(instance_exists(GenCont) || instance_exists(Menu)){
+		global.level_loading = true;
+	}
+	else if(global.level_loading){
+		global.level_loading = false;
+		with(global.activeReferences){
+			script_ref_call([self[0], self[1], "level_start"]);
+		}
+	}
+	
+	//binded steps
+    if(!instance_exists(global.bind_late_step)){
+        global.bind_late_step = script_bind_step(late_step, 0);
+    }
+    if(!instance_exists(global.bind_end_step)){
+        global.bind_end_step = script_bind_step(end_step, 0);
+    }
+
+#define late_step
 	//update
 	var newID = instance_create(0, 0, DramaCamera);
 	var updateid = global.lastid;
@@ -173,33 +193,14 @@ mod_loadtext(path);
 	}
 	if(newID > lid){
 		with(global.activeReferences){
-			script_ref_call([self[0], self[1], "update"], global.lastid);
+			script_ref_call([self[0], self[1], "update"], global.lastid, newID);
 		}
 	}
 	global.lastid = newID;
-
-	//level_start
-	if(instance_exists(GenCont) || instance_exists(Menu)){
-		global.level_loading = true;
-	}
-	else if(global.level_loading){
-		global.level_loading = false;
-		with(global.activeReferences){
-			script_ref_call([self[0], self[1], "level_start"]);
-		}
-	}
 	
-	//binded steps
-    if(!instance_exists(global.bind_post_step)){
-        global.bind_post_step = script_bind_step(post_step, 0);
-    }
-    if(!instance_exists(global.bind_end_step)){
-        global.bind_end_step = script_bind_step(end_step, 0);
-    }
-
-#define post_step
+	//late step
 	with(global.activeReferences){
-		script_ref_call([self[0], self[1], "post_step"]);
+		script_ref_call([self[0], self[1], "late_step"]);
 	}
 	
 #define end_step

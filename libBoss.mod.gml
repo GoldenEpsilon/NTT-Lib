@@ -171,13 +171,13 @@ surface_destroy(name);
 			with(MusCont){
 				alarm_set(3, -1);
 			}
-			if(music != null){
-				sound_play_music(music);
-			}
 			
 			GameCont.subarea        = _lastSub;
 			GameCont.loops          = _lastLoop;
 			UberCont.opt_bossintros = _lastIntro;
+		}
+		if(music != null){
+			sound_play_music(music);
 		}
 	}
 	
