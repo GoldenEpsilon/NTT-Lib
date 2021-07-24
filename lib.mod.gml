@@ -173,6 +173,12 @@ mod_loadtext(path);
     }
 
 #define late_step
+	//late step
+	with(global.activeReferences){
+		script_ref_call([self[0], self[1], "late_step"]);
+	}
+	
+#define end_step
 	//update
 	var newID = instance_create(0, 0, DramaCamera);
 	var updateid = global.lastid;
@@ -198,12 +204,7 @@ mod_loadtext(path);
 	}
 	global.lastid = newID;
 	
-	//late step
-	with(global.activeReferences){
-		script_ref_call([self[0], self[1], "late_step"]);
-	}
-	
-#define end_step
+	//end step
 	with(global.activeReferences){
 		script_ref_call([self[0], self[1], "end_step"]);
 	}
