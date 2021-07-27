@@ -143,7 +143,7 @@
 	
 	obj_setup(mod_current, "LibPrompt");
 
-#define post_step
+#define late_step
 	 // Prompts:
 	//Note: This code IS basically just taken from TE, but it means that it works alongside TE prompts.
 	var _inst = instances_matching(CustomObject, "name", "LibPrompt");
@@ -377,17 +377,6 @@ Returns:
 					variable_instance_set(global.objects[? _name], "on" + _alrm, undefined);
 				}
 			}
-				
-			//I'm adding defaults here so that they can be overwritten in the script call
-			switch(self) {
-				case "_step": 
-					if(instance_is(_inst, CustomEnemy)) _inst.on_step = script_ref_create_ext(obj.type, obj.modName, "enemy_step"); 
-					else if(instance_is(_inst, CustomHitme)) _inst.on_step = script_ref_create_ext(obj.type, obj.modName, "hitme_step"); 
-				break;
-				case "_hurt": if(instance_is(_inst, hitme)) _inst.on_hurt = script_ref_create_ext(obj.type, obj.modName, "enemy_hurt"); break;
-				case "_death": if(instance_is(_inst, CustomEnemy)) _inst.on_death = script_ref_create_ext(obj.type, obj.modName, "enemy_death"); break;
-				case "_draw": if(instance_is(_inst, CustomEnemy)) _inst.on_draw = script_ref_create_ext(obj.type, obj.modName, "draw_self_enemy"); break;
-			}
 			
 			//need to update obj because setup probably added stuff to the variable behind it
 			obj = global.objects[? _name];
@@ -429,8 +418,20 @@ Returns:
 				"_pick"// When there's an E prompt picked on this object
 			]){
 				var _var =  "on" + self;
-				if(variable_instance_get(global.objects[? _name], _var) != undefined){
+				if(variable_instance_get(global.objects[? _name], _var) != null){
 					variable_instance_set(_inst, _var, variable_instance_get(global.objects[? _name], _var));
+				}
+				
+				else {
+					switch(self) {
+						case "_step": 
+							if(instance_is(_inst, CustomEnemy)) _inst.on_step = script_ref_create_ext(obj.type, obj.modName, "enemy_step"); 
+							else if(instance_is(_inst, CustomHitme)) _inst.on_step = script_ref_create_ext(obj.type, obj.modName, "hitme_step"); 
+						break;
+						case "_hurt": if(instance_is(_inst, hitme)) _inst.on_hurt = script_ref_create_ext(obj.type, obj.modName, "enemy_hurt"); break;
+						case "_death": if(instance_is(_inst, CustomEnemy)) _inst.on_death = script_ref_create_ext(obj.type, obj.modName, "enemy_death"); break;
+						case "_draw": if(instance_is(_inst, CustomEnemy)) _inst.on_draw = script_ref_create_ext(obj.type, obj.modName, "draw_self_enemy"); break;
+					}
 				}
 			}
 			
