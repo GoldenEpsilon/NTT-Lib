@@ -361,9 +361,9 @@ Returns:
 				
 				if(mod_script_exists(obj.type, obj.modName, _scr)){
 					var _ref = script_ref_create_ext(obj.type, obj.modName, _scr);
-					variable_instance_set(global.objects[? _name], _var, _ref);
+					lq_set(global.objects[? _name], _var, _ref);
 				} else {
-					variable_instance_set(global.objects[? _name], _var, undefined);
+					lq_set(global.objects[? _name], _var, undefined);
 				}
 			}
 		
@@ -372,9 +372,9 @@ Returns:
 				
 				if(mod_script_exists(obj.type, obj.modName, string(_name) + _alrm)){
 					var _ref = script_ref_create_ext(obj.type, obj.modName, string(_name) + _alrm);
-					variable_instance_set(global.objects[? _name], "on" + _alrm, _ref);
+					lq_set(global.objects[? _name], "on" + _alrm, _ref);
 				} else {
-					variable_instance_set(global.objects[? _name], "on" + _alrm, undefined);
+					lq_set(global.objects[? _name], "on" + _alrm, undefined);
 				}
 			}
 			
@@ -418,11 +418,10 @@ Returns:
 				"_pick"// When there's an E prompt picked on this object
 			]){
 				var _var =  "on" + self;
-				if(variable_instance_get(global.objects[? _name], _var) != null){
-					variable_instance_set(_inst, _var, variable_instance_get(global.objects[? _name], _var));
-				}
-				
-				else {
+				if(variable_instance_get(_inst, _var) != undefined){
+				}else if(lq_get(global.objects[? _name], _var) != undefined){
+					variable_instance_set(_inst, _var, lq_get(global.objects[? _name], _var));
+				} else {
 					switch(self) {
 						case "_step": 
 							if(instance_is(_inst, CustomEnemy)) _inst.on_step = script_ref_create_ext(obj.type, obj.modName, "enemy_step"); 
