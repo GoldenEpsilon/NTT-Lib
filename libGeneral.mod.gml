@@ -65,6 +65,7 @@
 		#define path_direction(_path, _x, _y, _wall)
 		#define path_draw(_path, _width)
 		#define prompt_create(_text)
+		#define is_9940()
 */
 
 //For internal use, adds the script to be easily usable.
@@ -133,6 +134,7 @@
 	addScript("path_direction");
 	addScript("path_draw");
 	addScript("prompt_create");
+	addScript("is_9940");
 	
 	
 	script_ref_call(["mod", "lib", "updateRef"]);
@@ -2160,3 +2162,18 @@ return obj_create(_x,_y,_name);
 	with(nearwep){
 		instance_delete(self);
 	}
+
+#define is_9940
+/* Creator: Golden Epsilon
+Description: 
+	returns whether you are using a pre-GMS2 version
+Usage:
+	if(script_ref_call(["mod", "libGeneral", "is_9940"]){
+		//do_stuff_for_9940
+	}
+*/
+var retVal = false;
+repeat(0){
+	retVal = true;
+}
+return retVal;
