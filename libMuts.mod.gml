@@ -5,11 +5,13 @@
 
 /*
 	Scripts:
+		#define skill_get_category(mut)
 		#define skill_get_avail(_mut)
 		#define get_skills(is_avail)
 		#define get_ultras
 		#define skill_decide
 		#define skill_get_image(_mut)
+		#define skill_is_ultra(_mut)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -19,12 +21,40 @@
 	mod_variable_set("mod", "lib", "scriptReferences", ref);
 
 #define init
+	addScript("skill_get_category");
 	addScript("skill_get_avail");
 	addScript("get_skills");
 	addScript("get_ultras");
 	addScript("skill_decide");
 	addScript("skill_get_image");
+	addScript("skill_is_ultra");
 	script_ref_call(["mod", "lib", "updateRef"]);
+	
+	//Mutation categories, donated by wildebee from metamorphosis
+	global.mut_categories = {
+		offensive: [mut_gamma_guts, mut_scarier_face, mut_long_arms, mut_shotgun_shoulders, mut_laser_brain, mut_eagle_eyes, mut_impact_wrists, mut_bolt_marrow, mut_stress, mut_trigger_fingers, mut_sharp_teeth],
+		defensive: [mut_rhino_skin, mut_bloodlust, mut_second_stomach, mut_boiling_veins, mut_strong_spirit],
+		utility: [mut_extra_feet, mut_plutonium_hunger, mut_throne_butt, mut_euphoria, mut_last_wish, mut_patience, mut_hammerhead, mut_heavy_heart],
+		ammo: [mut_rabbit_paw, mut_lucky_shot, mut_back_muscle, mut_recycle_gland, mut_open_mind]
+	}
+
+#define skill_get_category(mut)
+	if(is_string(mut) and mod_script_call("skill", mut, "skill_type") != undefined) {
+		return string_lower(mod_script_call("skill", mut, "skill_type"));
+	}else if(is_string(mut) and skill_is_ultra(mut)){
+		return "ultra";
+	}else for(var i = 0; i < lq_size(global.mut_categories); i++) {
+		if(is_array(lq_get_value(global.mut_categories, i))){
+			var length = array_length(lq_get_value(global.mut_categories, i));
+			for(var i2 = 0; i2 < length; i2++) {
+				if(array_find_index(lq_get_value(global.mut_categories, i), mut) != -1) {
+					return lq_get_key(global.mut_categories, i);
+				}
+			}
+		}
+	}
+	//if it can't find a category for the mut it returns -1
+	return -1;
 
 #define skill_get_avail(_mut)
 /* Creator: Golden Epsilon
@@ -164,3 +194,23 @@ with(instance_create(0,0,Effect)){
 	instance_destroy();
 }
 return retVal;
+
+#define skill_is_ultra(_mut)
+//returns whether the mut passed in is an ultra
+if(is_real(_mut)){
+	for(var i = char_fish; i <= char_frog; i++){
+		for(var i2 = 1; i2 <= ultra_count(i); i2++){
+			if(_mut == i*3+i2-4){
+				return true;
+			}
+		}
+	}
+	return false;
+}
+if(mod_script_exists("skill", _mut, "skill_ultra")){
+	var ult = mod_script_call("skill", _mut, "skill_ultra");
+	if(is_string(ult) && (mod_exists("race", ult) || string_count(string_lower(ult), "fish crystal eyes melting plant venuz steroids robot chicken rebel horror rogue skeleton frog")) || is_real(ult) && ult != -1){
+		return true;
+	}
+}
+return false;
