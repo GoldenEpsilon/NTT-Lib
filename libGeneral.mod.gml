@@ -2177,3 +2177,111 @@ repeat(0){
 	retVal = true;
 }
 return retVal;
+
+#define obj_fire(_gunangle, _wep, _x, _y, _creator, _affectcreator)
+with (instance_create(_x,_y,FireCont)){
+	owner = _creator;
+	wep = _wep;
+	maxspeed = variable_instance_get(owner, "maxspeed", 4);
+	team = variable_instance_get(owner, "team", 0);
+	accuracy = variable_instance_get(owner, "accuracy", 1);
+	curse = variable_instance_get(owner, "curse", 0);
+	ammo = variable_instance_get(owner, "ammo", [1000, 255, 55, 55, 55, 55]);
+	prevammo = variable_instance_get(owner, "ammo", undefined);
+	maxhealth = variable_instance_get(owner, "maxhealth", 8);
+	my_health = variable_instance_get(owner, "my_health", 8);
+	lsthealth = variable_instance_get(owner, "lsthealth", 8);
+	reloadspeed = variable_instance_get(owner, "reloadspeed", 1);
+	footstep = variable_instance_get(owner, "footstep", 0);
+	chickencorpse = variable_instance_get(owner, "chickencorpse", noone);
+	frogcharge = variable_instance_get(owner, "frogcharge", 0);
+	rogueammo = variable_instance_get(owner, "rogueammo", 1);
+	canspec = variable_instance_get(owner, "canspec", 1);
+	notoxic = variable_instance_get(owner, "notoxic", 0);
+	horrornorad = variable_instance_get(owner, "horrornorad", 0);
+	swapmove = variable_instance_get(owner, "swapmove", 0);
+	bleed = variable_instance_get(owner, "bleed", 0);
+	typ_amax = variable_instance_get(owner, "typ_amax", [1000, 255, 55, 55, 55, 55]);
+	sprite_angle = variable_instance_get(owner, "sprite_angle", 0);
+	wkick = variable_instance_get(owner, "wkick", 0);
+	joyx = variable_instance_get(owner, "joyx", 0);
+	can_shoot = variable_instance_get(owner, "can_shoot", 1);
+	gunshine = variable_instance_get(owner, "gunshine", 0);
+	nearwep = variable_instance_get(owner, "nearwep", 0);
+	roll = variable_instance_get(owner, "roll", 0);
+	joyaimx = variable_instance_get(owner, "joyaimx", 0);
+	horrorstopsnd = variable_instance_get(owner, "horrorstopsnd", 0);
+	hammering = variable_instance_get(owner, "hammering", 0);
+	infammo = variable_instance_get(owner, "infammo", 0);
+	wepflip = variable_instance_get(owner, "wepflip", 1);
+	p = variable_instance_get(owner, "p", 0);
+	race = variable_instance_get(owner, "race", "");
+	canswap = variable_instance_get(owner, "canswap", 1);
+	interfacepop = variable_instance_get(owner, "interfacepop", 1);
+	bwep = variable_instance_get(owner, "bwep", 0);
+	hammerhead = variable_instance_get(owner, "hammerhead", 0);
+	canwalk = variable_instance_get(owner, "canwalk", 1);
+	drawlowhp = variable_instance_get(owner, "drawlowhp", 0);
+	lasthit = variable_instance_get(owner, "lasthit", -4);
+	alias = variable_instance_get(owner, "alias", "");
+	clicked = variable_instance_get(owner, "clicked", 1);
+	bwepangle = variable_instance_get(owner, "bwepangle", 0);
+	canspirit = variable_instance_get(owner, "canspirit", 1);
+	wave = variable_instance_get(owner, "wave", 0); //?
+	spiriteffect = variable_instance_get(owner, "spiriteffect", 0);
+	chickendeaths = variable_instance_get(owner, "chickendeaths", 0);
+	canaim = variable_instance_get(owner, "canaim", 1);
+	canscope = variable_instance_get(owner, "canscope", 1);
+	usespec = variable_instance_get(owner, "usespec", 0);
+	smoke = variable_instance_get(owner, "smoke", 0);
+	wepangle = variable_instance_get(owner, "wepangle", 0);
+	canrogue = variable_instance_get(owner, "canrogue", 1);
+	dogammo = variable_instance_get(owner, "dogammo", 15);
+	size = variable_instance_get(owner, "size", 5);
+	wepright = variable_instance_get(owner, "wepright", 1);
+	bwepflip = variable_instance_get(owner, "bwepflip", 1);
+	safeheadloss = variable_instance_get(owner, "safeheadloss", 0);
+	drawemptyb = variable_instance_get(owner, "drawemptyb", 0);
+	candie = variable_instance_get(owner, "candie", 1);
+	binterfacepop = variable_instance_get(owner, "binterfacepop", 1);
+	showhp = variable_instance_get(owner, "showhp", 0);
+	canpick = variable_instance_get(owner, "canpick", 1);
+	turn = variable_instance_get(owner, "turn", -1);
+	bcan_shoot = variable_instance_get(owner, "bcan_shoot", 1);
+	breload = variable_instance_get(owner, "breload", 0);
+	typ_name = variable_instance_get(owner, "typ_name", ["MELEE", "BULLETS", "SHELLS", "BOLTS", "EXPLOSIVES", "ENERGY"]);
+	back = variable_instance_get(owner, "back", 1);
+	bwkick = variable_instance_get(owner, "bwkick", 0);
+	footextra = variable_instance_get(owner, "footextra", 0);
+	bskin = variable_instance_get(owner, "bskin", 0);
+	raddrop = variable_instance_get(owner, "raddrop", 0);
+	bcurse = variable_instance_get(owner, "bcurse", 0);
+	footkind = variable_instance_get(owner, "footkind", 0);
+	drawempty = variable_instance_get(owner, "drawempty", 0);
+	boilcap = variable_instance_get(owner, "boilcap", 0);
+	typ_ammo = variable_instance_get(owner, "typ_ammo", [264,40,10,9,8,13]);//?
+	right = variable_instance_get(owner, "right", 1);
+	horrorcharge = variable_instance_get(owner, "horrorcharge", 0);
+	race_id = variable_instance_get(owner, "race_id", 0);
+	angle = variable_instance_get(owner, "angle", 0);
+	nexthurt = variable_instance_get(owner, "nexthurt", current_frame);
+	canfire = variable_instance_get(owner, "canfire", 1);
+	canfeet = variable_instance_get(owner, "canfeet", 1);
+	index = variable_instance_get(owner, "index", 0);
+	gunangle = variable_instance_get(owner, "gunangle", _gunangle);
+	creator = variable_instance_get(owner, "creator", owner);
+	specfiring = 0;
+	reload = variable_instance_get(owner, "reload", 0);
+	familiar = 1;
+	var _wep = is_object(wep) ? wep.wep : wep;
+	if(is_string(_wep) && mod_script_exists("weapon", _wep, "step")){
+		mod_script_call("weapon", _wep, "step", 1);
+	}
+	player_fire_ext(_gunangle,wep,_x,_y,team,owner);
+	if(instance_exists(owner) && _affectcreator){
+		if("wepangle" in owner){owner.wepangle = owner.wepangle * (weapon_is_melee(_wep) ? -1 : 1);}
+		if("reload" in owner){owner.reload = reload;}
+		if("ammo" in owner){owner.ammo = ammo;}
+	}
+	time = current_time;
+}
