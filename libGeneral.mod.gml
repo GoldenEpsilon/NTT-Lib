@@ -66,6 +66,7 @@
 		#define path_draw(_path, _width)
 		#define prompt_create(_text)
 		#define is_9940()
+		#define obj_fire(_gunangle, _wep, _x, _y, _creator, _affectcreator)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -135,6 +136,7 @@
 	addScript("path_draw");
 	addScript("prompt_create");
 	addScript("is_9940");
+	addScript("obj_fire");
 	
 	
 	script_ref_call(["mod", "lib", "updateRef"]);
@@ -2259,7 +2261,7 @@ with (instance_create(_x,_y,FireCont)){
 	footkind = variable_instance_get(owner, "footkind", 0);
 	drawempty = variable_instance_get(owner, "drawempty", 0);
 	boilcap = variable_instance_get(owner, "boilcap", 0);
-	typ_ammo = variable_instance_get(owner, "typ_ammo", [264,40,10,9,8,13]);//?
+	typ_ammo = variable_instance_get(owner, "typ_ammo", [264,40,10,9,8,13]);
 	right = variable_instance_get(owner, "right", 1);
 	horrorcharge = variable_instance_get(owner, "horrorcharge", 0);
 	race_id = variable_instance_get(owner, "race_id", 0);
