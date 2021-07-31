@@ -11,6 +11,7 @@
 		#define get_ultras
 		#define skill_decide
 		#define skill_get_image(_mut)
+		#define skill_get_icon(_mut)
 		#define skill_is_ultra(_mut)
 */
 
@@ -27,6 +28,7 @@
 	addScript("get_ultras");
 	addScript("skill_decide");
 	addScript("skill_get_image");
+	addScript("skill_get_icon");
 	addScript("skill_is_ultra");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	
@@ -194,6 +196,21 @@ with(instance_create(0,0,Effect)){
 	instance_destroy();
 }
 return retVal;
+
+#define skill_get_icon(_mut)
+	/*
+		Returns an array containing the [sprite_index, image_index] of a mutation's HUD icon
+	*/
+	
+	if(is_real(_skill)){
+		return [sprSkillIconHUD, _skill];
+	}
+	
+	if(is_string(_skill) && mod_script_exists("skill", _skill, "skill_icon")){
+		return [mod_script_call("skill", _skill, "skill_icon"), 0];
+	}
+	
+	return [sprEGIconHUD, 2];
 
 #define skill_is_ultra(_mut)
 //returns whether the mut passed in is an ultra
