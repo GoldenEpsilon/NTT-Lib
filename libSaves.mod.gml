@@ -8,7 +8,7 @@
 
 /*
 	Scripts:
-	#define save_load(_mod)
+	#define save_load(_mod, ?default)
 	#define save_get(_mod, _name, ?default)
 	#define save_set(_mod, _name, _value
 	#define save_reset(_mod, _lwo)
@@ -32,13 +32,21 @@
 	script_ref_call(["mod", "libGeneral", "obj_setup"], "libSaves", "UnlockCont");
 	global.saves = {};
 	
-#define save_load(_mod)
+#define save_load
+	//(_mod, ?default)
 	if(fork()){
-		wait(file_load(_mod+"Save.json"));
-		while(!file_loaded(_mod+"Save.json")){wait(1);}
-		var json = json_decode(string_load(_mod+"Save.json"));
+		wait(file_load(argument[0]+"Save.json"));
+		while(!file_loaded(argument[0]+"Save.json")){wait(1);}
+		var json = json_decode(string_load(argument[0]+"Save.json"));
 		if(json != json_error){
-			save_reset(_mod, json);
+			if(argument_count == 2){
+				for(var i = 0; i < lq_size(argument[1]); i++){
+					if(lq_get_key(argument[1]) not in json){
+						lq_set(json, lq_get_key(argument[1]), lq_get_value(argument[1]));
+					}
+				}
+			}
+			save_reset(argument[0], json);
 		}
 		exit;
 	}
