@@ -4,10 +4,6 @@
 */
 
 /*
-||||||||||||||||||||||||UNFINISHED PACKAGE||||||||||||||||||||||||||||
-*/
-
-/*
 	Scripts:
 		#define create_button(x,y,sprite,clickScr,?hoverScr,?holdScr,?pop)
 		#define menubutton_check(x,y,w,h,?hold,?view,?index)

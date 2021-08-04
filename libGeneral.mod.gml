@@ -67,6 +67,7 @@
 		#define prompt_create(_text)
 		#define is_9940()
 		#define obj_fire(_gunangle, _wep, _x, _y, _creator, _affectcreator)
+		#define seeded_random(_seed, _min, _max, _irandom)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -137,6 +138,7 @@
 	addScript("prompt_create");
 	addScript("is_9940");
 	addScript("obj_fire");
+	addScript("seeded_random");
 	
 	
 	script_ref_call(["mod", "lib", "updateRef"]);
@@ -2287,3 +2289,16 @@ with (instance_create(_x,_y,FireCont)){
 	}
 	time = current_time;
 }
+
+#define seeded_random(_seed, _min, _max, _irandom)
+//Returns a random value from min to max, seeded to the given seed without affecting the overall random seed (if _irandom is true uses irandom)
+var _lastSeed = random_get_seed();
+random_set_seed(_seed);
+var rand = 0;
+if(_irandom){
+	rand = _min+irandom(_max-_min);
+}else{
+	rand = _min+random(_max-_min);
+}
+random_set_seed(_lastSeed);
+return rand;
