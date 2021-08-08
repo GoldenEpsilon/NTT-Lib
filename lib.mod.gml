@@ -173,7 +173,7 @@ mod_loadtext(path);
         global.bind_late_step = script_bind_step(late_step, 0);
     }
     if(!instance_exists(global.bind_end_step)){
-        global.bind_end_step = script_bind_step(end_step, 0);
+        global.bind_end_step = script_bind_end_step(end_step, 0);
     }
 
 #define late_step
