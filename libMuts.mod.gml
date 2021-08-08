@@ -6,6 +6,7 @@
 /*
 	Scripts:
 		#define skill_get_category(mut)
+		#define skill_set_category(mut, category)
 		#define skill_get_avail(_mut)
 		#define get_skills(is_avail, ?whitelist, ?category)
 		#define get_ultras()
@@ -23,6 +24,7 @@
 
 #define init
 	addScript("skill_get_category");
+	addScript("skill_set_category");
 	addScript("skill_get_avail");
 	addScript("get_skills");
 	addScript("get_ultras");
@@ -41,11 +43,10 @@
 	}
 
 #define skill_get_category(mut)
-	if(is_string(mut) and mod_script_call("skill", mut, "skill_type") != undefined) {
-		return string_lower(mod_script_call("skill", mut, "skill_type"));
-	}else if(is_string(mut) and skill_is_ultra(mut)){
-		return "ultra";
-	}else for(var i = 0; i < lq_size(global.mut_categories); i++) {
+	//If no category's found, it returns -1
+	
+	//I'm giving the global variable priority so that skill_set_category works
+	for(var i = 0; i < lq_size(global.mut_categories); i++) {
 		if(is_array(lq_get_value(global.mut_categories, i))){
 			var length = array_length(lq_get_value(global.mut_categories, i));
 			for(var i2 = 0; i2 < length; i2++) {
@@ -55,8 +56,37 @@
 			}
 		}
 	}
+	if(is_string(mut) and mod_script_call("skill", mut, "skill_type") != undefined) {
+		return string_lower(mod_script_call("skill", mut, "skill_type"));
+	}else if(is_string(mut) and skill_is_ultra(mut)){
+		return "ultra";
+	}
 	//if it can't find a category for the mut it returns -1
 	return -1;
+
+#define skill_set_category(mut, category)
+	//if you pass in arrays for both mut and category and the lengths match up, it'll set all of them
+	if(is_array(mut)){
+		if(is_array(category) && array_length(category) != array_length(mut)){
+			trace("Lib error! if you're passing arrays into skill_set_category, please keep the lengths the same and/or make category a single value.");
+			return;
+		}else if(is_array(category)){
+			for(var i = 0; i < is_array(mut); i++){
+				skill_set_category(mut[i], category[i])
+			}
+		}else{
+			for(var i = 0; i < is_array(mut); i++){
+				skill_set_category(mut[i], category)
+			}
+		}
+	}else{
+		if(is_array(category)){
+			trace("Lib error! for skill_set_category, if mut is a single value category cannot be an array.");
+			return;
+		}else{
+			array_push(lq_get(global.mut_categories, category), mut);
+		}
+	}
 
 #define skill_get_avail(_mut)
 /* Creator: Golden Epsilon
