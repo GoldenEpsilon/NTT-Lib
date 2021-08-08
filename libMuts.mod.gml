@@ -8,7 +8,7 @@
 		#define skill_get_category(mut)
 		#define skill_set_category(mut, category)
 		#define skill_get_avail(_mut)
-		#define get_skills(is_avail, ?whitelist, ?category)
+		#define get_skills(?is_avail, ?whitelist, ?category)
 		#define get_ultras()
 		#define skill_decide(?whitelist, ?category)
 		#define skill_get_image(_mut)
@@ -124,7 +124,7 @@ if(is_string(_mut)){
 return false;
 
 #define get_skills
-//?whitelist, ?category
+//?is_avail, ?whitelist, ?category
 /* Creator: Golden Epsilon
 Description: 
 	Returns all mutations that exist.

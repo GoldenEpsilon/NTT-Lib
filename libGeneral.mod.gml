@@ -2272,8 +2272,8 @@ with (instance_create(_x,_y,FireCont)){
 	canfire = variable_instance_get(owner, "canfire", 1);
 	canfeet = variable_instance_get(owner, "canfeet", 1);
 	index = variable_instance_get(owner, "index", 0);
-	gunangle = variable_instance_get(owner, "gunangle", _gunangle);
-	creator = variable_instance_get(owner, "creator", self);
+	gunangle = _gunangle;
+	creator = variable_instance_get(owner, "creator", _affectcreator ? owner : self);
 	specfiring = 0;
 	reload = variable_instance_get(owner, "reload", 0);
 	familiar = 1;
@@ -2281,7 +2281,7 @@ with (instance_create(_x,_y,FireCont)){
 	if(is_string(_wep) && mod_script_exists("weapon", _wep, "step")){
 		mod_script_call("weapon", _wep, "step", 1);
 	}
-	player_fire_ext(_gunangle,wep,_x,_y,team,owner);
+	player_fire_ext(_gunangle,wep,_x,_y,team,creator);
 	if(instance_exists(owner) && _affectcreator){
 		if("wepangle" in owner){owner.wepangle = owner.wepangle * (weapon_is_melee(_wep) ? -1 : 1);}
 		if("reload" in owner){owner.reload = reload;}
