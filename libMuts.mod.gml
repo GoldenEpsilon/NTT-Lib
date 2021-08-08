@@ -66,6 +66,11 @@
 
 #define skill_set_category(mut, category)
 	//if you pass in arrays for both mut and category and the lengths match up, it'll set all of them
+	//in addition, if mut is an array and category is not, it'll set all the mutations in the array to category
+	//in essence, if you did skill_set_category([[mutA, mutB], mutC], ["ammo", "damage"]), 
+	//it'd set mutA and mutB to ammo and mutC to damage.
+	//note: mut and category do not have to be arrays.
+	
 	if(is_array(mut)){
 		if(is_array(category) && array_length(category) != array_length(mut)){
 			trace("Lib error! if you're passing arrays into skill_set_category, please keep the lengths the same and/or make category a single value.");
