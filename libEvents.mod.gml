@@ -62,7 +62,15 @@
 				_area    = mod_script_call(_modType, _modName, _name + "_area");
 				
 			var _check = false;
-			if(is_undefined(_area) || GameCont.area == _area){
+			if(
+				is_undefined(_area) && 
+				(
+					is_real(GameCont.area) && 
+					(GameCont.area != 0) && 
+					(GameCont.area != 7 || GameCont.subarea != 3) ||
+					is_string(GameCont.area) && (!mod_script_exists("area", GameCont.area, "area_special") || !mod_script_call("area", GameCont.area, "area_special"))
+				) || 
+				GameCont.area == _area){
 				_check = true;
 			}else if(is_array(_area)){
 				with(_area){

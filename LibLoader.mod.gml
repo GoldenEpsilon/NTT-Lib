@@ -20,7 +20,11 @@ if(!mod_exists("mod", "lib")){
 	file_download("http://worldclockapi.com/api/json/est/now", "ping.txt");
 	var d = 0;
 	while (!file_loaded("ping.txt")){
-		if d++ > 240 exit;
+		if d++ > 240 {
+			trace("Server timed out, using already downloaded files");
+			global.canLoad = false;
+			exit;
+		}
 		wait 1;
 	}
 	global.err = false;

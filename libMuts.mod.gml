@@ -7,9 +7,9 @@
 	Scripts:
 		#define skill_get_category(mut)
 		#define skill_get_avail(_mut)
-		#define get_skills(is_avail)
-		#define get_ultras
-		#define skill_decide
+		#define get_skills(is_avail, ?whitelist, ?category)
+		#define get_ultras()
+		#define skill_decide(?whitelist, ?category)
 		#define skill_get_image(_mut)
 		#define skill_get_icon(_mut)
 		#define skill_is_ultra(_mut)
@@ -88,17 +88,48 @@ if(is_string(_mut)){
 }
 return false;
 
-#define get_skills(is_avail)
+#define get_skills
+//?whitelist, ?category
 /* Creator: Golden Epsilon
 Description: 
 	Returns all mutations that exist.
 	if is_avail is true, only returns mutations that can be chosen by the game.
+	whitelist can only be used if category is also being used,
+	it determines whether category is a whitelist or blacklist.
+	category can either be a single category or an array of categories,
+	and is either a whitelist or blacklist of categories
 */
 
 var allskills=[]
 var modskills = mod_get_names("skill");
+var categories = [];
+if(argument_count > 2){
+	if(is_string(argument[2])){
+		categories = [argument[2]];
+	}else if(is_array(argument[2])){
+		categories = argument[2];
+	}else{
+		trace("Lib error! When calling get_skills with the optional variable category, please make sure it is either a string or array.");
+	}
+}
 for (var i = 1; i <= 29; i += 1){
-	if(is_avail){
+	var whitelist = false;
+	if(argument_count > 2){
+		whitelist = argument[1];
+	}
+	var nope = whitelist;
+	with(categories){
+		if(skill_get_category(i) == self && whitelist){
+			nope = false;
+			break;
+		}else if(skill_get_category(i) != self && !whitelist){
+			nope = true;
+			break;
+		}
+	}
+	if(nope){continue;}
+	
+	if(argument_count > 0 && argument[0]){
 		if(skill_get_avail(i)){
 			array_push(allskills,i);
 		}
@@ -114,7 +145,24 @@ for(i = 0; i < array_length_1d(modskills); i++){
 				continue;
 			}
 		}
-		if(is_avail){
+		
+		var whitelist = false;
+		if(argument_count > 2){
+			whitelist = argument[1];
+		}
+		var nope = whitelist;
+		with(categories){
+			if(skill_get_category(modskills[i]) == self && whitelist){
+				nope = false;
+				break;
+			}else if(skill_get_category(modskills[i]) != self && !whitelist){
+				nope = true;
+				break;
+			}
+		}
+		if(nope){continue;}
+		
+		if(argument_count > 0 && argument[0]){
 			if(skill_get_avail(modskills[i])){
 				array_push(allskills,modskills[i]);
 			}
@@ -161,12 +209,20 @@ for(i = 0; i < array_length_1d(modskills); i++){
 return ultraskills;
 
 #define skill_decide
+//?whitelist, ?category
 /* Creator: Golden Epsilon
 Description: 
 	Returns a mutation out of the pool.
+	The optional arguments, whitelist and category, pass themselves
+	in as an argument to get_skills, so check that for more context.
 */
 
-var skills = get_skills(true);
+var skills;
+if(argument_count >= 2){
+	skills = get_skills(true, argument[0], argument[1]);
+}else{
+	skills = get_skills(true);
+}
 return skills[irandom(array_length(skills) - 1)];
 
 #define skill_get_image(_mut)
