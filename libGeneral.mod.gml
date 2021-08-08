@@ -2273,7 +2273,7 @@ with (instance_create(_x,_y,FireCont)){
 	canfeet = variable_instance_get(owner, "canfeet", 1);
 	index = variable_instance_get(owner, "index", 0);
 	gunangle = variable_instance_get(owner, "gunangle", _gunangle);
-	creator = variable_instance_get(owner, "creator", owner);
+	creator = variable_instance_get(owner, "creator", self);
 	specfiring = 0;
 	reload = variable_instance_get(owner, "reload", 0);
 	familiar = 1;
