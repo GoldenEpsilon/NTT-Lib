@@ -41,8 +41,8 @@
 		if(json != json_error){
 			if(argument_count == 2){
 				for(var i = 0; i < lq_size(argument[1]); i++){
-					if(lq_get_key(argument[1]) not in json){
-						lq_set(json, lq_get_key(argument[1]), lq_get_value(argument[1]));
+					if(lq_get_key(argument[1], i) not in json){
+						lq_set(json, lq_get_key(argument[1], i), lq_get_value(argument[1]));
 					}
 				}
 			}

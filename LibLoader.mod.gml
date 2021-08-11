@@ -16,18 +16,20 @@ if(!mod_exists("mod", "lib")){
 	//(load this mod in the first txt file, then load a second txt file and have the allowmod command in that second txt file)
 	while(!mod_sideload()){wait 1;}
 	
+	global.err = false;
+	
 	//Check internet connection
 	file_download("http://worldclockapi.com/api/json/est/now", "ping.txt");
 	var d = 0;
 	while (!file_loaded("ping.txt")){
 		if d++ > 240 {
 			trace("Server timed out, using already downloaded files");
-			global.canLoad = false;
-			exit;
+			global.err = true;
+			break;
 		}
 		wait 1;
 	}
-	global.err = false;
+	
 	var str = string_load("ping.txt");
 	if(is_undefined(str)){
 		trace("Cannot connect to the internet, using already downloaded files");
