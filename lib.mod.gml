@@ -13,6 +13,7 @@ global.level_loading = false;
 global.canLoad = undefined;
 global.bind_late_step = noone;
 global.bind_end_step = noone;
+addScript("import");
 
 //wait for sideloading
 while(!mod_sideload()){wait 1;}
@@ -152,6 +153,12 @@ with(global.activeReferences){
 #define loadText(path)
 // For internal use.
 mod_loadtext(path);
+
+//For internal use, adds the script to be easily usable.
+#define addScript(name)
+	var ref = mod_variable_get("mod", "lib", "scriptReferences");
+	lq_set(ref, name, ["mod", mod_current, name]);
+	mod_variable_set("mod", "lib", "scriptReferences", ref);
 
 #macro URL "https://raw.githubusercontent.com/GoldenEpsilon/NTT-Lib/main/"
 
