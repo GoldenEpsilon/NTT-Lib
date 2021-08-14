@@ -116,6 +116,11 @@ if(is_array(argument[0])){
 	}
 	return true;
 }
+with(SkillIcon){
+	if(skill == argument[0]){
+		return false;
+	}
+}
 if(is_real(argument[0])){
 	return (includeobtained || !skill_get(argument[0])) && skill_get_active(argument[0]);
 }
