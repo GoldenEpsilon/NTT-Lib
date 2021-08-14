@@ -34,10 +34,14 @@
 	
 #define save_load
 	//(_mod, ?default)
+	//_mod should be a string, default should be a lwo with all key/value pairs you want set if they are not found.
 	if(fork()){
 		wait(file_load(argument[0]+"Save.json"));
 		while(!file_loaded(argument[0]+"Save.json")){wait(1);}
-		var json = json_decode(string_load(argument[0]+"Save.json"));
+		var json = {};
+		if(file_exists(argument[0]+"Save.json")){
+			json = json_decode(string_load(argument[0]+"Save.json"));
+		}
 		if(json != json_error){
 			if(argument_count == 2){
 				for(var i = 0; i < lq_size(argument[1]); i++){
