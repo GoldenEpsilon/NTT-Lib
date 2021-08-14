@@ -2295,6 +2295,8 @@ with (instance_create(_x,_y,FireCont)){
 var _lastSeed = random_get_seed();
 random_set_seed(GameCont.seed + _seed);
 random_set_seed(irandom(1000000));
+random_set_seed(irandom(1000000));
+random_set_seed(irandom(1000000));
 var rand = _min+irandom(_max-_min);
 random_set_seed(_lastSeed);
 return rand;

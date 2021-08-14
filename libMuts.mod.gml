@@ -7,7 +7,7 @@
 	Scripts:
 		#define skill_get_category(mut)
 		#define skill_set_category(mut, category)
-		#define skill_get_avail(_mut)
+		#define skill_get_avail(mut, ?includeobtained)
 		#define get_skills(?is_avail, ?whitelist, ?category)
 		#define get_ultras()
 		#define skill_decide(?whitelist, ?category)
@@ -93,33 +93,40 @@
 		}
 	}
 
-#define skill_get_avail(_mut)
+#define skill_get_avail
+//mut, ?includeobtained
 /* Creator: Golden Epsilon
 Description: 
 	Checks to see if the given mutation can be picked at random.
 	Can take either a vanilla mutation (number) or a modded mutation (string)
 	Can also take an array, returns false if any of the mutations are not available.
+	the optional argument includes mutations you already have if it's set to true
 */
 
-if(is_array(_mut)){
-	with(_mut){
+var includeobtained = 0;
+if(argument_count > 1 && argument[1]){
+	includeobtained = 1;
+}
+
+if(is_array(argument[0])){
+	with(argument[0]){
 		if(!skill_get_avail(self)){
 			return false;
 		}
 	}
 	return true;
 }
-if(is_real(_mut)){
-	return !skill_get(_mut) && skill_get_active(_mut);
+if(is_real(argument[0])){
+	return (includeobtained || !skill_get(argument[0])) && skill_get_active(argument[0]);
 }
-if(is_string(_mut)){
+if(is_string(argument[0])){
 	var avail = true;
-	if(!mod_exists("skill", _mut)){
+	if(!mod_exists("skill", argument[0])){
 		avail = false;
-	}else if(mod_script_exists("skill", _mut, "skill_avail") && !mod_script_call("skill", _mut, "skill_avail")){
+	}else if(mod_script_exists("skill", argument[0], "skill_avail") && !mod_script_call("skill", argument[0], "skill_avail")){
 		avail = false;
 	}
-	return avail && !skill_get(_mut) && skill_get_active(_mut);
+	return avail && (includeobtained || !skill_get(argument[0])) && skill_get_active(argument[0]);
 }
 return false;
 
