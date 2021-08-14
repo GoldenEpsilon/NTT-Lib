@@ -293,12 +293,12 @@ return retVal;
 		Returns an array containing the [sprite_index, image_index] of a mutation's HUD icon
 	*/
 	
-	if(is_real(_skill)){
-		return [sprSkillIconHUD, _skill];
+	if(is_real(_mut)){
+		return [sprSkillIconHUD, _mut];
 	}
 	
-	if(is_string(_skill) && mod_script_exists("skill", _skill, "skill_icon")){
-		return [mod_script_call("skill", _skill, "skill_icon"), 0];
+	if(is_string(_mut) && mod_script_exists("skill", _mut, "skill_icon")){
+		return [mod_script_call("skill", _mut, "skill_icon"), 0];
 	}
 	
 	return [sprEGIconHUD, 2];

@@ -2294,13 +2294,7 @@ with (instance_create(_x,_y,FireCont)){
 //Returns a random value from min to max, seeded to the given seed without affecting the overall random seed (if _irandom is true uses irandom)
 var _lastSeed = random_get_seed();
 random_set_seed(GameCont.seed + _seed);
-var rand = 0;
-repeat((_seed % 100) + 1){
-	if(_irandom){
-		rand = _min+irandom(_max-_min);
-	}else{
-		rand = _min+random(_max-_min);
-	}
-}
+random_set_seed(irandom(1000000));
+var rand = _min+irandom(_max-_min);
 random_set_seed(_lastSeed);
 return rand;
