@@ -91,6 +91,7 @@
 #define menubutton_check
 //x,y,w,h,?hold,?view,?index
 //returns the index of the player that pressed the button
+//setting hold to 1 makes it check for holding
 //setting hold to 2 makes it check for hovering
 //setting view to 1 makes it work in draw_gui
 	var x = argument[0];

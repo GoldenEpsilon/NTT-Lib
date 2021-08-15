@@ -13,6 +13,9 @@ global.level_loading = false;
 global.canLoad = undefined;
 global.bind_late_step = noone;
 global.bind_end_step = noone;
+
+global.mutations = [];
+
 addScript("import");
 
 //wait for sideloading
@@ -91,6 +94,7 @@ if(global.canLoad){
 // update : gets called whenever a new object is created, and passes in the latest ID from the frame before.
 //          (does NOT include Effect objects or Custom Script objects)
 // level_start : gets called when the level starts
+// mutation_update : gets called when there are new/removed mutations
 // You use a hook just by having a function with the right name (for example, #define update)
 // The function will be called when needed as long as the mod's called getRef at some point.
 
@@ -182,6 +186,21 @@ mod_loadtext(path);
     if(!instance_exists(global.bind_end_step)){
         global.bind_end_step = script_bind_end_step(end_step, 0);
     }
+	
+	var mutations = [];
+	while(skill_get_at(array_length(mutations)) != null){
+		array_push(mutations, skill_get_at(array_length(mutations)));
+	}
+	
+	for(var i = 0; i < array_length(global.mutations); i++){
+		if(i >= array_length(mutations) || global.mutations[i] != mutations[i]){
+			with(global.activeReferences){
+				script_ref_call([self[0], self[1], "mutation_update"], global.mutations);
+			}
+			global.mutations = mutations;
+			break;
+		}
+	}
 
 #define late_step
 	//late step
