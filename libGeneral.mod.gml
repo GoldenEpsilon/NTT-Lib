@@ -2293,10 +2293,13 @@ with (instance_create(_x,_y,FireCont)){
 #define seeded_random(_seed, _min, _max, _irandom)
 //Returns a random value from min to max, seeded to the given seed without affecting the overall random seed (if _irandom is true uses irandom)
 var _lastSeed = random_get_seed();
-random_set_seed(GameCont.seed + _seed);
-random_set_seed(irandom(1000000));
-random_set_seed(irandom(1000000));
-random_set_seed(irandom(1000000));
-var rand = _min+irandom(_max-_min);
+random_set_seed(GameCont.baseseed + _seed);
+random_set_seed(ceil(random(100000) * random(100000)));
+var rand;
+if(_irandom){
+	rand = _min+irandom(_max-_min);
+}else{
+	rand = _min+random(_max-_min);
+}
 random_set_seed(_lastSeed);
 return rand;
