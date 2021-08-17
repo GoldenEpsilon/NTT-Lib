@@ -6,6 +6,7 @@
 /*
 	Scripts:
 		#define change_health(obj, amount)
+		#define change_ammo(player, type, amount)
 		#define change_max_hp(player, amount)
 		#define change_accuracy(player, amount)
 		#define change_speed(player, amount)
@@ -19,6 +20,7 @@
 
 #define init
 	addScript("change_health");
+	addScript("change_ammo");
 	addScript("change_max_hp");
 	addScript("change_accuracy");
 	addScript("change_speed");
