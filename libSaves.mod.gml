@@ -28,6 +28,7 @@
 	addScript("save_reset");
 	addScript("unlock_splat");
 	script_ref_call(["mod", "lib", "updateRef"]);
+	global.isLoaded = true;
 	
 	script_ref_call(["mod", "libGeneral", "obj_setup"], "libSaves", "UnlockCont");
 	global.saves = {};

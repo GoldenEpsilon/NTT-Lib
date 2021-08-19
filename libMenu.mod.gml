@@ -19,6 +19,7 @@
 	addScript("create_button");
 	addScript("menubutton_check");
 	script_ref_call(["mod", "lib", "updateRef"]);
+	global.isLoaded = true;
 	
 	script_ref_call(["mod", "libGeneral", "obj_setup"], "libMenu", "libButton");
 	

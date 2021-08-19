@@ -16,7 +16,10 @@
 
 #define init
 	addScript("autoupdate");
+	
 	script_ref_call(["mod", "lib", "updateRef"]);
+	global.isLoaded = true;
+	
 	global.updatables = [];
 	global.forks = 0;
 	global.updating = 0; //if you want to check for the autoupdate to finish, this will only be 0 when it's not updating something

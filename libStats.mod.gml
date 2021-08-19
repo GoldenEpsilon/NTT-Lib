@@ -25,6 +25,7 @@
 	addScript("change_accuracy");
 	addScript("change_speed");
 	script_ref_call(["mod", "lib", "updateRef"]);
+	global.isLoaded = true;
 
 #define change_health(obj, amount)
 /* Creator: Golden Epsilon

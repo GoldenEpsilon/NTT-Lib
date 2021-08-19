@@ -109,6 +109,7 @@
 	addScript("wall_tops");
 	addScript("wall_update");
 	script_ref_call(["mod", "lib", "updateRef"]);
+	global.isLoaded = true;
 	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
 	
 	//Setup functions for this module

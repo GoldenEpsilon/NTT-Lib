@@ -39,6 +39,7 @@
 	addScript("event_set_active");
 	addScript("event_get_active");
 	script_ref_call(["mod", "lib", "updateRef"]);
+	global.isLoaded = true;
 	
 	 // Event Tip Color:
 	event_tip = `@(color:${make_color_rgb(175, 143, 106)})`;

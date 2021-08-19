@@ -140,8 +140,8 @@
 	addScript("obj_fire");
 	addScript("seeded_random");
 	
-	
 	script_ref_call(["mod", "lib", "updateRef"]);
+	global.isLoaded = true;
 	
 	global.objects = ds_map_create();
 	

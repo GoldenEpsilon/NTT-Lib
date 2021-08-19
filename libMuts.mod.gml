@@ -33,6 +33,7 @@
 	addScript("skill_get_icon");
 	addScript("skill_is_ultra");
 	script_ref_call(["mod", "lib", "updateRef"]);
+	global.isLoaded = true;
 	
 	//Mutation categories, donated by wildebee from metamorphosis
 	global.mut_categories = {

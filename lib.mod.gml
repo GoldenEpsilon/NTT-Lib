@@ -50,6 +50,7 @@ if(global.canLoad){
 		if(file_exists("../../mods/lib/" + package + ".mod.gml")){
 			mod_load("../../mods/lib/" + package);
 			while(!mod_exists("mod", package)){wait(1);}
+			while(!mod_variable_get("mod", package, "isLoaded")){wait(1);}
 		}else{
 			trace("Could not find package " + package);
 		}
@@ -61,6 +62,7 @@ if(global.canLoad){
 		if(file_exists("../../mods/lib/" + package + ".mod.gml")){
 			mod_load("../../mods/lib/" + package);
 			while(!mod_exists("mod", package)){wait(1);}
+			while(!mod_variable_get("mod", package, "isLoaded")){wait(1);}
 		}else{
 			trace("Could not find package " + package);
 		}

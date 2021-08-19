@@ -24,7 +24,9 @@
 	addScript("boss_intro_setup");
 	addScript("boss_intro");
 	addScript("boss_dead");
+	
 	script_ref_call(["mod", "lib", "updateRef"]);
+	global.isLoaded = true;
 	
 #define draw_text_bn(_x, _y, _string, _angle)
 	/*

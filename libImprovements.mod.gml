@@ -1,3 +1,6 @@
+#define init
+	global.isLoaded = true;
+
 #define step
 if (instance_exists(LevCont)){
     // heavy heart support for skill_get_avail

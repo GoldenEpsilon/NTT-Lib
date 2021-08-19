@@ -20,3 +20,4 @@
 #define init
 	addScript("");
 	script_ref_call(["mod", "lib", "updateRef"]);
+	global.isLoaded = true;
