@@ -107,6 +107,8 @@ global.updating--;
 return 0;
 
 #define updateFiles(_name, _repo)
+	trace("Updating Files!");
+	
 	file_delete(_name+"branches.json");
 	while (file_exists(_name+"branches.json")) {wait 1;}
 	wait file_unload(_name+"branches.json");
@@ -141,8 +143,12 @@ return 0;
 						exit;
 					}
 				}
-				wait(1);
-				while(global.forks > 0){wait(1);}
+				wait(0);
+				var forks = global.forks;
+				while(global.forks > 0){
+					trace("Update for "+_name+" is "+string(round((1-(global.forks/forks))*100))+"% done.");
+					wait(30);
+				}
 			}else{
 				//set it to download again when it can
 				file_delete(_name+"tree.json");
