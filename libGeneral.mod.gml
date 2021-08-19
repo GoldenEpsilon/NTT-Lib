@@ -167,6 +167,7 @@
 			_inst = instances_matching(_inst, "visible", true);
 			if(array_length(_inst)){
 				with(instances_matching(Player, "visible", true)){
+					var _id = id;
 					if(
 						place_meeting(x, y, CustomObject)
 						&& !place_meeting(x, y, IceFlower)
@@ -218,7 +219,7 @@
 							with(_nearest){
 								nearwep = instance_create(x + xoff, y + yoff, IceFlower);
 								with(nearwep){
-									name         = other.text;
+									name         = _nearest.text;
 									x            = xstart;
 									y            = ystart;
 									xprevious    = x;
@@ -238,13 +239,13 @@
 									my_health    = 99999;
 									nexthurt     = current_frame + 99999;
 								}
-								with(other){
-									nearwep = other.nearwep;
+								with(_id){
+									nearwep = _nearest.nearwep;
 									if(button_pressed(index, "pick")){
-										other.pick = index;
-										if(instance_exists(other.creator) && "on_pick" in other.creator){
-											with(other.creator){
-												script_ref_call(on_pick, other.index);
+										_nearest.pick = index;
+										if(instance_exists(_nearest.creator) && "on_pick" in _nearest.creator){
+											with(_nearest.creator){
+												script_ref_call(on_pick, _id.index, _nearest.creator, _nearest);
 											}
 										}
 									}
@@ -367,9 +368,9 @@ Returns:
 				
 				if(mod_script_exists(obj.type, obj.modName, _scr)){
 					var _ref = script_ref_create_ext(obj.type, obj.modName, _scr);
-					lq_set(global.objects[? _name], _var, _ref);
+					variable_instance_set(global.objects[? _name], _var, _ref);
 				} else {
-					lq_set(global.objects[? _name], _var, undefined);
+					variable_instance_set(global.objects[? _name], _var, undefined);
 				}
 			}
 		
@@ -378,9 +379,9 @@ Returns:
 				
 				if(mod_script_exists(obj.type, obj.modName, string(_name) + _alrm)){
 					var _ref = script_ref_create_ext(obj.type, obj.modName, string(_name) + _alrm);
-					lq_set(global.objects[? _name], "on" + _alrm, _ref);
+					variable_instance_set(global.objects[? _name], "on" + _alrm, _ref);
 				} else {
-					lq_set(global.objects[? _name], "on" + _alrm, undefined);
+					variable_instance_set(global.objects[? _name], "on" + _alrm, undefined);
 				}
 			}
 			
@@ -425,8 +426,8 @@ Returns:
 			]){
 				var _var =  "on" + self;
 				if(variable_instance_get(_inst, _var) != undefined){
-				}else if(lq_get(global.objects[? _name], _var) != undefined){
-					variable_instance_set(_inst, _var, lq_get(global.objects[? _name], _var));
+				}else if(variable_instance_get(global.objects[? _name], _var) != undefined){
+					variable_instance_set(_inst, _var, variable_instance_get(global.objects[? _name], _var));
 				} else {
 					switch(self) {
 						case "_step": 
