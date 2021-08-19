@@ -575,6 +575,8 @@
 			if(is_string(_custom)){
 				_name = [_custom];
 			}
+		}else{
+			_name = [_area, "-", _subarea];
 		}
 	}
 	
@@ -623,6 +625,9 @@
 		var _scrt = "area_subarea";
 		if(mod_script_exists("area", _area, _scrt)){
 			return mod_script_call("area", _area, _scrt);
+		}else{
+			trace(_area + " does not have " + _scrt);
+			return 3;
 		}
 	}
 	
@@ -657,6 +662,9 @@
 		var _scrt = "area_secret";
 		if(mod_script_exists("area", _area, _scrt)){
 			return mod_script_call("area", _area, _scrt);
+		}else{
+			trace(_area + " does not have " + _scrt);
+			return 0;
 		}
 	}
 	
@@ -677,6 +685,9 @@
 		var _scrt = "area_underwater";
 		if(mod_script_exists("area", _area, _scrt)){
 			return mod_script_call("area", _area, _scrt);
+		}else{
+			trace(_area + " does not have " + _scrt);
+			return 0;
 		}
 	}
 	
@@ -693,6 +704,9 @@
 		var _scrt = "area_background_color";
 		if(mod_script_exists("area", _area, _scrt)){
 			return mod_script_call("area", _area, _scrt);
+		}else{
+			trace(_area + " does not have " + _scrt);
+			return c_black;
 		}
 	}
 	
@@ -709,6 +723,9 @@
 		var _scrt = "area_shadow_color";
 		if(mod_script_exists("area", _area, _scrt)){
 			return mod_script_call("area", _area, _scrt);
+		}else{
+			trace(_area + " does not have " + _scrt);
+			return c_black;
 		}
 	}
 	
