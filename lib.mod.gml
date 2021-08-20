@@ -16,6 +16,8 @@ global.bind_end_step = noone;
 
 global.mutations = [];
 
+chat_comp_add("libVersion", "prints Lib's current version to the chat.");
+
 addScript("import");
 
 //wait for sideloading
@@ -28,6 +30,8 @@ if(global.canLoad == undefined){
 }
 //libGeneral is important for the rest of lib, so it's loaded by default
 import("libGeneral");
+
+#macro VERSION "v0.0.1"
 
 #define import(package)
 /* Creator: Golden Epsilon
@@ -240,3 +244,9 @@ mod_loadtext(path);
 	with(global.activeReferences){
 		script_ref_call([self[0], self[1], "end_step"]);
 	}
+
+#define chat_command(command, parameter, player)
+if(command == "libVersion"){
+	trace("Version "+VERSION);
+	return 1;
+}
