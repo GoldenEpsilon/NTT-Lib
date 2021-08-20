@@ -43,7 +43,7 @@ if("lsthealth" in obj && amount < 0){
 Description: 
 	Adds/removes ammo from the player, respecting typ_amax and 0
 */
-player.ammo[type] = max(min(player.ammo[type] + amount, typ_amax[type]), 0);
+player.ammo[@type] = max(min(player.ammo[@type] + amount, typ_amax[@type]), 0);
 
 #define change_max_hp(player, amount)
 /* Creator: Golden Epsilon
