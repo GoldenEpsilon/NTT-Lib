@@ -50,6 +50,8 @@ if(global.canLoad){
 		while (file_exists("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 		file_download(URL + package + ".mod.gml", "../../mods/lib/" + package + ".mod.gml");
 		while (!file_loaded("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
+		var timeout = 300;
+		while (!file_exists("../../mods/lib/" + package + ".mod.gml") && timeout > 0) {wait 1;timeout--;}
 
 		if(file_exists("../../mods/lib/" + package + ".mod.gml")){
 			mod_load("../../mods/lib/" + package);
