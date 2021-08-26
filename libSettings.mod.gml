@@ -8,7 +8,7 @@
 
 /*
 	Scripts:
-	#define add_setting(_modName, _variableName, _visualName)
+	#define settings_add(_modName, _variableName, _visualName)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -19,7 +19,7 @@
 
 #define init
 	
-	addScript("add_setting");
+	addScript("settings_add");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
 
@@ -32,12 +32,12 @@
 	global.offset = 0;
 	
 	global.a = 1;
-	add_setting("libSettings", "a", "testVar");
-	add_setting("libSettings", "a", "testVar");
-	add_setting("libSettings", "a", "testVar");
-	add_setting("libSettings", "a", "testVar");
-	add_setting("libSettings", "a", "testVar");
-	add_setting("libSettings", "a", "testVar");
+	settings_add("libSettings", "a", "testVar");
+	settings_add("libSettings", "a", "testVar");
+	settings_add("libSettings", "a", "testVar");
+	settings_add("libSettings", "a", "testVar");
+	settings_add("libSettings", "a", "testVar");
+	settings_add("libSettings", "a", "testVar");
 
 #define draw_gui
 	draw_set_font(fntSmall);
@@ -80,6 +80,9 @@
 	
 #define add_setting(_modName, _variableName, _visualName)
 	array_push(global.settings, ["mod", _modName, _variableName, _visualName]);
+	
+#define add_setting_ext(_modName, _modType, _variableName, _visualName)
+	array_push(global.settings, [_modType, _modName, _variableName, _visualName]);
 	
 #macro scr global.scr
 #macro call script_ref_call
