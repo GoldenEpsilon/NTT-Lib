@@ -3,10 +3,6 @@
 
 #define step
 if (instance_exists(LevCont)){
-    // heavy heart support for skill_get_avail
-    if (!global.wepmuted && GameCont.wepmuts >= 3){
-        global.wepmuted = true;
-    }
     
     // scrolling mutbuttons
     var button_count = instance_number(mutbutton);

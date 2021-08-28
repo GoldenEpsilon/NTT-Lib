@@ -68,13 +68,10 @@ player.accuracy *= amount;
 /* Creator: Golden Epsilon
 Description: 
 	Changes a player's Speed by the amount.
-	Speed is limited to between 0.1 and 25 for being reasonable.
-	(Does not clamp speed if the player already has max speed faster or slower)
-	NOTE: 25 can still clip the player out of bounds just by walking around.
-	Returns the amount that it changed the speed of the player by.
+	Speed cannot be reduced below 0.1 for sanity's sake
+	(Does not clamp speed if the player already has a slower max speed)
 */
-if(player.maxspeed > 0.1 && player.maxspeed < 25){
+if(player.maxspeed > 0.1){
 	player.maxspeed += amount;
-	player.maxspeed = min(max(player.maxspeed, 0.1), 25);
+	player.maxspeed = max(player.maxspeed, 0.1);
 }
-return 0;
