@@ -29,28 +29,32 @@ if(!mod_exists("mod", "lib")){
 		}
 		wait 1;
 	}
-	
-	var str = string_load("ping.txt");
-	if(is_undefined(str)){
-		trace("Cannot connect to the internet, using already downloaded files");
-		global.err = true;
-	}else{
-		var json = json_decode(str)
-		if(json == json_error){
+	if(!global.err){
+		var str = string_load("ping.txt");
+		if(is_undefined(str)){
 			trace("Cannot connect to the internet, using already downloaded files");
 			global.err = true;
+		}else{
+			var json = json_decode(str)
+			if(json == json_error){
+				trace("Cannot connect to the internet, using already downloaded files");
+				global.err = true;
+			}
 		}
 	}
 
-	//Don't download anything if you're in multiplayer
-	for(var i = 1;i<maxp;i++){
-		if player_is_active(i){
-			trace("Cannot download in multiplayer, using already downloaded files");
-			global.err = true;
-			break;
+	if(!global.err){
+		//Don't download anything if you're in multiplayer
+		for(var i = 1;i<maxp;i++){
+			if player_is_active(i){
+				trace("Cannot download in multiplayer, using already downloaded files");
+				global.err = true;
+				break;
+			}
 		}
 	}
 	
+	if(mod_exists("mod", "lib")){exit;}
 	if(!global.err){
 		//downloading lib (no version checking because that would slow the process further)
 		//I delete for safety, there's a chance it isn't necessary
