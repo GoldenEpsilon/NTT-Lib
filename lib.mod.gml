@@ -125,6 +125,15 @@ with(global.scriptReferences){
 }
 
 #define ping()
+	//Don't download anything if you're in multiplayer
+	for(var i = 1;i<maxp;i++){
+		if player_is_active(i){
+			trace("Cannot download in multiplayer, using already downloaded files");
+			global.canLoad = false;
+			return;
+		}
+	}
+	
 	//Check internet connection
 	file_download("http://worldclockapi.com/api/json/est/now", "ping.txt");
 	var d = 0;
@@ -132,7 +141,7 @@ with(global.scriptReferences){
 		if d++ > 240 {
 			trace("Server timed out, using already downloaded files");
 			global.canLoad = false;
-			exit;
+			return;
 		}
 		wait 1;
 	}
@@ -140,19 +149,12 @@ with(global.scriptReferences){
 	global.canLoad = true;
 	if(is_undefined(str)){
 		global.canLoad = false;
+		return;
 	}else{
 		var json = json_decode(str)
 		if(json == json_error){
 			global.canLoad = false;
-		}
-	}
-
-	//Don't download anything if you're in multiplayer
-	for(var i = 1;i<maxp;i++){
-		if player_is_active(i){
-			trace("Cannot download in multiplayer, using already downloaded files");
-			global.canLoad = false;
-			break;
+			return;
 		}
 	}
 

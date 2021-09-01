@@ -18,17 +18,29 @@ if(!mod_exists("mod", "lib")){
 	
 	global.err = false;
 	
-	//Check internet connection
-	file_download("http://worldclockapi.com/api/json/est/now", "ping.txt");
-	var d = 0;
-	while (!file_loaded("ping.txt")){
-		if d++ > 240 {
-			trace("Server timed out, using already downloaded files");
+	//Don't download anything if you're in multiplayer
+	for(var i = 1;i<maxp;i++){
+		if player_is_active(i){
+			trace("Cannot download in multiplayer, using already downloaded files");
 			global.err = true;
 			break;
 		}
-		wait 1;
 	}
+	
+	if(!global.err){
+		//Check internet connection
+		file_download("http://worldclockapi.com/api/json/est/now", "ping.txt");
+		var d = 0;
+		while (!file_loaded("ping.txt")){
+			if d++ > 240 {
+				trace("Server timed out, using already downloaded files");
+				global.err = true;
+				break;
+			}
+			wait 1;
+		}
+	}
+	
 	if(!global.err){
 		var str = string_load("ping.txt");
 		if(is_undefined(str)){
@@ -39,17 +51,6 @@ if(!mod_exists("mod", "lib")){
 			if(json == json_error){
 				trace("Cannot connect to the internet, using already downloaded files");
 				global.err = true;
-			}
-		}
-	}
-
-	if(!global.err){
-		//Don't download anything if you're in multiplayer
-		for(var i = 1;i<maxp;i++){
-			if player_is_active(i){
-				trace("Cannot download in multiplayer, using already downloaded files");
-				global.err = true;
-				break;
 			}
 		}
 	}
