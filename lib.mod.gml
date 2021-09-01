@@ -64,6 +64,7 @@ if(global.canLoad){
 }else{
 	if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
 		lq_set(global.loadedPackages, package, 1);
+		file_load("../../mods/lib/" + package + ".mod.gml");
 		while (!file_loaded("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 		if(file_exists("../../mods/lib/" + package + ".mod.gml")){
 			mod_load("../../mods/lib/" + package);
