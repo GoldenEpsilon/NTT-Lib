@@ -70,10 +70,10 @@ if (instance_exists(LevCont)){
             var _max = button_count;
             
             with(mutbutton){
-                num = --_max;
 				if(skill == 0){
 					_max++;
 				}
+                num = --_max;
             }
         }
     }
