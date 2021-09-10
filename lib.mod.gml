@@ -186,7 +186,15 @@ mod_loadtext(path);
 	else if(global.level_loading){
 		global.level_loading = false;
 		with(global.activeReferences){
-			script_ref_call([self[0], self[1], "level_start"]);
+			switch(self[0]){
+				case "skill":
+					if(skill_get(self[1])){
+						script_ref_call([self[0], self[1], "level_start"]);
+					}
+					break;
+				default:
+					script_ref_call([self[0], self[1], "level_start"]);
+			}
 		}
 	}
 	
@@ -206,7 +214,15 @@ mod_loadtext(path);
 	for(var i = 0; i < array_length(global.mutations); i++){
 		if(i >= array_length(mutations) || global.mutations[i] != mutations[i]){
 			with(global.activeReferences){
-				script_ref_call([self[0], self[1], "mutation_update"], global.mutations);
+				switch(self[0]){
+					case "skill":
+						if(skill_get(self[1])){
+							script_ref_call([self[0], self[1], "mutation_update"], global.mutations);
+						}
+						break;
+					default:
+						script_ref_call([self[0], self[1], "mutation_update"], global.mutations);
+				}
 			}
 			global.mutations = mutations;
 			break;
@@ -216,6 +232,15 @@ mod_loadtext(path);
 #define late_step
 	//late step
 	with(global.activeReferences){
+		switch(self[0]){
+			case "skill":
+				if(skill_get(self[1])){
+					script_ref_call([self[0], self[1], "late_step"]);
+				}
+				break;
+			default:
+				script_ref_call([self[0], self[1], "late_step"]);
+		}
 		script_ref_call([self[0], self[1], "late_step"]);
 	}
 	
@@ -240,14 +265,30 @@ mod_loadtext(path);
 	}
 	if(newID > lid){
 		with(global.activeReferences){
-			script_ref_call([self[0], self[1], "update"], global.lastid, newID);
+			switch(self[0]){
+				case "skill":
+					if(skill_get(self[1])){
+						script_ref_call([self[0], self[1], "update"], global.lastid, newID);
+					}
+					break;
+				default:
+					script_ref_call([self[0], self[1], "update"], global.lastid, newID);
+			}
 		}
 	}
 	global.lastid = newID;
 	
 	//end step
 	with(global.activeReferences){
-		script_ref_call([self[0], self[1], "end_step"]);
+		switch(self[0]){
+			case "skill":
+				if(skill_get(self[1])){
+					script_ref_call([self[0], self[1], "end_step"]);
+				}
+				break;
+			default:
+				script_ref_call([self[0], self[1], "end_step"]);
+		}
 	}
 
 #define chat_command(command, parameter, player)
