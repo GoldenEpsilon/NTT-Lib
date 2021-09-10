@@ -1,6 +1,8 @@
 // This mod downloads the latest version of Lib from github and loads it.
 // This mod requires sideload permissions, if you do not give them the user will be prompted.
 
+// For more information on lib: https://github.com/GoldenEpsilon/NTT-Lib
+
 // IF YOU ARE LOOKING TO USE LIB IN YOUR MOD, THIS IS THE ONLY FILE YOU NEED.
 
 //You can also just copy this file into yours if it's a one-file-mod, but it's not as recommended.
