@@ -8,7 +8,8 @@
 global.loadedPackages = {};
 global.scriptReferences = {};
 global.activeReferences = [];
-global.lastid = instance_create(0, 0, DramaCamera);
+global.updateid = instance_create(0, 0, DramaCamera);
+global.endupdateid = instance_create(0, 0, DramaCamera);
 global.level_loading = false;
 global.canLoad = undefined;
 global.bind_late_step = noone;
@@ -230,6 +231,39 @@ mod_loadtext(path);
 	}
 
 #define late_step
+	//update
+	var newID = instance_create(0, 0, DramaCamera);
+	var updateid = global.updateid;
+	var lastid = global.updateid;
+	while(updateid++ < newID){
+		if(instance_exists(updateid)){
+			if("object_index" in updateid){
+				var obj = updateid.object_index;
+				if(object_get_parent(obj) == Effect || obj == Effect || object_get_parent(obj) == CustomScript || obj == CustomScript){
+					lastid++;
+				}
+			}else{
+				lastid++;
+			}
+		}else{
+			lastid++;
+		}
+	}
+	if(newID > lastid){
+		with(global.activeReferences){
+			switch(self[0]){
+				case "skill":
+					if(skill_get(self[1])){
+						script_ref_call([self[0], self[1], "update"], global.updateid, newID);
+					}
+					break;
+				default:
+					script_ref_call([self[0], self[1], "update"], global.updateid, newID);
+			}
+		}
+	}
+	global.updateid = newID;
+	
 	//late step
 	with(global.activeReferences){
 		switch(self[0]){
@@ -245,38 +279,38 @@ mod_loadtext(path);
 	}
 	
 #define end_step
-	//update
+	//end_update
 	var newID = instance_create(0, 0, DramaCamera);
-	var updateid = global.lastid;
-	var lid = global.lastid;
+	var updateid = global.endupdateid;
+	var lastid = global.endupdateid;
 	while(updateid++ < newID){
 		if(instance_exists(updateid)){
 			if("object_index" in updateid){
 				var obj = updateid.object_index;
 				if(object_get_parent(obj) == Effect || obj == Effect || object_get_parent(obj) == CustomScript || obj == CustomScript){
-					lid++;
+					lastid++;
 				}
 			}else{
-				lid++;
+				lastid++;
 			}
 		}else{
-			lid++;
+			lastid++;
 		}
 	}
-	if(newID > lid){
+	if(newID > lastid){
 		with(global.activeReferences){
 			switch(self[0]){
 				case "skill":
 					if(skill_get(self[1])){
-						script_ref_call([self[0], self[1], "update"], global.lastid, newID);
+						script_ref_call([self[0], self[1], "end_update"], global.endupdateid, newID);
 					}
 					break;
 				default:
-					script_ref_call([self[0], self[1], "update"], global.lastid, newID);
+					script_ref_call([self[0], self[1], "end_update"], global.endupdateid, newID);
 			}
 		}
 	}
-	global.lastid = newID;
+	global.endupdateid = newID;
 	
 	//end step
 	with(global.activeReferences){
