@@ -44,7 +44,6 @@
 			if creator == argument[0]
 			{
 				instance_delete(self);
-				exit;
 			}
 		}
 		name         = "SuperForce";
