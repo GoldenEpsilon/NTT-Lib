@@ -101,8 +101,11 @@ if(global.canLoad){
 
 // ALSO, calling this function makes this mod call function hooks automatically.
 // Hooks are:
+// late_step: gets called after the normal step, useful for doing stuff after, say, projectile creation.
+// end_step: gets called after collision and other such things
 // update : gets called whenever a new object is created, and passes in the latest ID from the frame before.
 //          (does NOT include Effect objects or Custom Script objects)
+// end_update : like update, but occurs at the same time as end_step
 // level_start : gets called when the level starts
 // mutation_update : gets called when there are new/removed mutations
 // You use a hook just by having a function with the right name (for example, #define update)
@@ -193,6 +196,13 @@ mod_loadtext(path);
 						script_ref_call([self[0], self[1], "level_start"]);
 					}
 					break;
+				case "race":
+					with(Player){
+						if(race == other[1]){
+							script_ref_call([other[0], other[1], "level_start"]);
+						}
+					}
+					break;
 				default:
 					script_ref_call([self[0], self[1], "level_start"]);
 			}
@@ -219,6 +229,13 @@ mod_loadtext(path);
 					case "skill":
 						if(skill_get(self[1])){
 							script_ref_call([self[0], self[1], "mutation_update"], global.mutations);
+						}
+						break;
+					case "race":
+						with(Player){
+							if(race == other[1]){
+								script_ref_call([other[0], other[1], "mutation_update"], global.mutations);
+							}
 						}
 						break;
 					default:
@@ -257,6 +274,13 @@ mod_loadtext(path);
 						script_ref_call([self[0], self[1], "update"], global.updateid, newID);
 					}
 					break;
+				case "race":
+					with(Player){
+						if(race == other[1]){
+							script_ref_call([other[0], other[1], "update"], global.updateid, newID);
+						}
+					}
+					break;
 				default:
 					script_ref_call([self[0], self[1], "update"], global.updateid, newID);
 			}
@@ -270,6 +294,13 @@ mod_loadtext(path);
 			case "skill":
 				if(skill_get(self[1])){
 					script_ref_call([self[0], self[1], "late_step"]);
+				}
+				break;
+			case "race":
+				with(Player){
+					if(race == other[1]){
+						script_ref_call([other[0], other[1], "late_step"]);
+					}
 				}
 				break;
 			default:
@@ -305,6 +336,13 @@ mod_loadtext(path);
 						script_ref_call([self[0], self[1], "end_update"], global.endupdateid, newID);
 					}
 					break;
+				case "race":
+					with(Player){
+						if(race == other[1]){
+							script_ref_call([other[0], other[1], "end_update"], global.endupdateid, newID);
+						}
+					}
+					break;
 				default:
 					script_ref_call([self[0], self[1], "end_update"], global.endupdateid, newID);
 			}
@@ -318,6 +356,13 @@ mod_loadtext(path);
 			case "skill":
 				if(skill_get(self[1])){
 					script_ref_call([self[0], self[1], "end_step"]);
+				}
+				break;
+			case "race":
+				with(Player){
+					if(race == other[1]){
+						script_ref_call([other[0], other[1], "end_step"]);
+					}
 				}
 				break;
 			default:
