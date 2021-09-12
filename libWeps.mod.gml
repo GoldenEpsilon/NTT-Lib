@@ -12,7 +12,7 @@
 /*
 	Scripts:
 		add_junk(_name, _obj, _type, _cost, _pwr)
-		superforce(obj, ?superforce, ?canwallhit, ?dontwait, ?superfriction, ?superdirection)
+		superforce(obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -38,7 +38,7 @@
 	lq_set(global.junk, string_lower(_name), {obj:_obj, typ:_typ, cost:_cost, pwr:_pwr});
 	
 #define superforce
-//obj, ?superforce, ?canwallhit, ?dontwait, ?superfriction, ?superdirection
+//obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait
 //Thank you JSBurg and Karmelyth for letting me use this from Defpack!
 //Use for crazy knockback mechanics
 	with argument[0] if !instance_is(self, prop) with instance_create(x, y, CustomObject)
@@ -64,24 +64,24 @@
 			superforce = 18
 		}
 		if(argument_count > 2){
-			canwallhit = argument[2];
+			superdirection = argument[2];
 		}else{
-			canwallhit = true
+			superdirection = other.direction
 		}
 		if(argument_count > 3){
-			dontwait = argument[3];
-		}else{
-			dontwait = false
-		}
-		if(argument_count > 4){
-			superfriction = argument[4];
+			superfriction = argument[3];
 		}else{
 			superfriction = 1
 		}
-		if(argument_count > 5){
-			superdirection = argument[5];
+		if(argument_count > 4){
+			canwallhit = argument[4];
 		}else{
-			superdirection = other.direction
+			canwallhit = true
+		}
+		if(argument_count > 5){
+			dontwait = argument[5];
+		}else{
+			dontwait = false
 		}
 		with argument[0]
 		{
