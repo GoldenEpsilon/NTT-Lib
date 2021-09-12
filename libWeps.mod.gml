@@ -79,12 +79,6 @@
 		}else{
 			dontwait = false
 		}
-		with argument[0]
-		{
-			if "force"          in self other.superforce 	 = force else {other.superforce = 18};
-			if "superfriction"  in self other.superfriction  = superfriction else other.superfriction = 1;
-			if "superdirection" in self other.superdirection = superdirection;
-		}
 		motion_set(superdirection, superforce); // for easier direction manipulation on wall hit
 
 		on_step = superforce_step;
@@ -140,12 +134,12 @@
 			}
 		}
 		superforce *= .7
-		with instance_create(x+lengthdir_x(12,direction),y+lengthdir_y(12,direction),AcidStreak){
+		/*with instance_create(x+lengthdir_x(12,direction),y+lengthdir_y(12,direction),AcidStreak){
 			sprite_index = spr.SonicStreak
 			image_angle = other.direction + random_range(-32, 32) - 90
 			motion_add(image_angle+90,12)
 			friction = 2.1
-		}
+		}*/
 		with instance_create(x, y, ChickenB) image_speed = .65
 		repeat(max(1, creator.size)) with instance_create(x, y, ImpactWrists){
 			var _fac = random_range(.2, .5)
