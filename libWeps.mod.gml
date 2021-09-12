@@ -3,16 +3,12 @@
 	functions that help with making weapons
 */
 
-/*
-||||||||||||||||||||||||UNFINISHED PACKAGE||||||||||||||||||||||||||||
-*/
-
 //todo: eat hook, script for robot eating
 
 /*
 	Scripts:
 		add_junk(_name, _obj, _type, _cost, _pwr)
-		superforce(obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait)
+		superforce_push(obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -23,7 +19,7 @@
 
 #define init
 	addScript("add_junk");
-	addScript("superforce");
+	addScript("superforce_push");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
 	
@@ -37,7 +33,7 @@
 //adds a projectile to the "junk" pool of projectiles to spawn (basically, random projectile but balanced)
 	lq_set(global.junk, string_lower(_name), {obj:_obj, typ:_typ, cost:_cost, pwr:_pwr});
 	
-#define superforce
+#define superforce_push
 //obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait
 //Thank you JSBurg and Karmelyth for letting me use this from Defpack!
 //Use for crazy knockback mechanics
