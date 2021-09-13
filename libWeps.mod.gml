@@ -39,22 +39,12 @@
 //Use for crazy knockback mechanics
 //Usable hooks are: hook_kill, hook_step, hook_hit, hook_bounce, hook_wallhit, hook_wallkill, hook_merge
 //Set the variable of the hook to a script reference, and it'll be called when appropriate.
-//IMPORTANT: for all the hooks, such as hook_wallhit, you NEED to return true to run the default code. If you do not, the hook will override the default functionality.
-//           Useful for cool stuff, but if you don't know it might be annoying.
+//IMPORTANT: for all the hooks, such as hook_wallhit, if you return 1 you override the usual code
+//           Useful for cool stuff, but completely ignorable.
 //on_hit passes in the hit object and itself
-//Also, on_merge is different than the other hooks - the first argument is the object that will stay, the second is the one that will be destroyed. Leave as-is to have the latest object completely override the previous object.
+//Also, on_merge is different than the other hooks - the first argument is the object that will stay, the second is the one that will be destroyed. Leave as-is to have the latest object completely override the previous superforce.
 	with argument[0] if !instance_is(self, prop) with instance_create(x, y, CustomObject)
 	{
-		with instances_matching(CustomObject, "name", "SuperForce")
-		{
-			if creator == argument[0]
-			{
-				if("hook_merge" in self){
-					script_ref_call(hook_merge, self, other);
-				}
-				instance_delete(self);
-			}
-		}
 		name         = "SuperForce";
 		team         = other.team;
 		creator      = other;
@@ -95,6 +85,17 @@
 		motion_set(superdirection, superforce); // for easier direction manipulation on wall hit
 
 		on_step = superforce_step;
+		
+		with instances_matching(CustomObject, "name", "SuperForce")
+		{
+			if creator == argument[0]
+			{
+				if("hook_merge" in self){
+					script_ref_call(hook_merge, self, other);
+				}
+				instance_delete(self);
+			}
+		}
 		return self;
 	}
 	
@@ -106,7 +107,7 @@
 	if("hook_step" in self){
 		pass_step = script_ref_call(hook_step);
 	}
-	if(pass_step){
+	if(!pass_step){
 		with creator
 		{
 			if(!other.disableeffects) repeat(2) with instance_create(x, y, Dust){motion_add(other.direction + random_range(-8, 8), choose(1, 2, 2, 3)); sprite_index = sprExtraFeet}
@@ -138,7 +139,7 @@
 			if("hook_bounce" in self){
 				pass_bounce = script_ref_call(hook_bounce);
 			}
-			if(pass_bounce){
+			if(!pass_bounce){
 				if(!disableeffects) with instance_create(x, y, MeleeHitWall){image_angle = other.direction} 
 				move_bounce_solid(false);
 				if(!disableeffects) {
@@ -156,7 +157,7 @@
 				if("hook_wallhit" in self){
 					pass_wallhit = script_ref_call(hook_wallhit);
 				}
-				if(pass_wallhit){
+				if(!pass_wallhit){
 				//trace("wall hit")
 					projectile_hit(self,round(ceil(other.superforce) * 1.5),1 ,direction)
 					if my_health <= 0
@@ -165,7 +166,7 @@
 						if("hook_wallkill" in self){
 							pass_wallkill = script_ref_call(hook_wallkill);
 						}
-						if(pass_wallkill){
+						if(!pass_wallkill){
 							if(!disableeffects) {
 								sleep(30)
 								view_shake_at(x, y, 16)
@@ -175,7 +176,7 @@
 					}
 				}
 			}
-			if(pass_bounce){
+			if(!pass_bounce){
 				superforce *= .7
 				/*with instance_create(x+lengthdir_x(12,direction),y+lengthdir_y(12,direction),AcidStreak){
 					sprite_index = spr.SonicStreak
@@ -205,7 +206,7 @@
 				if("hook_hit" in self){
 					pass_hit = script_ref_call(hook_hit, _h, self);
 				}
-				if(pass_hit){
+				if(!pass_hit){
 					var _d = "meleedamage" in creator ? creator.meleedamage * 2 : 5;
 					var _s = (ceil(superforce) + _h.size) + _d;
 					if(!disableeffects) {
