@@ -34,7 +34,7 @@
 	lq_set(global.junk, string_lower(_name), {obj:_obj, typ:_typ, cost:_cost, pwr:_pwr});
 	
 #define superforce_push
-//obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait
+//obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait, ?disableeffects
 //Thank you JSBurg and Karmelyth for letting me use this from Defpack!
 //Use for crazy knockback mechanics
 //Usable hooks are: hook_kill, hook_step, hook_hit, hook_bounce, hook_wallhit, hook_wallkill, hook_merge
@@ -87,6 +87,11 @@
 		}else{
 			dontwait = false
 		}
+		if(argument_count > 6){
+			disableeffects = argument[6];
+		}else{
+			disableeffects = false
+		}
 		motion_set(superdirection, superforce); // for easier direction manipulation on wall hit
 
 		on_step = superforce_step;
@@ -104,7 +109,7 @@
 	if(pass_step){
 		with creator
 		{
-			repeat(2) with instance_create(x, y, Dust){motion_add(other.direction + random_range(-8, 8), choose(1, 2, 2, 3)); sprite_index = sprExtraFeet}
+			if(!other.disableeffects) repeat(2) with instance_create(x, y, Dust){motion_add(other.direction + random_range(-8, 8), choose(1, 2, 2, 3)); sprite_index = sprExtraFeet}
 			other.x = x;
 			other.y = y;
 			if "maxspeed" in self maxspeed = other.superforce
@@ -119,7 +124,7 @@
 				exit}
 			}
 		}
-		if superforce >= 3 with instance_create(creator.x + random_range(-3, 3), creator.y + random_range(-3, 3), ImpactWrists){
+		if(!disableeffects) if superforce >= 3 with instance_create(creator.x + random_range(-3, 3), creator.y + random_range(-3, 3), ImpactWrists){
 			var _fac = .6
 			image_xscale = _fac
 			image_yscale = _fac
@@ -134,14 +139,16 @@
 				pass_bounce = script_ref_call(hook_bounce);
 			}
 			if(pass_bounce){
-				with instance_create(x, y, MeleeHitWall){image_angle = other.direction} 
+				if(!disableeffects) with instance_create(x, y, MeleeHitWall){image_angle = other.direction} 
 				move_bounce_solid(false);
-				sound_play_pitchvol(sndImpWristKill, 1.2, .8)
-				sound_play_pitchvol(sndWallBreak, .7, .8)
-				sound_play_pitchvol(sndHitRock, .8, .8)
-				sleep(32)
-				view_shake_at(x, y, 8 * clamp(creator.size, 1, 3))
-				repeat(creator.size) instance_create(x, y, Debris)
+				if(!disableeffects) {
+					sound_play_pitchvol(sndImpWristKill, 1.2, .8)
+					sound_play_pitchvol(sndWallBreak, .7, .8)
+					sound_play_pitchvol(sndHitRock, .8, .8)
+					sleep(32)
+					view_shake_at(x, y, 8 * clamp(creator.size, 1, 3))
+					repeat(creator.size) instance_create(x, y, Debris)
+				}
 			}
 			if superforce > 4 with creator
 			{
@@ -159,9 +166,11 @@
 							pass_wallkill = script_ref_call(hook_wallkill);
 						}
 						if(pass_wallkill){
-							sleep(30)
-							view_shake_at(x, y, 16)
-							repeat(3) instance_create(x, y, Dust){sprite_index = sprExtraFeet}
+							if(!disableeffects) {
+								sleep(30)
+								view_shake_at(x, y, 16)
+								repeat(3) instance_create(x, y, Dust){sprite_index = sprExtraFeet}
+							}
 						}
 					}
 				}
@@ -174,14 +183,16 @@
 					motion_add(image_angle+90,12)
 					friction = 2.1
 				}*/
-				with instance_create(x, y, ChickenB) image_speed = .65
-				repeat(max(1, creator.size)) with instance_create(x, y, ImpactWrists){
-					var _fac = random_range(.2, .5)
-					image_xscale = _fac
-					image_yscale = _fac * 1.5
-					image_speed = 1 - _fac
-					motion_add(random(360), random_range(1, 3) + 1)
-					image_angle = direction
+				if(!disableeffects) {
+					with instance_create(x, y, ChickenB) image_speed = .65
+					repeat(max(1, creator.size)) with instance_create(x, y, ImpactWrists){
+						var _fac = random_range(.2, .5)
+						image_xscale = _fac
+						image_yscale = _fac * 1.5
+						image_speed = 1 - _fac
+						motion_add(random(360), random_range(1, 3) + 1)
+						image_angle = direction
+					}
 				}
 			}
 		}
@@ -197,8 +208,10 @@
 				if(pass_hit){
 					var _d = "meleedamage" in creator ? creator.meleedamage * 2 : 5;
 					var _s = (ceil(superforce) + _h.size) + _d;
-					sleep(_s / 3 * max(1, _h.size))
-					view_shake_at(x, y, _s / 3 * max(1, _h.size))
+					if(!disableeffects) {
+						sleep(_s / 3 * max(1, _h.size))
+						view_shake_at(x, y, _s / 3 * max(1, _h.size))
+					}
 					projectile_hit(_h,_s, superforce, direction);
 					projectile_hit(creator, round(superforce / 2), 0, direction);
 					//trace("enemy hit")
