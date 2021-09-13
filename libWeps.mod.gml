@@ -9,6 +9,7 @@
 	Scripts:
 		add_junk(_name, _obj, _type, _cost, _pwr)
 		superforce_push(obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait)
+		bullet_recycle(_baseChance, _return, _patron)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -20,8 +21,11 @@
 #define init
 	addScript("add_junk");
 	addScript("superforce_push");
+	addScript("bullet_recycle");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
+
+	global.sprRecycleShine = sprite_add_base64("iVBORw0KGgoAAAANSUhEUgAAABIAAAAJCAYAAAA/33wPAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMjHxIGmVAAAATElEQVQoU82NwQ0AIAgDGc3R3FwFwZQmJvz0kn7OUqV1SRkLdiX46K8hHQnQI9Fjn45veNVwZbja4M/+bqBHosf+lCM8oinBR4+HRCYsc5eZijx2CwAAAABJRU5ErkJggg==",2,5,5);
 	
 	global.junk = {
 		laser: {obj: Laser, typ: 5, cost: 1, pwr: 4},
@@ -221,3 +225,63 @@
 			}
 		}
 	}
+	
+
+#define bullet_recycle(_baseChance,_return,_patron)
+//Thanks Class!
+//_baseChance is the chance for the bullet to be returned, the vanilla chance is 60 So it should be that.
+//_return is the amount of bullets to return to the player.
+//_patron is who to return the bullets to. by default this isn't creator if you use that for other things.
+var _odds = _baseChance * skill_get(mut_recycle_gland)
+if random(100) < _odds{
+	with _patron if instance_is(self, Player){
+	ammo[1] = min(ammo[1] + _return, typ_amax[1])	//return the ammo
+	}
+		sound_play(sndRecGlandProc)
+		if _return == 1{	//Use the default effect if theres only 1 bullet being returned
+			instance_create(x, y, RecycleGland)
+		}else{
+		repeat(_return){
+			name = "RecycleGlandCasing"
+			with instance_create(x,y,CustomObject){
+			direction = 90 - random_range(135,-135)
+			speed = random(0.8) + 0.8
+			sprite_index = sprBulletShell
+			spin = choose(5,-5,8,-8,3,-3)
+			lifetime = 15 + irandom_range(2,-2);
+			image_alpha = -1
+			z = 10 / 4;	//This thing fucks with the z axis
+			z_velocity = 12 /4;
+			z_gravity = 1.1 /3;
+			on_step = RecycleFXStep
+			on_draw = RecycleFXDraw
+				}
+			}
+		}
+	}
+	
+#define RecycleFXStep
+z = max(0,z + z_velocity * current_time_scale) //z position is capped at zero
+
+z_velocity -= z_gravity * current_time_scale //I don't think I need to clamp, these don't go too fast
+
+image_angle += spin	//SPEEEEEEEEEEEEEN
+lifetime -= current_time_scale
+
+if lifetime == 0{	//Delete the fucker from existance when prompted
+with instance_create(x,y-z,CaveSparkle){
+sprite_index = global.sprRecycleShine
+}
+instance_destroy()
+}
+	
+#define RecycleFXDraw
+
+depth = lerp(-3 ,-7, min(4,z)/2) //Set depth
+
+image_angle = point_direction(x,y,x+hspeed,y-z_velocity)
+
+y -= z
+draw_sprite_ext(sprite_index, image_index, x, y, image_xscale, image_yscale, image_angle, image_blend, 1);	//actually draw the fucking sprite poggers
+
+y += z
