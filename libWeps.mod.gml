@@ -86,7 +86,7 @@
 
 		on_step = superforce_step;
 		
-		with instances_matching(CustomObject, "name", "SuperForce")
+		with instances_matching_ne(instances_matching(CustomObject, "name", "SuperForce"), "id", self)
 		{
 			if creator == argument[0]
 			{
