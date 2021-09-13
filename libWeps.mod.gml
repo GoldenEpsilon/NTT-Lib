@@ -34,10 +34,10 @@
 	lq_set(global.junk, string_lower(_name), {obj:_obj, typ:_typ, cost:_cost, pwr:_pwr});
 	
 #define superforce_push
-//obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait, ?disableeffects
+//obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait, ?disableeffects, ?hook_merge
 //Thank you JSBurg and Karmelyth for letting me use this from Defpack!
 //Use for crazy knockback mechanics
-//Usable hooks are: hook_kill, hook_step, hook_hit, hook_bounce, hook_wallhit, hook_wallkill, hook_merge
+//Usable hooks are: hook_kill, hook_step, hook_hit, hook_bounce, hook_wallhit, hook_wallkill
 //Set the variable of the hook to a script reference, and it'll be called when appropriate.
 //IMPORTANT: for all the hooks, such as hook_wallhit, if you return 1 you override the usual code
 //           Useful for cool stuff, but completely ignorable.
@@ -90,8 +90,8 @@
 		{
 			if creator == argument[0]
 			{
-				if("hook_merge" in self){
-					script_ref_call(hook_merge, self, other);
+				if(argument_count > 7){
+					script_ref_call(argument[7], other, self);
 				}
 				instance_delete(self);
 			}
@@ -103,7 +103,7 @@
 	//apply "super force" to enemies
 	if timer > 0 && dontwait = false{timer -= current_time_scale; exit}
 	if !instance_exists(creator) ||instance_is(creator, Nothing) ||instance_is(creator, TechnoMancer) ||instance_is(creator, Turret) ||instance_is(creator, MaggotSpawn) ||instance_is(creator, Nothing) ||instance_is(creator, LilHunterFly) || instance_is(creator, RavenFly){instance_delete(self); exit}
-	var pass_step = true;
+	var pass_step = false
 	if("hook_step" in self){
 		pass_step = script_ref_call(hook_step);
 	}
@@ -135,7 +135,7 @@
 		}
 		if place_meeting(x + hspeed, y + vspeed, Wall) && canwallhit = true
 		{
-			var pass_bounce = true;
+			var pass_bounce = false
 			if("hook_bounce" in self){
 				pass_bounce = script_ref_call(hook_bounce);
 			}
@@ -153,21 +153,21 @@
 			}
 			if superforce > 4 with creator
 			{
-				var pass_wallhit = true;
-				if("hook_wallhit" in self){
-					pass_wallhit = script_ref_call(hook_wallhit);
+				var pass_wallhit = false
+				if("hook_wallhit" in other){
+					pass_wallhit = script_ref_call(other.hook_wallhit);
 				}
 				if(!pass_wallhit){
 				//trace("wall hit")
 					projectile_hit(self,round(ceil(other.superforce) * 1.5),1 ,direction)
 					if my_health <= 0
 					{	
-						var pass_wallkill = true;
-						if("hook_wallkill" in self){
-							pass_wallkill = script_ref_call(hook_wallkill);
+						var pass_wallkill = false
+						if("hook_wallkill" in other){
+							pass_wallkill = script_ref_call(other.hook_wallkill);
 						}
 						if(!pass_wallkill){
-							if(!disableeffects) {
+							if(!other.disableeffects) {
 								sleep(30)
 								view_shake_at(x, y, 16)
 								repeat(3) instance_create(x, y, Dust){sprite_index = sprExtraFeet}
@@ -202,7 +202,7 @@
 			var _h = instance_nearest(x + hspeed, y + vspeed, hitme);
 			if !instance_is(_h, Player) && _h != creator && projectile_canhit_melee(_h)
 			{
-				var pass_hit = true;
+				var pass_hit = false
 				if("hook_hit" in self){
 					pass_hit = script_ref_call(hook_hit, _h, self);
 				}
