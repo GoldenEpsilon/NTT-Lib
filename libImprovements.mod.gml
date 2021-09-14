@@ -63,7 +63,7 @@ if (instance_exists(LevCont)){
             var _max = button_count;
             
             with(mutbutton){
-				if(skill == 0){
+				if(("skill" in self && skill == 0) || ("crown" in self && crown == 0)){
 					_max++;
 				}
                 num = --_max;
