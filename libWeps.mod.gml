@@ -10,6 +10,12 @@
 		add_junk(_name, _obj, _type, _cost, _pwr)
 		superforce_push(obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait)
 		bullet_recycle(_baseChance, _return, _patron)
+		wep_raw(_wep)
+		weapon_get(_name, _wep)
+		weapon_fire_init(_wep)
+		weapon_ammo_fire(_wep)
+		weapon_ammo_hud(_wep)
+		draw_ammo(_index, _primary, _steroids, _ammo, _ammoMin)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -22,6 +28,11 @@
 	addScript("add_junk");
 	addScript("superforce_push");
 	addScript("bullet_recycle");
+	addScript("weapon_get");
+	addScript("weapon_fire_init");
+	addScript("weapon_ammo_fire");
+	addScript("weapon_ammo_hud");
+	addScript("draw_ammo");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
 
@@ -88,7 +99,7 @@
 		}
 		motion_set(superdirection, superforce); // for easier direction manipulation on wall hit
 
-		on_step = superforce_step;
+		on_step = script_ref_create(superforce_step);
 		
 		with instances_matching_ne(instances_matching(CustomObject, "name", "SuperForce"), "id", self)
 		{
@@ -163,7 +174,7 @@
 				}
 				if(!pass_wallhit){
 				//trace("wall hit")
-					projectile_hit(self,round(ceil(other.superforce) * 1.5),1 ,direction)
+					projectile_hit(self,round(ceil(other.superforce * 1.5)),1 ,direction)
 					if my_health <= 0
 					{	
 						var pass_wallkill = false
@@ -285,3 +296,274 @@ y -= z
 draw_sprite_ext(sprite_index, image_index, x, y, image_xscale, image_yscale, image_angle, image_blend, 1);	//actually draw the fucking sprite poggers
 
 y += z
+
+#define wep_raw(_wep)
+	/*
+		For use with LWO weapons
+		Call a weapon's "weapon_raw" script in case of wrapper weapons
+		
+		Ex:
+			wep_raw({ wep:{ wep:{ wep:123 }}}) == 123
+	*/
+	
+	var _raw = _wep;
+	
+	 // Find Base Weapon:
+	while(is_object(_raw)){
+		_raw = (("wep" in _raw) ? _raw.wep : wep_none);
+	}
+	
+	 // Wrapper:
+	if(is_string(_raw) && mod_script_exists("weapon", _raw, "weapon_raw")){
+		_raw = mod_script_call("weapon", _raw, "weapon_raw", _wep);
+	}
+	
+	return _raw;
+
+#define weapon_get(_name, _wep)
+	/*
+		Calls the given script from a weapon mod and fetches its return value
+	*/
+	
+	var _raw = _wep;
+	
+	 // Find Base Weapon:
+	while(is_object(_raw) && "wep" in _raw){
+		_raw = _raw.wep;
+	}
+	
+	 // Call Script:
+	if(is_string(_raw)){
+		var _scrt = "weapon_" + _name;
+		if(mod_script_exists("weapon", _raw, _scrt)){
+			return mod_script_call_self("weapon", _raw, _scrt, _wep);
+		}
+	}
+	
+	 // Default:
+	switch(_name){
+		
+		case "avail":
+		case "burst":
+			
+			return 1;
+			
+		case "loadout":
+			
+			switch(_raw){
+				case wep_revolver                : return sprRevolverLoadout;
+				case wep_golden_revolver         : return sprGoldRevolverLoadout;
+				case wep_chicken_sword           : return sprChickenSwordLoadout;
+				case wep_rogue_rifle             : return sprRogueRifleLoadout;
+				case wep_rusty_revolver          : return sprRustyRevolverLoadout;
+				case wep_golden_wrench           : return sprGoldWrenchLoadout;
+				case wep_golden_machinegun       : return sprGoldMachinegunLoadout;
+				case wep_golden_shotgun          : return sprGoldShotgunLoadout;
+				case wep_golden_crossbow         : return sprGoldCrossbowLoadout;
+				case wep_golden_grenade_launcher : return sprGoldGrenadeLauncherLoadout;
+				case wep_golden_laser_pistol     : return sprGoldLaserPistolLoadout;
+				case wep_golden_screwdriver      : return sprGoldScrewdriverLoadout;
+				case wep_golden_assault_rifle    : return sprGoldAssaultRifleLoadout;
+				case wep_golden_slugger          : return sprGoldSluggerLoadout;
+				case wep_golden_splinter_gun     : return sprGoldSplintergunLoadout;
+				case wep_golden_bazooka          : return sprGoldBazookaLoadout;
+				case wep_golden_plasma_gun       : return sprGoldPlasmaGunLoadout;
+				case wep_golden_nuke_launcher    : return sprGoldNukeLauncherLoadout;
+				case wep_golden_disc_gun         : return sprGoldDiscgunLoadout;
+				case wep_golden_frog_pistol      : return sprGoldToxicGunLoadout;
+			}
+			
+			break;
+			
+		case "raw":
+			
+			return (is_object(_wep) ? wep_none : _wep);
+			
+	}
+	
+	return 0;
+	
+#define weapon_fire_init(_wep)
+	/*
+		Called from a 'weapon_fire' script to do some basic weapon firing setup
+		Returns a LWO with some useful variables
+		
+		Vars:
+			wep     - The weapon's value, may be modified from the given argument
+			creator - The actual instance firing, for 'player_fire_ext()' support
+			primary - The weapon is in the primary slot (true) or secondary slot (false)
+			wepheld - The weapon is physically stored in the creator's 'wep' variable
+			spec    - The weapon is being shot by an active (YV, Steroids, Skeleton)
+			burst   - The current burst shot (starts at 1)
+	*/
+	
+	var _fire = {
+		"wep"     : _wep,
+		"creator" : noone,
+		"primary" : true,
+		"wepheld" : false,
+		"spec"    : false,
+		"burst"   : 1
+	};
+	
+	 // Creator:
+	_fire.creator = self;
+	if(instance_is(self, FireCont) && "creator" in self){
+		_fire.creator = creator;
+	}
+	
+	 // Weapon Held by Creator:
+	_fire.wepheld = (variable_instance_get(_fire.creator, "wep") == _fire.wep);
+	
+	 // Active / Secondary Firing:
+	_fire.spec = variable_instance_get(self, "specfiring", false);
+	if(race == "steroids" && _fire.spec){
+		_fire.primary = false;
+	}
+	
+	 // LWO Setup:
+	var _lwo = mod_variable_get("weapon", wep_raw(_fire.wep), "lwoWep");
+	if(is_object(_lwo)){
+		if(!is_object(_fire.wep)){
+			_fire.wep = { "wep" : _fire.wep };
+			if(_fire.wepheld){
+				_fire.creator.wep = _fire.wep;
+			}
+		}
+		for(var i = lq_size(_lwo) - 1; i >= 0; i--){
+			var _key = lq_get_key(_lwo, i);
+			if(_key not in _fire.wep){
+				lq_set(_fire.wep, _key, lq_get_value(_lwo, i));
+			}
+		}
+	}
+	
+	 // Extra Systems:
+	var _other = other;
+	with(instance_exists(_fire.creator) ? _fire.creator : self){
+		
+		 // Normal Weapon:
+		{
+			 // Melee:
+			if(weapon_is_melee(_fire.wep)){
+				other.wepangle *= -1;
+			}
+		}
+	}
+	
+	return _fire;
+
+#define weapon_ammo_fire(_wep)
+	/*
+		Called from a 'weapon_fire' script to process LWO weapons with internal ammo
+		Returns 'true' if the weapon had enough internal ammo to fire, 'false' otherwise
+	*/
+	
+	 // Gun Warrant:
+	if(infammo != 0){
+		return true;
+	}
+	
+	 // Ammo Cost:
+	var _cost = lq_defget(_wep, "cost", 1);
+	with(_wep) if(ammo >= _cost){
+		ammo -= _cost;
+		
+		 // Can Fire:
+		return true;
+	}
+	
+	 // Not Enough Ammo:
+	reload = variable_instance_get(self, "reloadspeed", 1) * current_time_scale;
+	if("anam" in _wep){
+		if(button_pressed(index, (specfiring ? "spec" : "fire"))){
+			wkick = -2;
+			sound_play(sndEmpty);
+			with(instance_create(x, y, PopupText)){
+				target = other.index;
+				text   = ((_wep.ammo > 0) ? "NOT ENOUGH " + _wep.anam : "EMPTY");
+			}
+		}
+	}
+	
+	return false;
+	
+#define weapon_ammo_hud(_wep)
+	/*
+		Called from a 'weapon_sprt_hud' script to draw HUD for LWO weapons with internal ammo
+		Returns the weapon's normal sprite for easy returning
+		
+		Ex:
+			#define weapon_sprt_hud(w)
+				return weapon_ammo_hud(w);
+	*/
+	
+	 // Draw Ammo:
+	if(
+		instance_is(self, Player)
+		&& (instance_is(other, TopCont) || instance_is(other, UberCont))
+		&& is_object(_wep)
+	){
+		var	_ammo    = lq_defget(_wep, "ammo", 0),
+			_ammoMax = lq_defget(_wep, "amax", _ammo),
+			_ammoMin = lq_defget(_wep, "amin", round(_ammoMax * 0.2));
+			
+		draw_ammo(index, (bwep != _wep), (race == "steroids"), _ammo, _ammoMin);
+	}
+	
+	 // Default Sprite:
+	return weapon_get_sprt(_wep);
+	
+#define draw_ammo(_index, _primary, _steroids, _ammo, _ammoMin)
+	/*
+		Draws ammo HUD text
+		
+		Args:
+			index    - The player to draw HUD for
+			primary  - Is a primary weapon, true/false
+			steroids - Player can dual wield, true/false
+			ammo     - Ammo, can be a string or number
+			ammoMin  - Low ammo threshold
+	*/
+	
+	var _local = player_find_local_nonsync();
+	
+	if(player_is_active(_local) && player_get_show_hud(_index, _local)){
+		if(!instance_exists(menubutton) || _index == _local){
+			var	_x = view_xview_nonsync + (_primary ? 42 : 86),
+				_y = view_yview_nonsync + 21;
+				
+			 // Co-op Offset:
+			var _active = 0;
+			for(var i = 0; i < maxp; i++){
+				_active += player_is_active(i);
+			}
+			if(_active > 1){
+				_x -= 19;
+			}
+			
+			 // Color:
+			var _text = "";
+			if(is_real(_ammo)){
+				_text += "@";
+				if(_ammo > 0){
+					if(_primary || _steroids){
+						if(_ammo > _ammoMin){
+							_text += "w";
+						}
+						else _text += "r";
+					}
+					else _text += "s";
+				}
+				else _text += "d";
+			}
+			_text += string(_ammo);
+			
+			 // !!!
+			draw_set_halign(fa_left);
+			draw_set_valign(fa_top);
+			draw_set_projection(2, _index);
+			draw_text_nt(_x, _y, _text);
+			draw_reset_projection();
+		}
+	}
