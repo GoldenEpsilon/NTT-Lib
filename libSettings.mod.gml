@@ -41,6 +41,9 @@
 	add_setting("libSettings", "b", "Test Variable B");
 	add_setting("libSettings", "c", "Test Variable C");
 	*/
+	
+#macro scr global.scr
+#macro call script_ref_call
 
 #define draw_gui
 	if(scr == false || array_length(global.settings) == 0){return;}
@@ -131,6 +134,3 @@
 	
 #define add_setting_ext(_modName, _modType, _variableName, _visualName)
 	array_push(global.settings, [_modType, _modName, _variableName, _visualName]);
-	
-#macro scr global.scr
-#macro call script_ref_call
