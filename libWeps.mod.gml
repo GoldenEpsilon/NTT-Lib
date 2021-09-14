@@ -17,6 +17,7 @@
 		weapon_ammo_hud(_wep)
 		draw_ammo(_index, _primary, _steroids, _ammo, _ammoMin)
 		run_movescan(_proj, _mod)
+		spawn_shell(_angle, _spread, _speed, _sprite)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -35,6 +36,7 @@
 	addScript("weapon_ammo_hud");
 	addScript("draw_ammo");
 	addScript("run_movescan");
+	addScript("spawn_shell");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
 
@@ -669,3 +671,8 @@ with(_proj){
 		}
 	}
 }
+#define spawn_shell(_angle, _spread, _speed, _sprite)
+    with instance_create(x, y, Shell){
+        motion_add(other.gunangle + (other.right * _angle) + random_range(-_spread, _spread), _speed);
+        sprite_index = _sprite;
+    }
