@@ -306,7 +306,6 @@ mod_loadtext(path);
 			default:
 				script_ref_call([self[0], self[1], "late_step"]);
 		}
-		script_ref_call([self[0], self[1], "late_step"]);
 	}
 	
 #define end_step
