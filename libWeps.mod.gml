@@ -39,6 +39,8 @@
 	addScript("spawn_shell");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
+	
+	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
 
 	global.sprRecycleShine = sprite_add_base64("iVBORw0KGgoAAAANSUhEUgAAABIAAAAJCAYAAAA/33wPAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMjHxIGmVAAAATElEQVQoU82NwQ0AIAgDGc3R3FwFwZQmJvz0kn7OUqV1SRkLdiX46K8hHQnQI9Fjn45veNVwZbja4M/+bqBHosf+lCM8oinBR4+HRCYsc5eZijx2CwAAAABJRU5ErkJggg==",2,5,5);
 	
@@ -47,6 +49,9 @@
 		bullet: {obj: Bullet1, typ: 1, cost: 1, pwr: 1},
 		shell: {obj: Bullet2, typ: 2, cost: 1, pwr: 0.2}
 	};
+	
+#macro scr global.scr
+#macro call script_ref_call
 
 #define add_junk(_name, _obj, _type, _cost, _pwr)
 //adds a projectile to the "junk" pool of projectiles to spawn (basically, random projectile but balanced)

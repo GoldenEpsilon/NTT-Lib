@@ -32,6 +32,9 @@
 	
 	call(scr.obj_setup, mod_current, "LibChest");
 	call(scr.obj_setup, mod_current, "LibPickup");
+	
+#macro scr global.scr
+#macro call script_ref_call
 
 #define step
 	with(global.libChests){
@@ -103,9 +106,6 @@
 		}
 		global.pickup_custom = [];
 	}
-	
-#macro scr global.scr
-#macro call script_ref_call
 
 #define LibChest_create(_x, _y)
 	with(instance_create(_x, _y, chestprop)){
