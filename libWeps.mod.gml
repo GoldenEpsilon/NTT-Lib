@@ -573,7 +573,7 @@ y += z
 #define run_movescan(_proj, _mod)
 with(_proj){
 	var size = 0.8;
-	repeat(5 * _mod){
+	repeat(_mod){
 		if(!instance_exists(self)){continue;}
 		event_perform(ev_step, ev_step_begin);
 		if(!instance_exists(self)){continue;}
@@ -632,7 +632,7 @@ with(_proj){
 		}
 		if(!instance_exists(self)){continue;}
 		event_perform(ev_step, ev_step_end);
-		size += 0.2/5 * _mod
+		size += 0.2/_mod
 	}
 	if(!instance_exists(self)){continue;}
 	with(instance_create(x,y,Effect)){
