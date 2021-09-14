@@ -6,6 +6,9 @@
 /*
 	Scripts:
 	
+	Objects:
+		LibChest
+		LibPickup
 */
 
 //For internal use, adds the script to be easily usable.
