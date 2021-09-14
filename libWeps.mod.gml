@@ -16,6 +16,7 @@
 		weapon_ammo_fire(_wep)
 		weapon_ammo_hud(_wep)
 		draw_ammo(_index, _primary, _steroids, _ammo, _ammoMin)
+		run_movescan(_proj, _mod)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -33,6 +34,7 @@
 	addScript("weapon_ammo_fire");
 	addScript("weapon_ammo_hud");
 	addScript("draw_ammo");
+	addScript("run_movescan");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
 
@@ -567,3 +569,103 @@ y += z
 			draw_reset_projection();
 		}
 	}
+	
+#define run_movescan(_proj, _mod)
+with(_proj){
+	var size = 0.8;
+	repeat(5 * _mod){
+		if(!instance_exists(self)){continue;}
+		event_perform(ev_step, ev_step_begin);
+		if(!instance_exists(self)){continue;}
+		event_perform(ev_step, ev_step_normal);
+		if(!instance_exists(self)){continue;}
+		if(!instance_exists(self)){continue;}
+		if(image_index >= image_number){
+			event_perform(ev_other, ev_animation_end)
+		}
+		image_index += image_speed_raw;
+		with(instance_create(x,y,Effect)){
+			sprite_index = other.sprite_index;
+			image_index = other.image_index;
+			image_speed = 0;
+			image_xscale = other.image_xscale// * size;
+			image_yscale = other.image_yscale// * size;
+			image_alpha = other.image_alpha * size;
+			image_angle = other.image_angle;
+			if(fork()){
+				if(instance_exists(self)){
+					image_alpha *= 0.5;
+					//image_xscale *= 0.8;
+					//image_yscale *= 0.8;
+				}
+				wait(1);
+				if(instance_exists(self)){
+					image_alpha *= 0.5;
+					//image_xscale *= 0.8;
+					//image_yscale *= 0.8;
+				}
+				wait(1);
+				if(instance_exists(self)){
+					image_alpha *= 0.5;
+					//image_xscale *= 0.8;
+					//image_yscale *= 0.8;
+				}
+				wait(1);
+				if(instance_exists(self)){
+					instance_destroy();
+				}
+				exit;
+			}
+		}
+		xprevious = x;
+		yprevious = y;
+		x += hspeed_raw;
+		y += vspeed_raw;
+		var _inst = instances_meeting(x, y, [projectile, hitme, Wall]);
+		with(_inst){
+			if(!instance_exists(_proj)){continue;}
+			if("nexthurt" in self){nexthurt -= current_time_scale;}
+			with(_proj){
+				event_perform(ev_collision, other.object_index);
+				if(!instance_exists(self)){continue;}
+			}
+		}
+		if(!instance_exists(self)){continue;}
+		event_perform(ev_step, ev_step_end);
+		size += 0.2/5 * _mod
+	}
+	if(!instance_exists(self)){continue;}
+	with(instance_create(x,y,Effect)){
+		sprite_index = other.sprite_index;
+		image_index = other.image_index;
+		image_speed = 0;
+		image_xscale = other.image_xscale// * size;
+		image_yscale = other.image_yscale// * size;
+		image_alpha = other.image_alpha * size;
+		image_angle = other.image_angle;
+		if(fork()){
+			if(instance_exists(self)){
+				image_alpha *= 0.5;
+				//image_xscale *= 0.8;
+				//image_yscale *= 0.8;
+			}
+			wait(1);
+			if(instance_exists(self)){
+				image_alpha *= 0.5;
+				//image_xscale *= 0.8;
+				//image_yscale *= 0.8;
+			}
+			wait(1);
+			if(instance_exists(self)){
+				image_alpha *= 0.5;
+				//image_xscale *= 0.8;
+				//image_yscale *= 0.8;
+			}
+			wait(1);
+			if(instance_exists(self)){
+				instance_destroy();
+			}
+			exit;
+		}
+	}
+}
