@@ -130,20 +130,11 @@ with(global.scriptReferences){
 }
 
 #define ping()
-	//Don't download anything if you're in multiplayer
-	for(var i = 1;i<maxp;i++){
-		if player_is_active(i){
-			trace("Cannot download in multiplayer, using already downloaded files");
-			global.canLoad = false;
-			return;
-		}
-	}
-	
 	//Check internet connection
 	file_download("http://worldclockapi.com/api/json/est/now", "ping.txt");
 	var d = 0;
 	while (!file_loaded("ping.txt")){
-		if d++ > 240 {
+		if d++ > 150 {
 			trace("Server timed out, using already downloaded files");
 			global.canLoad = false;
 			return;
