@@ -18,6 +18,7 @@
 		draw_ammo(_index, _primary, _steroids, _ammo, _ammoMin)
 		run_movescan(_proj, _mod)
 		spawn_shell(_angle, _spread, _speed, _sprite)
+		draw_weapon_huge(sprt)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -37,6 +38,7 @@
 	addScript("draw_ammo");
 	addScript("run_movescan");
 	addScript("spawn_shell");
+	addScript("draw_weapon_huge");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
 	
@@ -171,8 +173,10 @@
 					sound_play_pitchvol(sndWallBreak, .7, .8)
 					sound_play_pitchvol(sndHitRock, .8, .8)
 					sleep(32)
-					view_shake_at(x, y, 8 * clamp(creator.size, 1, 3))
-					repeat(creator.size) instance_create(x, y, Debris)
+					if("size" in creator){
+						view_shake_at(x, y, 8 * clamp(creator.size, 1, 3))
+						repeat(creator.size) instance_create(x, y, Debris)
+					}
 				}
 			}
 			if superforce > 4 with creator
@@ -681,3 +685,44 @@ with(_proj){
         motion_add(other.gunangle + (other.right * _angle) + random_range(-_spread, _spread), _speed);
         sprite_index = _sprite;
     }
+
+#define draw_weapon_huge(sprt)
+    if instance_is(self,Player){
+        with(script_bind_draw(drawLargeWeapon, depth + 1)){
+            gunangle = other.gunangle;
+            wepangle = other.wepangle;
+            wkick = other.wkick;
+            wepflip = other.wepflip;
+            index = other.index;
+            right = other.right;
+            sprite_index = sprt;
+            creator = other;
+            if other.gunangle > 180{
+                depth = other.depth - 2;
+            }else depth = other.depth + 1;
+        }
+		return mskNone;
+    }
+	//look, fallback cases are important.
+    return sprt;
+	
+#define drawLargeWeapon
+    if !instance_exists(creator){
+        instance_destroy();
+        exit;
+    }
+    x = creator.x + creator.hspeed_raw;
+    y = creator.y + creator.vspeed_raw;
+    draw_set_visible_all(false);
+    draw_set_visible(index, true);
+    if player_get_outlines(index){
+        d3d_set_fog(true,player_get_color(index),1,1);
+            draw_sprite_ext(sprite_index,image_index, 1 + x + lengthdir_x(wkick,gunangle), y + lengthdir_y(wkick,gunangle), 1, wepflip, gunangle + wepangle, image_blend, image_alpha);
+            draw_sprite_ext(sprite_index,image_index, -1 + x + lengthdir_x(wkick,gunangle), y + lengthdir_y(wkick,gunangle), 1, wepflip, gunangle + wepangle, image_blend, image_alpha);
+            draw_sprite_ext(sprite_index,image_index, x + lengthdir_x(wkick,gunangle), 1 + y + lengthdir_y(wkick,gunangle), 1, wepflip, gunangle + wepangle, image_blend, image_alpha);
+            draw_sprite_ext(sprite_index,image_index, x + lengthdir_x(wkick,gunangle), -1 + y + lengthdir_y(wkick,gunangle), 1, wepflip, gunangle + wepangle, image_blend, image_alpha);
+        d3d_set_fog(false,player_get_color(index),1,1);
+    }
+    draw_sprite_ext(sprite_index,image_index,     x + lengthdir_x(wkick,gunangle), y + lengthdir_y(wkick,gunangle), 1, wepflip, gunangle + wepangle, image_blend, image_alpha);
+    draw_set_visible_all(true);
+    instance_destroy();

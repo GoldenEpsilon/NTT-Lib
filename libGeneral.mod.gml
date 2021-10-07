@@ -68,6 +68,7 @@
 		#define is_9940()
 		#define obj_fire(_gunangle, _wep, _x, _y, _creator, _affectcreator)
 		#define seeded_random(_seed, _min, _max, _irandom)
+		#define object_get_mouse(inst)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -139,6 +140,7 @@
 	addScript("is_9940");
 	addScript("obj_fire");
 	addScript("seeded_random");
+	addScript("object_get_mouse");
 	
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
@@ -148,6 +150,13 @@
 	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
 	
 	obj_setup(mod_current, "LibPrompt");
+
+#define step
+	if(instance_exists(GenCont)){
+		with(instances_matching(FireCont, "isLibFireCont", true)){
+			instance_destroy();
+		}
+	}
 
 #define late_step
 	 // Prompts:
@@ -2185,6 +2194,7 @@ return retVal;
 
 #define obj_fire(_gunangle, _wep, _x, _y, _creator, _affectcreator)
 with (instance_create(_x,_y,FireCont)){
+	isLibFireCont = true;
 	owner = _creator;
 	wep = _wep;
 	maxspeed = variable_instance_get(owner, "maxspeed", 4);
@@ -2289,6 +2299,7 @@ with (instance_create(_x,_y,FireCont)){
 		if("ammo" in owner){owner.ammo = ammo;}
 	}
 	time = current_time;
+	return self;
 }
 
 #define seeded_random(_seed, _min, _max, _irandom)
@@ -2304,3 +2315,37 @@ if(_irandom){
 }
 random_set_seed(_lastSeed);
 return rand;
+
+// Returns a LWO with three fields:
+//    x and y: world space coordinates.
+//    is_input: indicates whether the coordinates should be treated as an active control source.
+//        A nuke for example might ignore the coords if they aren't coming from an actual mouse, as enemies don't really aim over time.
+// Used for logic and should be syncronous.
+// Of note, the format of the LWO and scr_get_mouse integration are what make this important, thats what ought to be standard.
+// If you don't like other choices, feel free to replace them. 
+#define object_get_mouse(inst)
+    //Compat hook. If you need self, be sure to include it in your script ref as an argument.
+    //Return a LWO in your script that would match the output of this one.
+    //You can return to the default behavior by setting scr_get_mouse to something that isn't a script reference.
+    if "scr_get_mouse" in inst && is_array(inst.scr_get_mouse) {
+        with inst return script_ref_call(scr_get_mouse)
+    }
+    
+    //If there is a mouse at play, use it.
+    if instance_is(inst, Player) || ("index" in inst && player_is_active(inst.index)) {
+        return {x: mouse_x[inst.index], y: mouse_y[inst.index], is_input: true}
+    }
+    
+    //If there is a target, consider it the mouse position.
+    if "target" in inst && instance_exists(inst.target) {
+        return {x: target.x, y: target.y, is_input: false}
+    }
+    
+    //If no real way to find mouse coords is found, then make some assumptions regarding generally intended behavior.
+    //In this case, project a point a moderate distance from the source, with direction as the default angle, optionally picking up gunangle.
+    var _length = 48, _dir = inst.direction;
+    if "gunangle" in inst {
+        _dir = inst.gunangle;
+    }
+
+    return {x: inst.x + lengthdir_x(_length, _dir), y: inst.y + lengthdir_y(_length, _dir), is_input: false}
