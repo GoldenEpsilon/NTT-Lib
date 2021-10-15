@@ -11,6 +11,20 @@
 global.scr = {};
 loadLib();
 
+#define import(module)
+if("toLoad" not in GameCont){
+	GameCont.toLoad = [];
+}
+if(is_string(module)){
+	array_push(GameCont.toLoad, module);
+}else if(is_array(module)){
+	with(module){
+		array_push(GameCont.toLoad, self);
+	}
+}else{
+	trace("Error: LibLoader's import needs either a string or an array");
+}
+
 #define loadLib
 //if lib is already loaded we do not need to reload it
 if(!mod_exists("mod", "lib")){
@@ -71,9 +85,16 @@ if(!mod_exists("mod", "lib")){
 
 	if(mod_exists("mod", "lib")){exit;}
 	mod_loadtext("lib/main.txt");
-	wait(1);
+	wait(2);
 	mod_variable_set("mod", "lib", "canLoad", !global.err);
 	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
+}
+if(mod_exists("mod", "lib")){
+	if("toLoad" in GameCont){
+		with(GameCont.toLoad){
+			script_ref_call(["mod", "lib", "import"], self);
+		}
+	}
 }
 
 #macro URL "https://raw.githubusercontent.com/GoldenEpsilon/NTT-Lib/main/"
