@@ -8,6 +8,7 @@
 //You can also just copy this file into yours if it's a one-file-mod, but it's not as recommended.
 
 #define init
+global.scr = [];
 loadLib();
 
 #define loadLib
@@ -72,6 +73,7 @@ if(!mod_exists("mod", "lib")){
 	mod_loadtext("lib/main.txt");
 	wait(1);
 	mod_variable_set("mod", "lib", "canLoad", !global.err);
+	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
 }
 
 #macro URL "https://raw.githubusercontent.com/GoldenEpsilon/NTT-Lib/main/"
