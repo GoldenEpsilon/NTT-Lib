@@ -85,7 +85,7 @@ if(!mod_exists("mod", "lib")){
 
 	if(mod_exists("mod", "lib")){exit;}
 	mod_loadtext("lib/main.txt");
-	wait(2);
+	while(!mod_exists("mod", "lib")){wait(0);}
 	mod_variable_set("mod", "lib", "canLoad", !global.err);
 	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
 }
