@@ -8,7 +8,7 @@
 //You can also just copy this file into yours if it's a one-file-mod, but it's not as recommended.
 
 #define init
-global.scr = [];
+global.scr = {};
 loadLib();
 
 #define loadLib
