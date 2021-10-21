@@ -12,17 +12,21 @@ global.scr = {};
 loadLib();
 
 #define import(module)
-if("toLoad" not in GameCont){
-	GameCont.toLoad = [];
-}
-if(is_string(module)){
-	array_push(GameCont.toLoad, module);
-}else if(is_array(module)){
-	with(module){
-		array_push(GameCont.toLoad, self);
-	}
+if(mod_exists("mod", "lib")){
+	script_ref_call(["mod", "lib", "import"], module);
 }else{
-	trace("Error: LibLoader's import needs either a string or an array");
+	if("toLoad" not in GameCont){
+		GameCont.toLoad = [];
+	}
+	if(is_string(module)){
+		array_push(GameCont.toLoad, module);
+	}else if(is_array(module)){
+		with(module){
+			array_push(GameCont.toLoad, self);
+		}
+	}else{
+		trace("Error: LibLoader's import needs either a string or an array");
+	}
 }
 
 #define loadLib
