@@ -20,6 +20,7 @@ global.mutations = [];
 chat_comp_add("libVersion", "prints Lib's current version to the chat.");
 
 addScript("import");
+addScript("getRef");
 
 //wait for sideloading
 while(!mod_sideload()){wait 1;}
