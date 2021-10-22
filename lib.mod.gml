@@ -194,6 +194,16 @@ mod_loadtext(path);
 						}
 					}
 					break;
+				case "wep":
+					with(Player){
+						if(wep == other[1]){
+							script_ref_call([other[0], other[1], "level_start"], 1);
+						}
+						if(bwep == other[1]){
+							script_ref_call([other[0], other[1], "level_start"], 0);
+						}
+					}
+					break;
 				default:
 					script_ref_call([self[0], self[1], "level_start"]);
 			}
