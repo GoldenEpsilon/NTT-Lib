@@ -46,7 +46,7 @@
 #macro call script_ref_call
 
 #define draw_gui
-	if(scr == false || array_length(global.settings) == 0){return;}
+	if(!instance_exists(Menu) || scr == false || array_length(global.settings) == 0){return;}
 	draw_set_font(fntSmall);
 	draw_set_color(c_white);
 	if(call(scr.menubutton_check, game_width - 40, game_height - 6, 38, 4, 2, 1) != -1){
