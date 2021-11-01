@@ -223,9 +223,8 @@ mod_loadtext(path);
 	while(skill_get_at(array_length(mutations)) != null){
 		array_push(mutations, skill_get_at(array_length(mutations)));
 	}
-	
-	for(var i = 0; i < array_length(global.mutations); i++){
-		if(i >= array_length(mutations) || global.mutations[i] != mutations[i]){
+	for(var i = 0; i < array_length(global.mutations) || i < array_length(mutations); i++){
+		if(i >= array_length(mutations) || i >= array_length(global.mutations) || global.mutations[i] != mutations[i]){
 			with(global.activeReferences){
 				switch(self[0]){
 					case "skill":
