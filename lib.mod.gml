@@ -229,28 +229,28 @@ mod_loadtext(path);
 				switch(self[0]){
 					case "skill":
 						if(skill_get(self[1])){
-							script_ref_call([self[0], self[1], "mutation_update"], global.mutations);
+							script_ref_call([self[0], self[1], "mutation_update"], mutations, global.mutations);
 						}
 						break;
 					case "race":
 						with(Player){
 							if(race == other[1]){
-								script_ref_call([other[0], other[1], "mutation_update"], global.mutations);
+								script_ref_call([other[0], other[1], "mutation_update"], mutations, global.mutations);
 							}
 						}
 						break;
 					case "race":
 						with(Player){
 							if(wep == other[1]){
-								script_ref_call([other[0], other[1], "mutation_update"], 1, global.mutations);
+								script_ref_call([other[0], other[1], "mutation_update"], 1, mutations, global.mutations);
 							}
 							if(bwep == other[1]){
-								script_ref_call([other[0], other[1], "mutation_update"], 0, global.mutations);
+								script_ref_call([other[0], other[1], "mutation_update"], 0, mutations, global.mutations);
 							}
 						}
 						break;
 					default:
-						script_ref_call([self[0], self[1], "mutation_update"], global.mutations);
+						script_ref_call([self[0], self[1], "mutation_update"], mutations, global.mutations);
 				}
 			}
 			global.mutations = mutations;
