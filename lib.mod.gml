@@ -195,6 +195,7 @@ mod_loadtext(path);
 						}
 					}
 					break;
+				case "weapon":
 				case "wep":
 					with(Player){
 						if(wep == other[1]){
@@ -239,7 +240,8 @@ mod_loadtext(path);
 							}
 						}
 						break;
-					case "race":
+					case "weapon":
+					case "wep":
 						with(Player){
 							if(wep == other[1]){
 								script_ref_call([other[0], other[1], "mutation_update"], 1, mutations, global.mutations);
