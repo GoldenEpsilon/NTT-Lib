@@ -7,7 +7,7 @@
 	Scripts:
 		#define skill_get_category(mut)
 		#define skill_set_category(mut, category)
-		#define skill_get_avail(mut, ?includeobtained)
+		#define skill_get_avail(mut, ?includeobtained, ?checkmutscreen)
 		#define get_skills(?is_avail, ?whitelist, ?category)
 		#define get_ultras()
 		#define skill_decide(?whitelist, ?category)
@@ -99,7 +99,7 @@
 	}
 
 #define skill_get_avail
-//mut, ?includeobtained
+//mut, ?includeobtained, ?checkmutscreen
 /* Creator: Golden Epsilon
 Description: 
 	Checks to see if the given mutation can be picked at random.
@@ -121,9 +121,11 @@ if(is_array(argument[0])){
 	}
 	return true;
 }
-with(SkillIcon){
-	if(skill == argument[0]){
-		return false;
+if(argument_count > 2 && argument[2]){
+	with(SkillIcon){
+		if(skill == argument[0]){
+			return false;
+		}
 	}
 }
 if(is_real(argument[0])){
@@ -182,7 +184,7 @@ for (var i = 1; i <= 29; i += 1){
 	if(nope){continue;}
 	
 	if(argument_count > 0 && argument[0]){
-		if(skill_get_avail(i)){
+		if(skill_get_avail(i, 0, 1)){
 			array_push(allskills,i);
 		}
 	}else{
@@ -215,7 +217,7 @@ for(i = 0; i < array_length_1d(modskills); i++){
 		if(nope){continue;}
 		
 		if(argument_count > 0 && argument[0]){
-			if(skill_get_avail(modskills[i])){
+			if(skill_get_avail(modskills[i], 0, 1)){
 				array_push(allskills,modskills[i]);
 			}
 		}else{
