@@ -195,12 +195,13 @@ mod_loadtext(path);
 						}
 					}
 					break;
+				case "wep":
 				case "weapon":
 					with(Player){
-						if(wep == other[1]){
+						if(wep == other[1] || (is_object(wep) && wep.wep == other[1])){
 							script_ref_call([other[0], other[1], "level_start"], 1);
 						}
-						if(bwep == other[1]){
+						if(bwep == other[1] || (is_object(bwep) && bwep.wep == other[1])){
 							script_ref_call([other[0], other[1], "level_start"], 0);
 						}
 					}
@@ -239,12 +240,13 @@ mod_loadtext(path);
 							}
 						}
 						break;
+					case "wep":
 					case "weapon":
 						with(Player){
-							if(wep == other[1]){
+							if(wep == other[1] || (is_object(wep) && wep.wep == other[1])){
 								script_ref_call([other[0], other[1], "mutation_update"], 1, mutations, global.mutations);
 							}
-							if(bwep == other[1]){
+							if(bwep == other[1] || (is_object(bwep) && bwep.wep == other[1])){
 								script_ref_call([other[0], other[1], "mutation_update"], 0, mutations, global.mutations);
 							}
 						}
