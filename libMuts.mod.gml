@@ -58,7 +58,11 @@
 		}
 	}
 	if(is_string(mut) and mod_script_call("skill", mut, "skill_type") != undefined) {
-		return string_lower(mod_script_call("skill", mut, "skill_type"));
+		if(is_string(mod_script_call("skill", mut, "skill_type"))) {
+			return string_lower(mod_script_call("skill", mut, "skill_type"));
+		}else{
+			return mod_script_call("skill", mut, "skill_type");
+		}
 	}else if(is_string(mut) and skill_is_ultra(mut)){
 		return "ultra";
 	}
