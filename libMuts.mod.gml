@@ -81,11 +81,11 @@
 			trace("Lib error! if you're passing arrays into skill_set_category, please keep the lengths the same and/or make category a single value.");
 			return;
 		}else if(is_array(category)){
-			for(var i = 0; i < is_array(mut); i++){
+			for(var i = 0; i < array_length(mut); i++){
 				skill_set_category(mut[i], category[i])
 			}
 		}else{
-			for(var i = 0; i < is_array(mut); i++){
+			for(var i = 0; i < array_length(mut); i++){
 				skill_set_category(mut[i], category)
 			}
 		}
