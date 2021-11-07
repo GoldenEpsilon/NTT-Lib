@@ -10,7 +10,7 @@
 		#define skill_get_avail(mut, ?includeobtained, ?checkmutscreen)
 		#define get_skills(?is_avail, ?whitelist, ?category)
 		#define get_ultras()
-		#define skill_decide(?whitelist, ?category)
+		#define skill_decide(?is_avail, ?whitelist, ?category)
 		#define skill_get_image(_mut)
 		#define skill_get_icon(_mut)
 		#define skill_is_ultra(_mut)
@@ -263,7 +263,7 @@ for(i = 0; i < array_length_1d(modskills); i++){
 return ultraskills;
 
 #define skill_decide
-//?whitelist, ?category
+//?is_avail, ?whitelist, ?category
 /* Creator: Golden Epsilon
 Description: 
 	Returns a mutation out of the pool.
@@ -272,8 +272,12 @@ Description:
 */
 
 var skills;
-if(argument_count >= 2){
-	skills = get_skills(true, argument[0], argument[1]);
+if(argument_count >= 3){
+	skills = get_skills(argument[0], argument[1], argument[2]);
+}else if(argument_count >= 2){
+	skills = get_skills(argument[0], argument[1]);
+}else if(argument_count >= 1){
+	skills = get_skills(argument[0]);
 }else{
 	skills = get_skills(true);
 }

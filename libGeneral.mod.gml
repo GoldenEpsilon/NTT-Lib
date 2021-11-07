@@ -254,6 +254,9 @@
 										_nearest.pick = index;
 										if(instance_exists(_nearest.creator) && "on_pick" in _nearest.creator){
 											with(_nearest.creator){
+												if(!is_array(on_pick)){
+													trace("on_pick needs to use script_ref_create");
+												}
 												script_ref_call(on_pick, _id.index, _nearest.creator, _nearest);
 											}
 										}

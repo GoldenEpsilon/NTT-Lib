@@ -9,6 +9,8 @@
 
 #define init
 global.scr = {};
+global.ready = 0;
+wait(5);
 loadLib();
 
 #define import(module)
@@ -92,13 +94,18 @@ if(!mod_exists("mod", "lib")){
 	while(!mod_exists("mod", "lib")){wait(0);}
 	mod_variable_set("mod", "lib", "canLoad", !global.err);
 	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
-}
-if(mod_exists("mod", "lib")){
+	global.ready = 1;
+}else if(mod_exists("mod", "lib")){
 	if("toLoad" in GameCont){
 		with(GameCont.toLoad){
 			script_ref_call(["mod", "lib", "import"], self);
 		}
 	}
+	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
+	global.ready = 1;
 }
 
 #macro URL "https://raw.githubusercontent.com/GoldenEpsilon/NTT-Lib/main/"
+
+#macro  scr																						global.scr
+#macro  call																					script_ref_call
