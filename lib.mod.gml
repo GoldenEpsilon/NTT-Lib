@@ -104,13 +104,16 @@ if(global.canLoad){
 // Hooks are:
 // late_step: gets called after the normal step, useful for doing stuff after, say, projectile creation.
 // end_step: gets called after collision and other such things
-// update : gets called whenever a new object is created, and passes in the latest ID from the frame before.
-//          (does NOT include Effect objects or Custom Script objects)
-// end_update : like update, but occurs at the same time as end_step
+// update(startID, endID) : gets called whenever a new object is created, and passes in the latest ID from the frame before.
+//          (does NOT include Effect objects, CustomObject objects, or CustomScript objects)
+// end_update(startID, endID) : like update, but occurs at the same time as end_step
 // level_start : gets called when the level starts
-// mutation_update : gets called when there are new/removed mutations
+// mutation_update(currentmutations, previousmutations) : gets called when there are new/removed mutations
+// weapon_prefire(specfire, weapon) : gets called when the player is going to fire that frame. (also calls on non-weapon mods!)
 // You use a hook just by having a function with the right name (for example, #define update)
 // The function will be called when needed as long as the mod's called getRef at some point.
+// NOTE: when you use a hook in a weapon file you have an additional parameter, before all the others,
+// 		saying whether the weapon is in the primary or secondary slot.
 
 mod_variable_set(_type, _mod, _name, global.scriptReferences);
 
@@ -175,6 +178,14 @@ mod_loadtext(path);
 
 
 #define step
+	//binded steps
+    if(!instance_exists(global.bind_late_step)){
+        global.bind_late_step = script_bind_step(late_step, 0);
+    }
+    if(!instance_exists(global.bind_end_step)){
+        global.bind_end_step = script_bind_end_step(end_step, 0);
+    }
+	
 	//level_start
 	if(instance_exists(GenCont) || instance_exists(Menu)){
 		global.level_loading = true;
@@ -212,14 +223,7 @@ mod_loadtext(path);
 		}
 	}
 	
-	//binded steps
-    if(!instance_exists(global.bind_late_step)){
-        global.bind_late_step = script_bind_step(late_step, 0);
-    }
-    if(!instance_exists(global.bind_end_step)){
-        global.bind_end_step = script_bind_end_step(end_step, 0);
-    }
-	
+	//mutation_update
 	var mutations = [];
 	while(skill_get_at(array_length(mutations)) != null){
 		array_push(mutations, skill_get_at(array_length(mutations)));
@@ -259,6 +263,70 @@ mod_loadtext(path);
 			break;
 		}
 	}
+	
+	//weapon_prefire
+	with(Player){
+		var _auto = weapon_get_auto(wep);
+		var secondary = 0;
+		var specfire = 0;
+		var fired = 0;
+		if(race == "steroids" && _auto >= 0){
+			_auto = true;
+		}
+		if(race == "steroids" && bcan_shoot && canspec && ((_auto && bwep != 0) ? button_check(index, "spec") : button_pressed(index, "spec")) && (ammo[weapon_get_type(bwep)] >= weapon_get_cost(bwep) || infammo != 0)){
+			secondary = 1;
+			specfire = 1;
+			fired = 1;
+		}
+		if(can_shoot){
+			if(race == "skeleton" && canspec && button_pressed(index, "spec") && weapon_get_cost(wep) > 0){
+				specfire = 1;
+				fired = 1;
+			}
+			else if(race == "venuz" && canspec && button_pressed(index, "spec") && weapon_get_type(wep) != 0 && (ammo[weapon_get_type(wep)] >= weapon_get_cost(wep) * floor(2 + (2 * skill_get(mut_throne_butt))) || infammo != 0)){
+				specfire = 1;
+				fired = 1;
+			}
+			else if(canfire && ((_auto && wep != 0) ? button_check(index, "fire") : (clicked || button_pressed(index, "fire"))) && (ammo[weapon_get_type(wep)] >= weapon_get_cost(wep) || infammo != 0)){
+				fired = 1;
+			}
+		}
+		if(fired){
+			with(global.activeReferences){
+				switch(self[0]){
+					case "skill":
+						if(skill_get(self[1])){
+							with(other){
+								script_ref_call([other[0], other[1], "weapon_prefire"], specfire, secondary ? bwep : wep);
+							}
+						}
+						break;
+					case "race":
+						with(other){
+							if(race == other[1]){
+								script_ref_call([other[0], other[1], "weapon_prefire"], specfire, secondary ? bwep : wep);
+							}
+						}
+						break;
+					case "wep":
+					case "weapon":
+						with(other){
+							if(wep == other[1] || (is_object(wep) && wep.wep == other[1])){
+								script_ref_call([other[0], other[1], "weapon_prefire"], 1, specfire, secondary ? bwep : wep);
+							}
+							if(bwep == other[1] || (is_object(bwep) && bwep.wep == other[1])){
+								script_ref_call([other[0], other[1], "weapon_prefire"], 0, specfire, secondary ? bwep : wep);
+							}
+						}
+						break;
+					default:
+						with(other){
+							script_ref_call([other[0], other[1], "weapon_prefire"], specfire, secondary ? bwep : wep);
+						}
+				}
+			}
+		}
+	}
 
 #define late_step
 	//update
@@ -269,7 +337,7 @@ mod_loadtext(path);
 		if(instance_exists(updateid)){
 			if("object_index" in updateid){
 				var obj = updateid.object_index;
-				if(object_get_parent(obj) == Effect || obj == Effect || object_get_parent(obj) == CustomScript || obj == CustomScript){
+				if(object_get_parent(obj) == Effect || obj == Effect || object_get_parent(obj) == CustomScript || obj == CustomScript || obj == CustomObject){
 					lastid++;
 				}
 			}else{
@@ -330,7 +398,7 @@ mod_loadtext(path);
 		if(instance_exists(updateid)){
 			if("object_index" in updateid){
 				var obj = updateid.object_index;
-				if(object_get_parent(obj) == Effect || obj == Effect || object_get_parent(obj) == CustomScript || obj == CustomScript){
+				if(object_get_parent(obj) == Effect || obj == Effect || object_get_parent(obj) == CustomScript || obj == CustomScript || obj == CustomObject){
 					lastid++;
 				}
 			}else{
