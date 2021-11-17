@@ -273,17 +273,17 @@ mod_loadtext(path);
 		if(race == "steroids" && _auto >= 0){
 			_auto = true;
 		}
-		if(race == "steroids" && bcan_shoot && canspec && ((_auto && bwep != 0) ? button_check(index, "spec") : button_pressed(index, "spec")) && (ammo[weapon_get_type(bwep)] >= weapon_get_cost(bwep) || infammo != 0)){
+		if(race == "steroids" && bcan_shoot && canspec && (((_auto && bwep != 0) ? button_check(index, "spec") : button_pressed(index, "spec")) || usespec) && (ammo[weapon_get_type(bwep)] >= weapon_get_cost(bwep) || infammo != 0)){
 			secondary = 1;
 			specfire = 1;
 			fired = 1;
 		}
 		if(can_shoot){
-			if(race == "skeleton" && canspec && button_pressed(index, "spec") && weapon_get_cost(wep) > 0){
+			if(race == "skeleton" && canspec && (button_pressed(index, "spec") || usespec) && weapon_get_cost(wep) > 0){
 				specfire = 1;
 				fired = 1;
 			}
-			else if(race == "venuz" && canspec && button_pressed(index, "spec") && weapon_get_type(wep) != 0 && (ammo[weapon_get_type(wep)] >= weapon_get_cost(wep) * floor(2 + (2 * skill_get(mut_throne_butt))) || infammo != 0)){
+			else if(race == "venuz" && canspec && (button_pressed(index, "spec") || usespec) && weapon_get_type(wep) != 0 && (ammo[weapon_get_type(wep)] >= weapon_get_cost(wep) * floor(2 + (2 * skill_get(mut_throne_butt))) || infammo != 0)){
 				specfire = 1;
 				fired = 1;
 			}
