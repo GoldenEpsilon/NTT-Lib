@@ -5,19 +5,27 @@
 */
 
 #define init
-global.loadedPackages = {};
-global.scriptReferences = {};
-global.activeReferences = [];
-global.updateid = instance_create(0, 0, DramaCamera);
-global.endupdateid = instance_create(0, 0, DramaCamera);
-global.level_loading = false;
-global.canLoad = undefined;
-global.bind_late_step = noone;
-global.bind_end_step = noone;
-
-global.mutations = [];
-
-chat_comp_add("libVersion", "prints Lib's current version to the chat.");
+//global variable storage
+if(array_length(instances_matching(CustomObject, "name", "libGlobal")) != 1){
+	with(instances_matching(CustomObject, "name", "libGlobal")){
+		instance_destroy();
+	}
+	with(instance_create(0,0,CustomObject)){
+		name = "libGlobal";
+		loadedPackages = {};
+		scriptReferences = {};
+		activeReferences = [];
+		activeHooks = [];
+		updateid = instance_create(0, 0, DramaCamera);
+		endupdateid = instance_create(0, 0, DramaCamera);
+		level_loading = false;
+		canLoad = undefined;
+		bind_late_step = noone;
+		bind_end_step = noone;
+		mutations = [];
+		persistent = true;
+	}
+}
 
 addScript("import");
 addScript("getRef");
@@ -27,13 +35,11 @@ while(!mod_sideload()){wait 1;}
 
 //wait in case libloader's already done the work for you
 wait(2);
-if(global.canLoad == undefined){
+if(Global.canLoad == undefined){
 	ping();
 }
 //libGeneral is important for the rest of lib, so it's loaded by default
 import("libGeneral");
-
-#macro VERSION "v0.0.1"
 
 #define import(package)
 /* Creator: Golden Epsilon
@@ -44,10 +50,10 @@ Description:
 Usage:
 	script_ref_call(["mod", "lib", "import"], "libPackageName");
 */
-while(global.canLoad == undefined){wait(1)}
-if(global.canLoad){
-	if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
-		lq_set(global.loadedPackages, package, 1);
+while(Global.canLoad == undefined){wait(1)}
+if(Global.canLoad){
+	if(!lq_exists(Global.loadedPackages, package) && !mod_exists("mod", package)){
+		lq_set(Global.loadedPackages, package, 1);
 		file_delete("../../mods/lib/" + package + ".mod.gml");
 		while (file_exists("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 		file_download(URL + package + ".mod.gml", "../../mods/lib/" + package + ".mod.gml");
@@ -64,8 +70,8 @@ if(global.canLoad){
 		}
 	}
 }else{
-	if(!lq_exists(global.loadedPackages, package) && !mod_exists("mod", package)){
-		lq_set(global.loadedPackages, package, 1);
+	if(!lq_exists(Global.loadedPackages, package) && !mod_exists("mod", package)){
+		lq_set(Global.loadedPackages, package, 1);
 		file_load("../../mods/lib/" + package + ".mod.gml");
 		while (!file_loaded("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 		if(file_exists("../../mods/lib/" + package + ".mod.gml")){
@@ -80,10 +86,10 @@ if(global.canLoad){
 
 #define cleanup
      // Unbind Script on Mod Unload:
-    with(global.bind_late_step){
+    with(Global.bind_late_step){
         instance_destroy();
     }
-    with(global.bind_end_step){
+    with(Global.bind_end_step){
         instance_destroy();
     }
 
@@ -92,15 +98,42 @@ if(global.canLoad){
 // _mod should be the mod file name (mod_current, basically)
 // _name should be the name of the *global* variable you want to use.
 
+// ALSO, calling this function makes this mod call function hooks automatically.
+
+getScr(_type, _mod, _name);
+getHooks(_type, _mod);
+
+#define getScr(_type, _mod, _name)
 // sets the global variable given to this function to a LWO of script references.
+// _type should be the type of mod file ("mod", "race", "weapon", etc)
+// _mod should be the mod file name (mod_current, basically)
+// _name should be the name of the *global* variable you want to use.
+//
 // For example, if you run this on a variable global.scr with
-// script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
+// script_ref_call(["mod", "lib", "getScr"], "mod", mod_current, "scr");
 // (assuming you are calling it from a .mod.gml file), you can then run
 // script_ref_call(global.scr.obj_create, 0, 0, Bandit);
 // instead of
 // script_ref_call(["mod", "libGeneral", "obj_create"], 0, 0, Bandit);
+//
+// (you can also do "#macro scr global.scr" and "#macro call script_ref_call" to make it easier)
 
-// ALSO, calling this function makes this mod call function hooks automatically.
+mod_variable_set(_type, _mod, _name, Global.scriptReferences);
+
+//ensure that there are no duplicates
+with(Global.activeReferences){
+	if(self[0] == _type && self[1] == _mod && self[2] == _name){
+		return;
+	}
+}
+array_push(Global.activeReferences, [_type, _mod, _name]);
+
+#define getHooks(_type, _mod)
+// Hooks are functions that are called by lib, that work like step(), draw(), game_start(), etc work for base NTT.
+// Call this function to opt-in the calling mod for these hooks.
+// _type should be the type of mod file ("mod", "race", "weapon", etc)
+// _mod should be the mod file name (mod_current, basically)
+//
 // Hooks are:
 // late_step: gets called after the normal step, useful for doing stuff after, say, projectile creation.
 // end_step: gets called after collision and other such things
@@ -115,21 +148,19 @@ if(global.canLoad){
 // NOTE: when you use a hook in a weapon file you have an additional parameter, before all the others,
 // 		saying whether the weapon is in the primary or secondary slot.
 
-mod_variable_set(_type, _mod, _name, global.scriptReferences);
-
 //ensure that there are no duplicates
-with(global.activeReferences){
-	if(self[0] == _type && self[1] == _mod && self[2] == _name){
+with(Global.activeHooks){
+	if(self[0] == _type && self[1] == _mod){
 		return;
 	}
 }
-array_push(global.activeReferences, [_type, _mod, _name]);
+array_push(Global.activeHooks, [_type, _mod]);
 
 #define functionList
 // prints to the chat all loaded functions.
 // Mainly for a reference for modders, I don't expect this to be used much though.
 // Only traces the module name and function name, does NOT print parameters.
-with(global.scriptReferences){
+with(Global.scriptReferences){
 	trace(self[1] + ": " + self[2]);
 }
 
@@ -140,28 +171,28 @@ with(global.scriptReferences){
 	while (!file_loaded("ping.txt")){
 		if d++ > 150 {
 			trace("Server timed out, using already downloaded files");
-			global.canLoad = false;
+			Global.canLoad = false;
 			return;
 		}
 		wait 1;
 	}
 	var str = string_load("ping.txt");
-	global.canLoad = true;
+	Global.canLoad = true;
 	if(is_undefined(str)){
-		global.canLoad = false;
+		Global.canLoad = false;
 		return;
 	}else{
 		var json = json_decode(str)
 		if(json == json_error){
-			global.canLoad = false;
+			Global.canLoad = false;
 			return;
 		}
 	}
 
 #define updateRef
 // For internal use.
-with(global.activeReferences){
-	mod_variable_set(self[0], self[1], self[2], global.scriptReferences);
+with(Global.activeReferences){
+	mod_variable_set(self[0], self[1], self[2], Global.scriptReferences);
 }
 
 #define loadText(path)
@@ -170,29 +201,49 @@ mod_loadtext(path);
 
 //For internal use, adds the script to be easily usable.
 #define addScript(name)
-	var ref = mod_variable_get("mod", "lib", "scriptReferences");
-	lq_set(ref, name, ["mod", mod_current, name]);
-	mod_variable_set("mod", "lib", "scriptReferences", ref);
+	lq_set(instances_matching(CustomObject, "name", "libGlobal")[0], name, ["mod", mod_current, name]);
 
 #macro URL "https://raw.githubusercontent.com/GoldenEpsilon/NTT-Lib/main/"
 
 
 #define step
 	//binded steps
-    if(!instance_exists(global.bind_late_step)){
-        global.bind_late_step = script_bind_step(late_step, 0);
+    if(!instance_exists(Global.bind_late_step)){
+        Global.bind_late_step = script_bind_step(late_step, 0);
     }
-    if(!instance_exists(global.bind_end_step)){
-        global.bind_end_step = script_bind_end_step(end_step, 0);
+    if(!instance_exists(Global.bind_end_step)){
+        Global.bind_end_step = script_bind_end_step(end_step, 0);
     }
+	
+	//global variable storage
+	if(array_length(instances_matching(CustomObject, "name", "libGlobal")) != 1){
+		with(instances_matching(CustomObject, "name", "libGlobal")){
+			instance_destroy();
+		}
+		with(instance_create(0,0,CustomObject)){
+			name = "libGlobal";
+			loadedPackages = {};
+			scriptReferences = {};
+			activeReferences = [];
+			activeHooks = [];
+			updateid = instance_create(0, 0, DramaCamera);
+			endupdateid = instance_create(0, 0, DramaCamera);
+			level_loading = false;
+			canLoad = undefined;
+			bind_late_step = noone;
+			bind_end_step = noone;
+			mutations = [];
+			persistent = true;
+		}
+	}
 	
 	//level_start
 	if(instance_exists(GenCont) || instance_exists(Menu)){
-		global.level_loading = true;
+		Global.level_loading = true;
 	}
-	else if(global.level_loading){
-		global.level_loading = false;
-		with(global.activeReferences){
+	else if(Global.level_loading){
+		Global.level_loading = false;
+		with(Global.activeReferences){
 			switch(self[0]){
 				case "skill":
 					with(GameCont){
@@ -232,21 +283,21 @@ mod_loadtext(path);
 	while(skill_get_at(array_length(mutations)) != null){
 		array_push(mutations, skill_get_at(array_length(mutations)));
 	}
-	for(var i = 0; i < array_length(global.mutations) || i < array_length(mutations); i++){
-		if(i >= array_length(mutations) || i >= array_length(global.mutations) || global.mutations[i] != mutations[i]){
-			with(global.activeReferences){
+	for(var i = 0; i < array_length(Global.mutations) || i < array_length(mutations); i++){
+		if(i >= array_length(mutations) || i >= array_length(Global.mutations) || Global.mutations[i] != mutations[i]){
+			with(Global.activeReferences){
 				switch(self[0]){
 					case "skill":
 						with(GameCont){
 							if(skill_get(other[1])){
-								script_ref_call([other[0], other[1], "mutation_update"], mutations, global.mutations);
+								script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.mutations);
 							}
 						}
 						break;
 					case "race":
 						with(Player){
 							if(race == other[1]){
-								script_ref_call([other[0], other[1], "mutation_update"], mutations, global.mutations);
+								script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.mutations);
 							}
 						}
 						break;
@@ -254,20 +305,20 @@ mod_loadtext(path);
 					case "weapon":
 						with(Player){
 							if(wep == other[1] || (is_object(wep) && wep.wep == other[1])){
-								script_ref_call([other[0], other[1], "mutation_update"], 1, mutations, global.mutations);
+								script_ref_call([other[0], other[1], "mutation_update"], 1, mutations, Global.mutations);
 							}
 							if(bwep == other[1] || (is_object(bwep) && bwep.wep == other[1])){
-								script_ref_call([other[0], other[1], "mutation_update"], 0, mutations, global.mutations);
+								script_ref_call([other[0], other[1], "mutation_update"], 0, mutations, Global.mutations);
 							}
 						}
 						break;
 					default:
 						with(GameCont){
-							script_ref_call([other[0], other[1], "mutation_update"], mutations, global.mutations);
+							script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.mutations);
 						}
 				}
 			}
-			global.mutations = mutations;
+			Global.mutations = mutations;
 			break;
 		}
 	}
@@ -300,7 +351,7 @@ mod_loadtext(path);
 			}
 		}
 		if(fired){
-			with(global.activeReferences){
+			with(Global.activeReferences){
 				switch(self[0]){
 					case "skill":
 						with(other){
@@ -339,8 +390,8 @@ mod_loadtext(path);
 #define late_step
 	//update
 	var newID = instance_create(0, 0, DramaCamera);
-	var updateid = global.updateid;
-	var lastid = global.updateid;
+	var updateid = Global.updateid;
+	var lastid = Global.updateid;
 	while(updateid++ < newID){
 		if(instance_exists(updateid)){
 			if("object_index" in updateid){
@@ -356,33 +407,33 @@ mod_loadtext(path);
 		}
 	}
 	if(newID > lastid){
-		with(global.activeReferences){
+		with(Global.activeReferences){
 			switch(self[0]){
 				case "skill":
 					with(GameCont){
 						if(skill_get(other[1])){
-							script_ref_call([other[0], other[1], "update"], global.updateid, newID);
+							script_ref_call([other[0], other[1], "update"], Global.updateid, newID);
 						}
 					}
 					break;
 				case "race":
 					with(Player){
 						if(race == other[1]){
-							script_ref_call([other[0], other[1], "update"], global.updateid, newID);
+							script_ref_call([other[0], other[1], "update"], Global.updateid, newID);
 						}
 					}
 					break;
 				default:
 					with(GameCont){
-						script_ref_call([other[0], other[1], "update"], global.updateid, newID);
+						script_ref_call([other[0], other[1], "update"], Global.updateid, newID);
 					}
 			}
 		}
 	}
-	global.updateid = newID;
+	Global.updateid = newID;
 	
 	//late step
-	with(global.activeReferences){
+	with(Global.activeReferences){
 		switch(self[0]){
 			case "skill":
 				with(GameCont){
@@ -408,8 +459,8 @@ mod_loadtext(path);
 #define end_step
 	//end_update
 	var newID = instance_create(0, 0, DramaCamera);
-	var updateid = global.endupdateid;
-	var lastid = global.endupdateid;
+	var updateid = Global.endupdateid;
+	var lastid = Global.endupdateid;
 	while(updateid++ < newID){
 		if(instance_exists(updateid)){
 			if("object_index" in updateid){
@@ -425,33 +476,33 @@ mod_loadtext(path);
 		}
 	}
 	if(newID > lastid){
-		with(global.activeReferences){
+		with(Global.activeReferences){
 			switch(self[0]){
 				case "skill":
 					with(GameCont){
 						if(skill_get(other[1])){
-							script_ref_call([other[0], other[1], "end_update"], global.endupdateid, newID);
+							script_ref_call([other[0], other[1], "end_update"], Global.endupdateid, newID);
 						}
 					}
 					break;
 				case "race":
 					with(Player){
 						if(race == other[1]){
-							script_ref_call([other[0], other[1], "end_update"], global.endupdateid, newID);
+							script_ref_call([other[0], other[1], "end_update"], Global.endupdateid, newID);
 						}
 					}
 					break;
 				default:
 					with(GameCont){
-						script_ref_call([other[0], other[1], "end_update"], global.endupdateid, newID);
+						script_ref_call([other[0], other[1], "end_update"], Global.endupdateid, newID);
 					}
 			}
 		}
 	}
-	global.endupdateid = newID;
+	Global.endupdateid = newID;
 	
 	//end step
-	with(global.activeReferences){
+	with(Global.activeReferences){
 		switch(self[0]){
 			case "skill":
 				with(GameCont){
@@ -475,7 +526,5 @@ mod_loadtext(path);
 	}
 
 #define chat_command(command, parameter, player)
-if(command == "libVersion"){
-	trace("Version "+VERSION);
-	return 1;
-}
+
+#macro Global instances_matching(CustomObject, "name", "libGlobal")[0]
