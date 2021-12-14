@@ -26,6 +26,17 @@ if(array_length(instances_matching(CustomObject, "name", "libGlobal")) != 1){
 		persistent = true;
 	}
 }
+global.loadedPackages = Global.loadedPackages;
+global.scriptReferences = Global.scriptReferences;
+global.activeHooks = Global.activeHooks;
+global.updateid = Global.updateid;
+global.endupdateid = Global.endupdateid;
+global.level_loading = Global.level_loading;
+global.canLoad = Global.canLoad;
+global.bind_late_step = Global.bind_late_step;
+global.bind_end_step = Global.bind_end_step;
+global.mutations = Global.mutations;
+
 addScript("import");
 addScript("getRef");
 
@@ -206,14 +217,6 @@ mod_loadtext(path);
 
 
 #define step
-	//binded steps
-    if(!instance_exists(Global.bind_late_step)){
-        Global.bind_late_step = script_bind_step(late_step, 0);
-    }
-    if(!instance_exists(Global.bind_end_step)){
-        Global.bind_end_step = script_bind_end_step(end_step, 0);
-    }
-	
 	//global variable storage
 	if(array_length(instances_matching(CustomObject, "name", "libGlobal")) != 1){
 		with(instances_matching(CustomObject, "name", "libGlobal")){
@@ -221,20 +224,40 @@ mod_loadtext(path);
 		}
 		with(instance_create(0,0,CustomObject)){
 			name = "libGlobal";
-			loadedPackages = {};
-			scriptReferences = {};
-			activeReferences = [];
-			activeHooks = [];
-			updateid = instance_create(0, 0, DramaCamera);
-			endupdateid = instance_create(0, 0, DramaCamera);
-			level_loading = false;
-			canLoad = undefined;
-			bind_late_step = noone;
-			bind_end_step = noone;
-			mutations = [];
+			loadedPackages = global.loadedPackages;
+			scriptReferences = global.scriptReferences;
+			activeReferences = global.activeReferences;
+			activeHooks = global.activeHooks;
+			updateid = global.updateid;
+			endupdateid = global.endupdateid;
+			level_loading = global.level_loading;
+			canLoad = global.canLoad;
+			bind_late_step = global.bind_late_step;
+			bind_end_step = global.bind_end_step;
+			mutations = global.mutations;
 			persistent = true;
 		}
+	}else{
+		global.loadedPackages = Global.loadedPackages;
+		global.scriptReferences = Global.scriptReferences;
+		global.activeReferences = Global.activeReferences;
+		global.activeHooks = Global.activeHooks;
+		global.updateid = Global.updateid;
+		global.endupdateid = Global.endupdateid;
+		global.level_loading = Global.level_loading;
+		global.canLoad = Global.canLoad;
+		global.bind_late_step = Global.bind_late_step;
+		global.bind_end_step = Global.bind_end_step;
+		global.mutations = Global.mutations;
 	}
+	
+	//binded steps
+    if(!instance_exists(Global.bind_late_step)){
+        Global.bind_late_step = script_bind_step(late_step, 0);
+    }
+    if(!instance_exists(Global.bind_end_step)){
+        Global.bind_end_step = script_bind_end_step(end_step, 0);
+    }
 	
 	//level_start
 	if(instance_exists(GenCont) || instance_exists(Menu)){
