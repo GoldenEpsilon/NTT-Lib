@@ -78,7 +78,7 @@ if(oldjson == false){
 	if(global.autoupdate){
 		trace("Updating "+_name);
 		if(newjson != json_error && is_array(newjson) && array_length(newjson) && "commit" in newjson[0] && "message" in newjson[0].commit){
-			trace('Latest commit message: "'+newjson[0].commit.message+'"');
+			trace('Latest commit message: '+char(10)+'"'+newjson[0].commit.message+'"');
 		}
 		updateFiles(_name, _repo);
 		script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
@@ -87,7 +87,7 @@ if(oldjson == false){
 		trace("There is an update available for "+_name+"!");
 		trace("Run the command /update"+_name+" to download it!");
 		if(newjson != json_error && is_array(newjson) && array_length(newjson) && "commit" in newjson[0] && "message" in newjson[0].commit){
-			trace('Latest commit message: "'+newjson[0].commit.message+'"');
+			trace('Latest commit message: '+char(10)+'"'+newjson[0].commit.message+'"');
 		}
 	}
 	global.updating--;
@@ -98,7 +98,7 @@ if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson 
 	if(global.autoupdate){
 		trace("There is an update for "+_name+"! updating...");
 		if("commit" in newjson[0] && "message" in newjson[0].commit){
-			trace('Latest commit message: "'+newjson[0].commit.message+'"');
+			trace('Latest commit message: '+char(10)+'"'+newjson[0].commit.message+'"');
 		}
 		updateFiles(_name, _repo);
 		script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
@@ -107,7 +107,7 @@ if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson 
 		trace("There is an update available for "+_name+"!");
 		trace("Run the command /update"+_name+" to download it!");
 		if("commit" in newjson[0] && "message" in newjson[0].commit){
-			trace('Latest commit message: "'+newjson[0].commit.message+'"');
+			trace('Latest commit message: '+char(10)+'"'+newjson[0].commit.message+'"');
 		}
 	}
 	global.updating--;
