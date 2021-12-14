@@ -22,7 +22,7 @@ if(array_length(instances_matching(CustomObject, "name", "libGlobal")) != 1){
 		canLoad = undefined;
 		bind_late_step = noone;
 		bind_end_step = noone;
-		mutations = [];
+		previousmutations = [];
 		persistent = true;
 	}
 }
@@ -35,7 +35,7 @@ global.level_loading = Global.level_loading;
 global.canLoad = Global.canLoad;
 global.bind_late_step = Global.bind_late_step;
 global.bind_end_step = Global.bind_end_step;
-global.mutations = Global.mutations;
+global.previousmutations = Global.previousmutations;
 
 addScript("import");
 addScript("getRef");
@@ -234,7 +234,7 @@ mod_loadtext(path);
 			canLoad = global.canLoad;
 			bind_late_step = global.bind_late_step;
 			bind_end_step = global.bind_end_step;
-			mutations = global.mutations;
+			previousmutations = global.previousmutations;
 			persistent = true;
 		}
 	}else{
@@ -248,7 +248,7 @@ mod_loadtext(path);
 		global.canLoad = Global.canLoad;
 		global.bind_late_step = Global.bind_late_step;
 		global.bind_end_step = Global.bind_end_step;
-		global.mutations = Global.mutations;
+		global.previousmutations = Global.previousmutations;
 	}
 	
 	//binded steps
@@ -305,21 +305,21 @@ mod_loadtext(path);
 	while(skill_get_at(array_length(mutations)) != null){
 		array_push(mutations, skill_get_at(array_length(mutations)));
 	}
-	for(var i = 0; i < array_length(Global.mutations) || i < array_length(mutations); i++){
-		if(i >= array_length(mutations) || i >= array_length(Global.mutations) || Global.mutations[i] != mutations[i]){
+	for(var i = 0; i < array_length(Global.previousmutations) || i < array_length(mutations); i++){
+		if(i >= array_length(mutations) || i >= array_length(Global.previousmutations) || Global.previousmutations[i] != mutations[i]){
 			with(Global.activeHooks){
 				switch(self[0]){
 					case "skill":
 						with(GameCont){
 							if(skill_get(other[1])){
-								script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.mutations);
+								script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.previousmutations);
 							}
 						}
 						break;
 					case "race":
 						with(Player){
 							if(race == other[1]){
-								script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.mutations);
+								script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.previousmutations);
 							}
 						}
 						break;
@@ -327,20 +327,20 @@ mod_loadtext(path);
 					case "weapon":
 						with(Player){
 							if(wep == other[1] || (is_object(wep) && wep.wep == other[1])){
-								script_ref_call([other[0], other[1], "mutation_update"], 1, mutations, Global.mutations);
+								script_ref_call([other[0], other[1], "mutation_update"], 1, mutations, Global.previousmutations);
 							}
 							if(bwep == other[1] || (is_object(bwep) && bwep.wep == other[1])){
-								script_ref_call([other[0], other[1], "mutation_update"], 0, mutations, Global.mutations);
+								script_ref_call([other[0], other[1], "mutation_update"], 0, mutations, Global.previousmutations);
 							}
 						}
 						break;
 					default:
 						with(GameCont){
-							script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.mutations);
+							script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.previousmutations);
 						}
 				}
 			}
-			Global.mutations = mutations;
+			Global.previousmutations = mutations;
 			break;
 		}
 	}
