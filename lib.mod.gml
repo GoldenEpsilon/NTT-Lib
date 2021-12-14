@@ -26,7 +26,6 @@ if(array_length(instances_matching(CustomObject, "name", "libGlobal")) != 1){
 		persistent = true;
 	}
 }
-
 addScript("import");
 addScript("getRef");
 
@@ -201,7 +200,7 @@ mod_loadtext(path);
 
 //For internal use, adds the script to be easily usable.
 #define addScript(name)
-	lq_set(instances_matching(CustomObject, "name", "libGlobal")[0], name, ["mod", mod_current, name]);
+	lq_set(instances_matching(CustomObject, "name", "libGlobal")[0].scriptReferences, name, ["mod", mod_current, name]);
 
 #macro URL "https://raw.githubusercontent.com/GoldenEpsilon/NTT-Lib/main/"
 

@@ -18,6 +18,10 @@
 	}
 
 	//Continue the rest of your init here
+	
+//For internal use, adds the script to be easily usable.
+#define addScript(name)
+	lq_set(instances_matching(CustomObject, "name", "libGlobal")[0].scriptReferences, name, ["mod", mod_current, name]);
 
 //These are macros to slot in to make it easier to call lib functions.
 #macro scr global.scr

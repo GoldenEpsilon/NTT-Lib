@@ -37,9 +37,7 @@
 
 //For internal use, adds the script to be easily usable.
 #define addScript(name)
-	var ref = mod_variable_get("mod", "lib", "scriptReferences");
-	lq_set(ref, name, ["mod", mod_current, name]);
-	mod_variable_set("mod", "lib", "scriptReferences", ref);
+	lq_set(instances_matching(CustomObject, "name", "libGlobal")[0].scriptReferences, name, ["mod", mod_current, name]);
 
 #define init
 	//macros for calling functions easier
