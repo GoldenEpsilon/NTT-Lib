@@ -195,8 +195,10 @@ mod_loadtext(path);
 		with(global.activeReferences){
 			switch(self[0]){
 				case "skill":
-					if(skill_get(self[1])){
-						script_ref_call([self[0], self[1], "level_start"]);
+					with(GameCont){
+						if(skill_get(other[1])){
+							script_ref_call([other[0], other[1], "level_start"]);
+						}
 					}
 					break;
 				case "race":
@@ -218,7 +220,9 @@ mod_loadtext(path);
 					}
 					break;
 				default:
-					script_ref_call([self[0], self[1], "level_start"]);
+					with(GameCont){
+						script_ref_call([other[0], other[1], "level_start"]);
+					}
 			}
 		}
 	}
@@ -233,8 +237,10 @@ mod_loadtext(path);
 			with(global.activeReferences){
 				switch(self[0]){
 					case "skill":
-						if(skill_get(self[1])){
-							script_ref_call([self[0], self[1], "mutation_update"], mutations, global.mutations);
+						with(GameCont){
+							if(skill_get(other[1])){
+								script_ref_call([other[0], other[1], "mutation_update"], mutations, global.mutations);
+							}
 						}
 						break;
 					case "race":
@@ -256,7 +262,9 @@ mod_loadtext(path);
 						}
 						break;
 					default:
-						script_ref_call([self[0], self[1], "mutation_update"], mutations, global.mutations);
+						with(GameCont){
+							script_ref_call([other[0], other[1], "mutation_update"], mutations, global.mutations);
+						}
 				}
 			}
 			global.mutations = mutations;
@@ -295,8 +303,8 @@ mod_loadtext(path);
 			with(global.activeReferences){
 				switch(self[0]){
 					case "skill":
-						if(skill_get(self[1])){
-							with(other){
+						with(other){
+							if(skill_get(other[1])){
 								script_ref_call([other[0], other[1], "weapon_prefire"], specfire, secondary ? bwep : wep);
 							}
 						}
@@ -351,8 +359,10 @@ mod_loadtext(path);
 		with(global.activeReferences){
 			switch(self[0]){
 				case "skill":
-					if(skill_get(self[1])){
-						script_ref_call([self[0], self[1], "update"], global.updateid, newID);
+					with(GameCont){
+						if(skill_get(other[1])){
+							script_ref_call([other[0], other[1], "update"], global.updateid, newID);
+						}
 					}
 					break;
 				case "race":
@@ -363,7 +373,9 @@ mod_loadtext(path);
 					}
 					break;
 				default:
-					script_ref_call([self[0], self[1], "update"], global.updateid, newID);
+					with(GameCont){
+						script_ref_call([other[0], other[1], "update"], global.updateid, newID);
+					}
 			}
 		}
 	}
@@ -373,8 +385,10 @@ mod_loadtext(path);
 	with(global.activeReferences){
 		switch(self[0]){
 			case "skill":
-				if(skill_get(self[1])){
-					script_ref_call([self[0], self[1], "late_step"]);
+				with(GameCont){
+					if(skill_get(other[1])){
+						script_ref_call([other[0], other[1], "late_step"]);
+					}
 				}
 				break;
 			case "race":
@@ -385,7 +399,9 @@ mod_loadtext(path);
 				}
 				break;
 			default:
-				script_ref_call([self[0], self[1], "late_step"]);
+				with(GameCont){
+					script_ref_call([other[0], other[1], "late_step"]);
+				}
 		}
 	}
 	
@@ -412,8 +428,10 @@ mod_loadtext(path);
 		with(global.activeReferences){
 			switch(self[0]){
 				case "skill":
-					if(skill_get(self[1])){
-						script_ref_call([self[0], self[1], "end_update"], global.endupdateid, newID);
+					with(GameCont){
+						if(skill_get(other[1])){
+							script_ref_call([other[0], other[1], "end_update"], global.endupdateid, newID);
+						}
 					}
 					break;
 				case "race":
@@ -424,7 +442,9 @@ mod_loadtext(path);
 					}
 					break;
 				default:
-					script_ref_call([self[0], self[1], "end_update"], global.endupdateid, newID);
+					with(GameCont){
+						script_ref_call([other[0], other[1], "end_update"], global.endupdateid, newID);
+					}
 			}
 		}
 	}
@@ -434,8 +454,10 @@ mod_loadtext(path);
 	with(global.activeReferences){
 		switch(self[0]){
 			case "skill":
-				if(skill_get(self[1])){
-					script_ref_call([self[0], self[1], "end_step"]);
+				with(GameCont){
+					if(skill_get(other[1])){
+						script_ref_call([other[0], other[1], "end_step"]);
+					}
 				}
 				break;
 			case "race":
@@ -446,7 +468,9 @@ mod_loadtext(path);
 				}
 				break;
 			default:
-				script_ref_call([self[0], self[1], "end_step"]);
+				with(GameCont){
+					script_ref_call([other[0], other[1], "end_step"]);
+				}
 		}
 	}
 
