@@ -77,26 +77,38 @@ while(global.forks > 0){wait(1);}
 if(oldjson == false){
 	if(global.autoupdate){
 		trace("Updating "+_name);
+		if(newjson != json_error && is_array(newjson) && array_length(newjson) && "message" in newjson[0]){
+			trace("Latest commit message: "+newjson[0].message);
+		}
 		updateFiles(_name, _repo);
 		script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
 	}else{
 		wait(0);
 		trace("There is an update available for "+_name+"!");
 		trace("Run the command /update"+_name+" to download it!");
+		if(newjson != json_error && is_array(newjson) && array_length(newjson) && "message" in newjson[0]){
+			trace("Latest commit message: "+newjson[0].message);
+		}
 	}
 	global.updating--;
 	return 1;
 }
 //When this if statement runs it replaces the files, so if you want to implement a backup here is where you do it
-if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson != json_error && is_array(newjson) && "sha" in newjson[0] && oldjson[0].sha != newjson[0].sha){
+if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson != json_error && is_array(newjson) && array_length(newjson) && "sha" in newjson[0] && oldjson[0].sha != newjson[0].sha){
 	if(global.autoupdate){
 		trace("There is an update for "+_name+"! updating...");
+		if("message" in newjson[0]){
+			trace("Latest commit message: "+newjson[0].message);
+		}
 		updateFiles(_name, _repo);
 		script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
 	}else{
 		wait(0);
 		trace("There is an update available for "+_name+"!");
 		trace("Run the command /update"+_name+" to download it!");
+		if("message" in newjson[0]){
+			trace("Latest commit message: "+newjson[0].message);
+		}
 	}
 	global.updating--;
 	return 1;
