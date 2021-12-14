@@ -242,7 +242,7 @@ mod_loadtext(path);
 	}
 	else if(Global.level_loading){
 		Global.level_loading = false;
-		with(Global.activeReferences){
+		with(Global.activeHooks){
 			switch(self[0]){
 				case "skill":
 					with(GameCont){
@@ -284,7 +284,7 @@ mod_loadtext(path);
 	}
 	for(var i = 0; i < array_length(Global.mutations) || i < array_length(mutations); i++){
 		if(i >= array_length(mutations) || i >= array_length(Global.mutations) || Global.mutations[i] != mutations[i]){
-			with(Global.activeReferences){
+			with(Global.activeHooks){
 				switch(self[0]){
 					case "skill":
 						with(GameCont){
@@ -350,7 +350,7 @@ mod_loadtext(path);
 			}
 		}
 		if(fired){
-			with(Global.activeReferences){
+			with(Global.activeHooks){
 				switch(self[0]){
 					case "skill":
 						with(other){
@@ -406,7 +406,7 @@ mod_loadtext(path);
 		}
 	}
 	if(newID > lastid){
-		with(Global.activeReferences){
+		with(Global.activeHooks){
 			switch(self[0]){
 				case "skill":
 					with(GameCont){
@@ -432,7 +432,7 @@ mod_loadtext(path);
 	Global.updateid = newID;
 	
 	//late step
-	with(Global.activeReferences){
+	with(Global.activeHooks){
 		switch(self[0]){
 			case "skill":
 				with(GameCont){
@@ -475,7 +475,7 @@ mod_loadtext(path);
 		}
 	}
 	if(newID > lastid){
-		with(Global.activeReferences){
+		with(Global.activeHooks){
 			switch(self[0]){
 				case "skill":
 					with(GameCont){
@@ -501,7 +501,7 @@ mod_loadtext(path);
 	Global.endupdateid = newID;
 	
 	//end step
-	with(Global.activeReferences){
+	with(Global.activeHooks){
 		switch(self[0]){
 			case "skill":
 				with(GameCont){
