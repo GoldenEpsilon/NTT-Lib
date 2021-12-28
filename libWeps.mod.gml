@@ -8,7 +8,7 @@
 /*
 	Scripts:
 		add_junk(_name, _obj, _type, _cost, _pwr)
-		superforce_push(obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait)
+		superforce_push(obj, ?force, ?direction, ?friction, ?canwallhit, ?waittime, ?disableeffects, ?hook_merge)
 		bullet_recycle(_baseChance, _return, _patron)
 		wep_raw(_wep)
 		weapon_get(_name, _wep)
@@ -58,7 +58,7 @@
 	lq_set(global.junk, string_lower(_name), {obj:_obj, typ:_typ, cost:_cost, pwr:_pwr});
 	
 #define superforce_push
-//obj, ?force, ?direction, ?friction, ?canwallhit, ?dontwait, ?disableeffects, ?hook_merge
+//obj, ?force, ?direction, ?friction, ?canwallhit, ?waittime, ?disableeffects, ?hook_merge
 //Thank you JSBurg and Karmelyth for letting me use this from Defpack!
 //Use for crazy knockback mechanics
 //Usable hooks are: hook_kill, hook_step, hook_hit, hook_bounce, hook_wallhit, hook_wallkill
@@ -75,7 +75,6 @@
 		or_maxspeed  = "maxspeed" in other ? other.maxspeed : -1
 		mask_index   = other.mask_index;
 		sprite_index = mskNothing;
-		timer = 4
 		if(argument_count > 1){
 			superforce = argument[1];
 		}else{
@@ -97,9 +96,9 @@
 			canwallhit = true
 		}
 		if(argument_count > 5){
-			dontwait = argument[5];
+			timer = argument[5];
 		}else{
-			dontwait = false
+			timer = 4
 		}
 		if(argument_count > 6){
 			disableeffects = argument[6];
@@ -125,7 +124,7 @@
 	
 #define superforce_step
 	//apply "super force" to enemies
-	if timer > 0 && dontwait = false{timer -= current_time_scale; exit}
+	if timer > 0 {timer -= current_time_scale; exit}
 	if !instance_exists(creator) ||instance_is(creator, Nothing) ||instance_is(creator, TechnoMancer) ||instance_is(creator, Turret) ||instance_is(creator, MaggotSpawn) ||instance_is(creator, Nothing) ||instance_is(creator, LilHunterFly) || instance_is(creator, RavenFly){instance_delete(self); exit}
 	var pass_step = false
 	if("hook_step" in self){
