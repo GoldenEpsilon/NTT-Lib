@@ -107,7 +107,7 @@ if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson 
 		trace("There is an update available for "+_name+"!");
 		trace("Run the command /update"+_name+" to download it!");
 		if("commit" in newjson[0] && "message" in newjson[0].commit){
-			trace('Latest commit message: '+chr(10)+'"'+newjson[0].commit.message+'"');
+			trace('Latest commit message: '+chr(10)+chr(10)+newjson[0].commit.message);
 		}
 	}
 	global.updating--;
@@ -122,7 +122,9 @@ return 0;
 	file_delete(_name+"branches.json");
 	while (file_exists(_name+"branches.json")) {wait 1;}
 	wait file_unload(_name+"branches.json");
+	trace("Downloading branches...");
 	wait file_download("https://api.github.com/repos/" + _repo + "/branches", _name+"branches.json");
+	trace("Branches downloaded...");
 	file_load(_name+"branches.json");
 	while (!file_loaded(_name+"branches.json")) {wait 1;}
 	while (!file_exists(_name+"branches.json")) {wait 1;}
@@ -134,8 +136,10 @@ return 0;
 			file_delete(_name+"tree.json");
 			while (file_exists(_name+"tree.json")) {wait 1;}
 			wait file_unload(_name+"tree.json");
+			trace("Downloading commit data...");
 			wait file_download("https://api.github.com/repos/" + _repo + "/git/trees/"+branches[0].commit.sha+"?recursive=1", _name+"tree.json");
 			file_load(_name+"tree.json");
+			trace("Commit data downloaded...");
 			while (!file_loaded(_name+"tree.json")) {wait 1;}
 			while (!file_exists(_name+"tree.json")) {wait 1;}
 			var tree = json_decode(string_load(_name+"tree.json"));
