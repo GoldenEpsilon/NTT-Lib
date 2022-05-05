@@ -587,6 +587,14 @@ with(_proj){
 		if(!instance_exists(self)){continue;}
 		event_perform(ev_step, ev_step_normal);
 		if(!instance_exists(self)){continue;}
+		for(var i = 0; i < 4; i++){//alarms for projectiles don't go past 3
+			if(alarm_get(i) > 0){
+				alarm_set(i, alarm_get(i) - current_time_scale);
+				if(alarm_get(i) <= 0){
+					event_perform(ev_alarm, i);
+				}
+			}
+		}
 		if(!instance_exists(self)){continue;}
 		if(image_index >= image_number){
 			event_perform(ev_other, ev_animation_end)
