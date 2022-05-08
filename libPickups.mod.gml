@@ -37,14 +37,14 @@
 #define step
 	with(global.libChests){
 		if(instance_exists(self)){
-			LibChest_step();
+			LibChest_basestep();
 		}else{
 			call(scr.array_delete_value, global.libChests, self);
 		}
 	}
 	with(global.libPickups){
 		if(instance_exists(self)){
-			LibPickup_step();
+			LibPickup_basestep();
 		}else{
 			call(scr.array_delete_value, global.libPickups, self);
 		}
@@ -127,7 +127,7 @@
 		return self;
 	}
 	
-#define LibChest_step
+#define LibChest_basestep
 	 // Call Custom Step Event:
 	if(is_array(on_step)){
 		mod_script_call(on_step[0], on_step[1], on_step[2]);
@@ -238,13 +238,15 @@
 		on_open = null;
 		on_fade = null;
 		
+		array_push(global.libPickups, self);
+		
 		return self;
 	}
 	
 #define LibPickup_pull
 	return true;
 	
-#define LibPickup_step
+#define LibPickup_basestep
 	array_push(global.pickup_custom, self); // For step event management
 	
 	 // Animate:
