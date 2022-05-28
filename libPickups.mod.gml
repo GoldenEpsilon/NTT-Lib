@@ -378,3 +378,6 @@
 	}
 	
 	return noone;
+	
+	
+#macro infinity 1/0
