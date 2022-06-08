@@ -34,24 +34,21 @@
 #define save_load
 	//(_mod, ?default)
 	//_mod should be a string, default should be a lwo with all key/value pairs you want set if they are not found.
-	if(fork()){
-		wait(file_load(argument[0]+"Save.json"));
-		while(!file_loaded(argument[0]+"Save.json")){wait(1);}
-		var json = {};
-		if(file_exists(argument[0]+"Save.json")){
-			json = json_decode(string_load(argument[0]+"Save.json"));
-		}
-		if(json != json_error){
-			if(argument_count == 2){
-				for(var i = 0; i < lq_size(argument[1]); i++){
-					if(lq_get_key(argument[1], i) not in json){
-						lq_set(json, lq_get_key(argument[1], i), lq_get_value(argument[1], i));
-					}
+	wait(file_load(argument[0]+"Save.json"));
+	while(!file_loaded(argument[0]+"Save.json")){wait(1);}
+	var json = {};
+	if(file_exists(argument[0]+"Save.json")){
+		json = json_decode(string_load(argument[0]+"Save.json"));
+	}
+	if(json != json_error){
+		if(argument_count == 2){
+			for(var i = 0; i < lq_size(argument[1]); i++){
+				if(lq_get_key(argument[1], i) not in json){
+					lq_set(json, lq_get_key(argument[1], i), lq_get_value(argument[1], i));
 				}
 			}
-			save_reset(argument[0], json);
 		}
-		exit;
+		save_reset(argument[0], json);
 	}
 
 #define save_get
