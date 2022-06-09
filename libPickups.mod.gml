@@ -83,7 +83,25 @@
 				if(place_meeting(x, y, Pickup)){
 					with(call(scr.instances_meeting, x, y, global.pickup_custom)){
 						if(instance_exists(self) && place_meeting(x, y, other)){
-							if(!is_array(on_open) || !mod_script_call(on_open[0], on_open[1], on_open[2])){
+							var open = true;
+							if(is_array(on_open)){
+								if(openType == 0){
+									open = !mod_script_call(on_open[0], on_open[1], on_open[2]);
+								}else if(openType == 1){
+									with(Player){
+										with(other){
+											open = !mod_script_call(on_open[0], on_open[1], on_open[2]);
+										}
+									}
+								}else if(openType == 2){
+									with(call(scr.instance_random, Player)){
+										with(other){
+											open = !mod_script_call(on_open[0], on_open[1], on_open[2]);
+										}
+									}
+								}
+							}
+							if(open){
 								 // Effects:
 								if(sprite_exists(spr_open)){
 									with(instance_create(x, y, SmallChestPickup)){
@@ -209,6 +227,7 @@
 			on_pull    - Script reference, called to determine if the pickup should attract toward a given Player (other=Player)
 			on_open    - Script reference, called when the pickup is opened by a Player or Portal (other=Player/Portal)
 			on_fade    - Script reference, called when the pickup disappears
+			openType   - What gets sent to on_open when a pickup is picked up by a Portal (0: it calls from the portal, 1: it calls from all players, 2: it calls from a random player)
 	*/
 	
 	with(instance_create(_x, _y, Pickup)){
@@ -237,6 +256,8 @@
 		on_pull = script_ref_create(LibPickup_pull);
 		on_open = null;
 		on_fade = null;
+		
+		openType = 1;
 		
 		array_push(global.libPickups, self);
 		
