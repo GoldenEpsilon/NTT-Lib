@@ -176,7 +176,7 @@ with(Global.scriptReferences){
 
 #define ping()
 	//Check internet connection
-	file_download("http://worldclockapi.com/api/json/est/now", "ping.txt");
+	file_download("https://api.github.com/zen", "ping.txt");
 	var d = 0;
 	while (!file_loaded("ping.txt")){
 		if d++ > 150 {
@@ -191,13 +191,13 @@ with(Global.scriptReferences){
 	if(is_undefined(str)){
 		Global.canLoad = false;
 		return;
-	}else{
+	}/*else{
 		var json = json_decode(str)
 		if(json == json_error){
 			Global.canLoad = false;
 			return;
 		}
-	}
+	}*/
 
 #define updateRef
 // For internal use.
