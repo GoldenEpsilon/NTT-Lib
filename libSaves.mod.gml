@@ -12,7 +12,9 @@
 	#define save_get(_mod, _name, ?default)
 	#define save_set(_mod, _name, _value
 	#define save_reset(_mod, _lwo)
+	#define unlock_popup(_name, _text)
 	#define unlock_splat(_name, _text, _sprite, _sound)
+	#define unlock_splat_ext(_name, _gameovername, _text, _sprite, _image, _sound)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -24,7 +26,9 @@
 	addScript("save_get");
 	addScript("save_set");
 	addScript("save_reset");
+	addScript("unlock_popup");
 	addScript("unlock_splat");
+	addScript("unlock_splat_ext");
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
 	
@@ -79,6 +83,31 @@
 	lq_set(global.saves, _mod, _lwo);
 	string_save(json_encode(lq_get(global.saves, _mod)), _mod+"Save.json");
 	
+//This is a simplified version of unlock_splat that ONLY displays the popup.
+#define unlock_popup(_name, _text)
+	 // Make Sure UnlockCont Exists:
+	if(!array_length(instances_matching(CustomObject, "name", "UnlockCont"))){
+		script_ref_call(["mod", "libGeneral", "obj_create"], 0, 0, "UnlockCont");
+	}
+	
+	 // Add New Unlock:
+	var _unlock = {
+		"nam" : [_name, _name], // [splash popup, gameover popup]
+		"txt" : _text,
+		"spr" : -1,
+		"img" : 0,
+		"snd" : 0
+	};
+	
+	with(instances_matching(CustomObject, "name", "UnlockCont")){
+		if(splash_index >= array_length(unlock) - 1 && splash_timer <= 0){
+			splash_delay = 40;
+		}
+		array_push(unlock, _unlock);
+	}
+	
+	return _unlock;
+	
 #define unlock_splat(_name, _text, _sprite, _sound)
 	 // Make Sure UnlockCont Exists:
 	if(!array_length(instances_matching(CustomObject, "name", "UnlockCont"))){
@@ -91,6 +120,31 @@
 		"txt" : _text,
 		"spr" : _sprite,
 		"img" : 0,
+		"snd" : _sound
+	};
+	
+	with(instances_matching(CustomObject, "name", "UnlockCont")){
+		if(splash_index >= array_length(unlock) - 1 && splash_timer <= 0){
+			splash_delay = 40;
+		}
+		array_push(unlock, _unlock);
+	}
+	
+	return _unlock;
+	
+//This includes all the inputs for unlock_splat
+#define unlock_splat_ext(_name, _gameovername, _text, _sprite, _image, _sound)
+	 // Make Sure UnlockCont Exists:
+	if(!array_length(instances_matching(CustomObject, "name", "UnlockCont"))){
+		script_ref_call(["mod", "libGeneral", "obj_create"], 0, 0, "UnlockCont");
+	}
+	
+	 // Add New Unlock:
+	var _unlock = {
+		"nam" : [_name, _gameovername], // [splash popup, gameover popup]
+		"txt" : _text,
+		"spr" : _sprite,
+		"img" : _image,
 		"snd" : _sound
 	};
 	

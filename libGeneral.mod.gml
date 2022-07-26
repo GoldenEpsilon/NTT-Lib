@@ -401,13 +401,14 @@ Returns:
 		
 		var _inst = script_ref_call([obj.type, obj.modName, obj.name + "_create"], _x, _y);
             
+		
          // No Return Value:
         if(is_undefined(_inst) || _inst == 0){
             _inst = noone;
         }
         
          // Auto Assign Things:
-        if(is_real(_inst) && instance_exists(_inst)){
+        if(instance_exists(_inst)){
 			with([
 				
 				 // General:
