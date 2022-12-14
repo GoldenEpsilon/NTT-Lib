@@ -37,6 +37,12 @@ global.bind_late_step = Global.bind_late_step;
 global.bind_end_step = Global.bind_end_step;
 global.previousmutations = Global.previousmutations;
 
+for(var i = 0; i < lq_size(global.loadedPackages); i++){
+	if(lq_get_value(global.loadedPackages, i) == 1){
+		import(lq_get_key(global.loadedPackages, i));
+	}
+}
+
 addScript("import");
 addScript("getRef");
 
@@ -60,10 +66,10 @@ Description:
 Usage:
 	script_ref_call(["mod", "lib", "import"], "libPackageName");
 */
+lq_set(Global.loadedPackages, package, 1);
 while(Global.canLoad == undefined){wait(1)}
 if(Global.canLoad){
 	if(!lq_exists(Global.loadedPackages, package) && !mod_exists("mod", package)){
-		lq_set(Global.loadedPackages, package, 1);
 		file_delete("../../mods/lib/" + package + ".mod.gml");
 		while (file_exists("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 		file_download(URL + package + ".mod.gml", "../../mods/lib/" + package + ".mod.gml");
@@ -75,24 +81,26 @@ if(Global.canLoad){
 			mod_load("../../mods/lib/" + package);
 			while(!mod_exists("mod", package)){wait(1);}
 			while(!mod_variable_get("mod", package, "isLoaded")){wait(1);}
+			wait(1);
 		}else{
 			trace("Could not find package " + package);
 		}
 	}
 }else{
 	if(!lq_exists(Global.loadedPackages, package) && !mod_exists("mod", package)){
-		lq_set(Global.loadedPackages, package, 1);
 		file_load("../../mods/lib/" + package + ".mod.gml");
 		while (!file_loaded("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 		if(file_exists("../../mods/lib/" + package + ".mod.gml")){
 			mod_load("../../mods/lib/" + package);
 			while(!mod_exists("mod", package)){wait(1);}
 			while(!mod_variable_get("mod", package, "isLoaded")){wait(1);}
+			wait(1);
 		}else{
 			trace("Could not find package " + package);
 		}
 	}
 }
+lq_set(Global.loadedPackages, package, 2);
 
 #define cleanup
      // Unbind Script on Mod Unload:
