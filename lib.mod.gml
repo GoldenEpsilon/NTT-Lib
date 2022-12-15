@@ -26,19 +26,21 @@ if(array_length(instances_matching(CustomObject, "name", "libGlobal")) != 1){
 		persistent = true;
 	}
 }
-global.loadedPackages = Global.loadedPackages;
-global.scriptReferences = Global.scriptReferences;
-global.activeHooks = Global.activeHooks;
-global.updateid = Global.updateid;
-global.endupdateid = Global.endupdateid;
-global.level_loading = Global.level_loading;
-global.canLoad = Global.canLoad;
-global.bind_late_step = Global.bind_late_step;
-global.bind_end_step = Global.bind_end_step;
-global.previousmutations = Global.previousmutations;
+global.loadedPackages = GlobalGet("loadedPackages");
+global.scriptReferences = GlobalGet("scriptReferences");
+global.activeReferences = GlobalGet("activeReferences");
+global.activeHooks = GlobalGet("activeHooks");
+global.updateid = GlobalGet("updateid");
+global.endupdateid = GlobalGet("endupdateid");
+global.level_loading = GlobalGet("level_loading");
+global.canLoad = GlobalGet("canLoad");
+global.bind_late_step = GlobalGet("bind_late_step");
+global.bind_end_step = GlobalGet("bind_end_step");
+global.previousmutations = GlobalGet("previousmutations");
 
 for(var i = 0; i < lq_size(global.loadedPackages); i++){
-	if(lq_get_value(global.loadedPackages, i) == 1){
+	if(lq_get_value(global.loadedPackages, i) == 1 || !mod_exists("mod", lq_get_key(global.loadedPackages, i))){
+		lq_set(global.loadedPackages, lq_get_key(global.loadedPackages, i), 0)
 		import(lq_get_key(global.loadedPackages, i));
 	}
 }
@@ -51,7 +53,7 @@ while(!mod_sideload()){wait 1;}
 
 //wait in case libloader's already done the work for you
 wait(2);
-if(Global.canLoad == undefined){
+if(GlobalGet("canLoad") == undefined){
 	ping();
 }
 //libGeneral is important for the rest of lib, so it's loaded by default
@@ -66,10 +68,13 @@ Description:
 Usage:
 	script_ref_call(["mod", "lib", "import"], "libPackageName");
 */
-lq_set(Global.loadedPackages, package, 1);
-while(Global.canLoad == undefined){wait(1)}
-if(Global.canLoad){
-	if(!lq_exists(Global.loadedPackages, package) && !mod_exists("mod", package)){
+while(!mod_sideload()){wait 1;}
+while(GlobalGet("canLoad") == undefined){wait(1)}
+if(GlobalGet("canLoad")){
+	//trace(GlobalGet("loadedPackages"));
+	//trace(mod_exists("mod", package));
+	if((!lq_exists(GlobalGet("loadedPackages"), package) || lq_get(GlobalGet("loadedPackages"), package) == 0) && !mod_exists("mod", package)){
+		lq_set(GlobalGet("loadedPackages"), package, 1);
 		file_delete("../../mods/lib/" + package + ".mod.gml");
 		while (file_exists("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 		file_download(URL + package + ".mod.gml", "../../mods/lib/" + package + ".mod.gml");
@@ -87,7 +92,8 @@ if(Global.canLoad){
 		}
 	}
 }else{
-	if(!lq_exists(Global.loadedPackages, package) && !mod_exists("mod", package)){
+	if((!lq_exists(GlobalGet("loadedPackages"), package) || lq_get(GlobalGet("loadedPackages"), package) == 0) && !mod_exists("mod", package)){
+		lq_set(GlobalGet("loadedPackages"), package, 1);
 		file_load("../../mods/lib/" + package + ".mod.gml");
 		while (!file_loaded("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 		if(file_exists("../../mods/lib/" + package + ".mod.gml")){
@@ -100,14 +106,14 @@ if(Global.canLoad){
 		}
 	}
 }
-lq_set(Global.loadedPackages, package, 2);
+lq_set(GlobalGet("loadedPackages"), package, 2);
 
 #define cleanup
      // Unbind Script on Mod Unload:
-    with(Global.bind_late_step){
+    with(GlobalGet("bind_late_step")){
         instance_destroy();
     }
-    with(Global.bind_end_step){
+    with(GlobalGet("bind_end_step")){
         instance_destroy();
     }
 
@@ -136,15 +142,15 @@ getHooks(_type, _mod);
 //
 // (you can also do "#macro scr global.scr" and "#macro call script_ref_call" to make it easier)
 
-mod_variable_set(_type, _mod, _name, Global.scriptReferences);
+mod_variable_set(_type, _mod, _name, GlobalGet("scriptReferences"));
 
 //ensure that there are no duplicates
-with(Global.activeReferences){
+with(GlobalGet("activeReferences")){
 	if(self[0] == _type && self[1] == _mod && self[2] == _name){
 		return;
 	}
 }
-array_push(Global.activeReferences, [_type, _mod, _name]);
+array_push(GlobalGet("activeReferences"), [_type, _mod, _name]);
 
 #define getHooks(_type, _mod)
 // Hooks are functions that are called by lib, that work like step(), draw(), game_start(), etc work for base NTT.
@@ -167,18 +173,18 @@ array_push(Global.activeReferences, [_type, _mod, _name]);
 // 		saying whether the weapon is in the primary or secondary slot.
 
 //ensure that there are no duplicates
-with(Global.activeHooks){
+with(GlobalGet("activeHooks")){
 	if(self[0] == _type && self[1] == _mod){
 		return;
 	}
 }
-array_push(Global.activeHooks, [_type, _mod]);
+array_push(GlobalGet("activeHooks"), [_type, _mod]);
 
 #define functionList
 // prints to the chat all loaded functions.
 // Mainly for a reference for modders, I don't expect this to be used much though.
 // Only traces the module name and function name, does NOT print parameters.
-with(Global.scriptReferences){
+with(GlobalGet("scriptReferences")){
 	trace(self[1] + ": " + self[2]);
 }
 
@@ -189,28 +195,28 @@ with(Global.scriptReferences){
 	while (!file_loaded("ping.txt")){
 		if d++ > 150 {
 			trace("Server timed out, using already downloaded files");
-			Global.canLoad = false;
+			GlobalSet("canLoad", false);
 			return;
 		}
 		wait 1;
 	}
 	var str = string_load("ping.txt");
-	Global.canLoad = true;
+	GlobalSet("canLoad", true);
 	if(is_undefined(str)){
-		Global.canLoad = false;
+		GlobalSet("canLoad", false);
 		return;
 	}/*else{
 		var json = json_decode(str)
 		if(json == json_error){
-			Global.canLoad = false;
+			GlobalSet("canLoad, false);
 			return;
 		}
 	}*/
 
 #define updateRef
 // For internal use.
-with(Global.activeReferences){
-	mod_variable_set(self[0], self[1], self[2], Global.scriptReferences);
+with(GlobalGet("activeReferences")){
+	mod_variable_set(self[0], self[1], self[2], GlobalGet("scriptReferences"));
 }
 
 #define loadText(path)
@@ -226,8 +232,9 @@ mod_loadtext(path);
 
 #define step
 	//global variable storage
-	if(array_length(instances_matching(CustomObject, "name", "libGlobal")) != 1){
-		with(instances_matching(CustomObject, "name", "libGlobal")){
+	var _global = instances_matching(CustomObject, "name", "libGlobal");
+	if(array_length(_global) != 1 || "lastUpdatedFrame" not in _global[0] || current_frame - _global[0].lastUpdatedFrame > 1){
+		with(_global){
 			instance_destroy();
 		}
 		with(instance_create(0,0,CustomObject)){
@@ -244,36 +251,38 @@ mod_loadtext(path);
 			bind_end_step = global.bind_end_step;
 			previousmutations = global.previousmutations;
 			persistent = true;
+			lastUpdatedFrame = current_frame;
 		}
 	}else{
-		global.loadedPackages = Global.loadedPackages;
-		global.scriptReferences = Global.scriptReferences;
-		global.activeReferences = Global.activeReferences;
-		global.activeHooks = Global.activeHooks;
-		global.updateid = Global.updateid;
-		global.endupdateid = Global.endupdateid;
-		global.level_loading = Global.level_loading;
-		global.canLoad = Global.canLoad;
-		global.bind_late_step = Global.bind_late_step;
-		global.bind_end_step = Global.bind_end_step;
-		global.previousmutations = Global.previousmutations;
+		global.loadedPackages = GlobalGet("loadedPackages");
+		global.scriptReferences = GlobalGet("scriptReferences");
+		global.activeReferences = GlobalGet("activeReferences");
+		global.activeHooks = GlobalGet("activeHooks");
+		global.updateid = GlobalGet("updateid");
+		global.endupdateid = GlobalGet("endupdateid");
+		global.level_loading = GlobalGet("level_loading");
+		global.canLoad = GlobalGet("canLoad");
+		global.bind_late_step = GlobalGet("bind_late_step");
+		global.bind_end_step = GlobalGet("bind_end_step");
+		global.previousmutations = GlobalGet("previousmutations");
+		_global[0].lastUpdatedFrame = current_frame;
 	}
 	
 	//binded steps
-    if(!instance_exists(Global.bind_late_step)){
-        Global.bind_late_step = script_bind_step(late_step, 0);
+    if(!instance_exists(GlobalGet("bind_late_step"))){
+        GlobalSet("bind_late_step", script_bind_step(late_step, 0));
     }
-    if(!instance_exists(Global.bind_end_step)){
-        Global.bind_end_step = script_bind_end_step(end_step, 0);
+    if(!instance_exists(GlobalGet("bind_end_step"))){
+        GlobalSet("bind_end_step", script_bind_end_step(end_step, 0));
     }
 	
 	//level_start
 	if(instance_exists(GenCont) || instance_exists(Menu)){
-		Global.level_loading = true;
+		GlobalSet("level_loading", true);
 	}
-	else if(Global.level_loading){
-		Global.level_loading = false;
-		with(Global.activeHooks){
+	else if(GlobalGet("level_loading")){
+		GlobalSet("level_loading", false);
+		with(GlobalGet("activeHooks")){
 			switch(self[0]){
 				case "skill":
 					with(GameCont){
@@ -313,21 +322,21 @@ mod_loadtext(path);
 	while(skill_get_at(array_length(mutations)) != null){
 		array_push(mutations, skill_get_at(array_length(mutations)));
 	}
-	for(var i = 0; i < array_length(Global.previousmutations) || i < array_length(mutations); i++){
-		if(i >= array_length(mutations) || i >= array_length(Global.previousmutations) || Global.previousmutations[i] != mutations[i]){
-			with(Global.activeHooks){
+	for(var i = 0; i < array_length(GlobalGet("previousmutations")) || i < array_length(mutations); i++){
+		if(i >= array_length(mutations) || i >= array_length(GlobalGet("previousmutations")) || GlobalGet("previousmutations")[i] != mutations[i]){
+			with(GlobalGet("activeHooks")){
 				switch(self[0]){
 					case "skill":
 						with(GameCont){
 							if(skill_get(other[1])){
-								script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.previousmutations);
+								script_ref_call([other[0], other[1], "mutation_update"], mutations, GlobalGet("previousmutations"));
 							}
 						}
 						break;
 					case "race":
 						with(Player){
 							if(race == other[1]){
-								script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.previousmutations);
+								script_ref_call([other[0], other[1], "mutation_update"], mutations, GlobalGet("previousmutations"));
 							}
 						}
 						break;
@@ -335,20 +344,20 @@ mod_loadtext(path);
 					case "weapon":
 						with(Player){
 							if(wep == other[1] || (is_object(wep) && wep.wep == other[1])){
-								script_ref_call([other[0], other[1], "mutation_update"], 1, mutations, Global.previousmutations);
+								script_ref_call([other[0], other[1], "mutation_update"], 1, mutations, GlobalGet("previousmutations"));
 							}
 							if(bwep == other[1] || (is_object(bwep) && bwep.wep == other[1])){
-								script_ref_call([other[0], other[1], "mutation_update"], 0, mutations, Global.previousmutations);
+								script_ref_call([other[0], other[1], "mutation_update"], 0, mutations, GlobalGet("previousmutations"));
 							}
 						}
 						break;
 					default:
 						with(GameCont){
-							script_ref_call([other[0], other[1], "mutation_update"], mutations, Global.previousmutations);
+							script_ref_call([other[0], other[1], "mutation_update"], mutations, GlobalGet("previousmutations"));
 						}
 				}
 			}
-			Global.previousmutations = mutations;
+			GlobalSet("previousmutations", mutations);
 			break;
 		}
 	}
@@ -381,7 +390,7 @@ mod_loadtext(path);
 			}
 		}
 		if(fired){
-			with(Global.activeHooks){
+			with(GlobalGet("activeHooks")){
 				switch(self[0]){
 					case "skill":
 						with(other){
@@ -420,8 +429,8 @@ mod_loadtext(path);
 #define late_step
 	//update
 	var newID = instance_create(0, 0, DramaCamera);
-	var updateid = Global.updateid;
-	var lastid = Global.updateid;
+	var updateid = GlobalGet("updateid");
+	var lastid = GlobalGet("updateid");
 	while(updateid++ < newID){
 		if(instance_exists(updateid)){
 			if("object_index" in updateid){
@@ -437,33 +446,33 @@ mod_loadtext(path);
 		}
 	}
 	if(newID > lastid){
-		with(Global.activeHooks){
+		with(GlobalGet("activeHooks")){
 			switch(self[0]){
 				case "skill":
 					with(GameCont){
 						if(skill_get(other[1])){
-							script_ref_call([other[0], other[1], "update"], Global.updateid, newID);
+							script_ref_call([other[0], other[1], "update"], GlobalGet("updateid"), newID);
 						}
 					}
 					break;
 				case "race":
 					with(Player){
 						if(race == other[1]){
-							script_ref_call([other[0], other[1], "update"], Global.updateid, newID);
+							script_ref_call([other[0], other[1], "update"], GlobalGet("updateid"), newID);
 						}
 					}
 					break;
 				default:
 					with(GameCont){
-						script_ref_call([other[0], other[1], "update"], Global.updateid, newID);
+						script_ref_call([other[0], other[1], "update"], GlobalGet("updateid"), newID);
 					}
 			}
 		}
 	}
-	Global.updateid = newID;
+	GlobalSet("updateid", newID);
 	
 	//late step
-	with(Global.activeHooks){
+	with(GlobalGet("activeHooks")){
 		switch(self[0]){
 			case "skill":
 				with(GameCont){
@@ -489,8 +498,8 @@ mod_loadtext(path);
 #define end_step
 	//end_update
 	var newID = instance_create(0, 0, DramaCamera);
-	var updateid = Global.endupdateid;
-	var lastid = Global.endupdateid;
+	var updateid = GlobalGet("endupdateid");
+	var lastid = GlobalGet("endupdateid");
 	while(updateid++ < newID){
 		if(instance_exists(updateid)){
 			if("object_index" in updateid){
@@ -506,33 +515,33 @@ mod_loadtext(path);
 		}
 	}
 	if(newID > lastid){
-		with(Global.activeHooks){
+		with(GlobalGet("activeHooks")){
 			switch(self[0]){
 				case "skill":
 					with(GameCont){
 						if(skill_get(other[1])){
-							script_ref_call([other[0], other[1], "end_update"], Global.endupdateid, newID);
+							script_ref_call([other[0], other[1], "end_update"], GlobalGet("endupdateid"), newID);
 						}
 					}
 					break;
 				case "race":
 					with(Player){
 						if(race == other[1]){
-							script_ref_call([other[0], other[1], "end_update"], Global.endupdateid, newID);
+							script_ref_call([other[0], other[1], "end_update"], GlobalGet("endupdateid"), newID);
 						}
 					}
 					break;
 				default:
 					with(GameCont){
-						script_ref_call([other[0], other[1], "end_update"], Global.endupdateid, newID);
+						script_ref_call([other[0], other[1], "end_update"], GlobalGet("endupdateid"), newID);
 					}
 			}
 		}
 	}
-	Global.endupdateid = newID;
+	GlobalSet("endupdateid", newID);
 	
 	//end step
-	with(Global.activeHooks){
+	with(GlobalGet("activeHooks")){
 		switch(self[0]){
 			case "skill":
 				with(GameCont){
@@ -557,4 +566,18 @@ mod_loadtext(path);
 
 #define chat_command(command, parameter, player)
 
-#macro Global instances_matching(CustomObject, "name", "libGlobal")[0]
+#define GlobalGet(_var)
+var _global = instances_matching(CustomObject, "name", "libGlobal");
+if(array_length(_global) != 1){
+	return mod_variable_get("mod", mod_current, _var);
+}else{
+	return variable_instance_get(_global[0], _var)
+}
+
+#define GlobalSet(_var, _val)
+var _global = instances_matching(CustomObject, "name", "libGlobal");
+if(array_length(_global) != 1){
+	mod_variable_set("mod", mod_current, _var, _val);
+}else{
+	variable_instance_set(_global[0], _var, _val)
+}
