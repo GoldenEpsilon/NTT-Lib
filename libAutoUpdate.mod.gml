@@ -16,12 +16,22 @@
 	addScript("autoupdate");
 	
 	script_ref_call(["mod", "lib", "updateRef"]);
+	
+	script_ref_call(["mod", "lib", "getRef"], "mod", mod_current, "scr");
+	
+	//libSaves is used to track whether AutoUpdating is enabled
+	wait(call(scr.import, "libSaves"));
+	wait(call(scr.save_load, "libAutoUpdate", { autoupdate : true }));
+	
 	global.isLoaded = true;
 	
 	global.updatables = [];
 	global.forks = 0;
 	global.updating = 0; //if you want to check for the autoupdate to finish, this will only be 0 when it's not updating something
-	global.autoupdate = false; //if this is set to true mods will autoupdate without asking the user - for the user to set, not mod devs
+	global.autoupdate = call(scr.save_get, "libAutoUpdate", "autoupdate"); //if this is set to true mods will autoupdate without asking the user
+	chat_comp_add("autoUpdateToggle", "Toggles whether you need to run a command to update.");
+	
+	global.update_color = c_yellow;
 
 #define autoupdate(_name, _repo)
 /* Creator: Golden Epsilon
@@ -76,18 +86,18 @@ wait file_unload(_name+"version.json");
 while(global.forks > 0){wait(1);}
 if(oldjson == false){
 	if(global.autoupdate){
-		trace("Updating "+_name);
+		trace_color("Updating "+_name, global.update_color);
 		if(newjson != json_error && is_array(newjson) && array_length(newjson) && "commit" in newjson[0] && "message" in newjson[0].commit){
-			trace('Latest commit message: '+chr(10)+'"'+newjson[0].commit.message+'"');
+			trace_color('Latest commit message: '+chr(10)+'"'+newjson[0].commit.message+'"', global.update_color);
 		}
 		updateFiles(_name, _repo);
 		script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
 	}else{
 		wait(0);
-		trace("There is an update available for "+_name+"!");
-		trace("Run the command /update"+_name+" to download it!");
+		trace_color("There is an update available for "+_name+"!", global.update_color);
+		trace_color("Run the command /update"+_name+" to download it!", global.update_color);
 		if(newjson != json_error && is_array(newjson) && array_length(newjson) && "commit" in newjson[0] && "message" in newjson[0].commit){
-			trace('Latest commit message: '+chr(10)+'"'+newjson[0].commit.message+'"');
+			trace_color('Latest commit message: '+chr(10)+'"'+newjson[0].commit.message+'"', global.update_color);
 		}
 	}
 	global.updating--;
@@ -96,18 +106,18 @@ if(oldjson == false){
 //When this if statement runs it replaces the files, so if you want to implement a backup here is where you do it
 if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson != json_error && is_array(newjson) && array_length(newjson) && "sha" in newjson[0] && oldjson[0].sha != newjson[0].sha){
 	if(global.autoupdate){
-		trace("There is an update for "+_name+"! updating...");
+		trace_color("There is an update for "+_name+"! updating...", global.update_color);
 		if("commit" in newjson[0] && "message" in newjson[0].commit){
-			trace('Latest commit message: '+chr(10)+'"'+newjson[0].commit.message+'"');
+			trace_color('Latest commit message: '+chr(10)+'"'+newjson[0].commit.message+'"', global.update_color);
 		}
 		updateFiles(_name, _repo);
 		script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
 	}else{
 		wait(0);
-		trace("There is an update available for "+_name+"!");
-		trace("Run the command /update"+_name+" to download it!");
+		trace_color("There is an update available for "+_name+"!", global.update_color);
+		trace_color("Run the command /update"+_name+" to download it!", global.update_color);
 		if("commit" in newjson[0] && "message" in newjson[0].commit){
-			trace('Latest commit message: '+chr(10)+chr(10)+newjson[0].commit.message);
+			trace_color('Latest commit message: '+chr(10)+chr(10)+newjson[0].commit.message, global.update_color);
 		}
 	}
 	global.updating--;
@@ -117,14 +127,14 @@ global.updating--;
 return 0;
 
 #define updateFiles(_name, _repo)
-	trace("Updating Files!");
+	trace_color("Updating Files!", global.update_color);
 	
 	file_delete(_name+"branches.json");
 	while (file_exists(_name+"branches.json")) {wait 1;}
 	wait file_unload(_name+"branches.json");
-	trace("Downloading branches...");
+	trace_color("Downloading branches...", global.update_color);
 	wait file_download("https://api.github.com/repos/" + _repo + "/branches", _name+"branches.json");
-	trace("Branches downloaded...");
+	trace_color("Branches downloaded...", global.update_color);
 	file_load(_name+"branches.json");
 	while (!file_loaded(_name+"branches.json")) {wait 1;}
 	while (!file_exists(_name+"branches.json")) {wait 1;}
@@ -136,10 +146,10 @@ return 0;
 			file_delete(_name+"tree.json");
 			while (file_exists(_name+"tree.json")) {wait 1;}
 			wait file_unload(_name+"tree.json");
-			trace("Downloading commit data...");
+			trace_color("Downloading commit data...", global.update_color);
 			wait file_download("https://api.github.com/repos/" + _repo + "/git/trees/"+branches[0].commit.sha+"?recursive=1", _name+"tree.json");
 			file_load(_name+"tree.json");
-			trace("Commit data downloaded...");
+			trace_color("Commit data downloaded...", global.update_color);
 			while (!file_loaded(_name+"tree.json")) {wait 1;}
 			while (!file_exists(_name+"tree.json")) {wait 1;}
 			var tree = json_decode(string_load(_name+"tree.json"));
@@ -160,39 +170,46 @@ return 0;
 				wait(0);
 				var forks = global.forks;
 				while(global.forks > 0){
-					trace("Update for "+_name+" is "+string(round((1-(global.forks/forks))*100))+"% done.");
+					trace_color("Update for "+_name+" is "+string(round((1-(global.forks/forks))*100))+"% done.", global.update_color);
 					wait(30);
 				}
 			}else{
 				//set it to download again when it can
 				file_delete(_name+"tree.json");
-				trace("ERROR. Were you downloading too much at once?");
+				trace_color("ERROR. Were you downloading too much at once?", global.update_color);
 			}
 			if("message" in tree){
-				trace(tree.message);
+				trace_color(tree.message, global.update_color);
 			}
 		}else{
 			//set it to download again when it can
 			file_delete(_name+"branches.json");
-			trace("ERROR. Were you downloading too much at once?");
+			trace_color("ERROR. Were you downloading too much at once?", global.update_color);
 		}
 		if("message" in branches){
-			trace(branches.message);
+			trace_color(branches.message, global.update_color);
 		}
 	}
-	trace("Update for " + _name + " complete!");
+	trace_color("Update for " + _name + " complete!", global.update_color);
 
 #define chat_command(command, parameter, player)
+if(string_lower(command) == string_lower("autoUpdateToggle")){
+	global.autoupdate = !global.autoupdate;
+	call(scr.save_set, "libAutoUpdate", "autoupdate", global.autoupdate);
+	trace_color("Auto Updating is now " + (global.autoupdate ? "On." : "Off.
+You will still get notified when updates are available."), global.update_color);
+	return 1;
+}
 with(global.updatables){
-	if(command == "update"+self[0]){
+	if(string_lower(command) == string_lower("update"+self[0])){
 		if(fork()){
 			global.updating++;
 			if(!mod_variable_get("mod", "lib", "canLoad")){
-				trace("can't autoupdate - you're either in multiplayer or can't connect to the internet");
+				trace_color("can't autoupdate - you're either in multiplayer or can't connect to the internet", global.update_color);
 				global.updating--;
 				exit;
 			}
-			trace("Updating "+self[0]);
+			trace_color("Updating "+self[0], global.update_color);
 			while(global.forks > 0){wait(1);}
 			updateFiles(self[0], self[1]);
 			script_ref_call(["mod", "lib", "loadText"], "../../mods/" + self[0] + "/" + "main.txt");
@@ -202,3 +219,7 @@ with(global.updatables){
 		return 1;
 	}
 }
+
+//These are macros to slot in to make it easier to call lib functions.
+#macro scr global.scr
+#macro call script_ref_call
