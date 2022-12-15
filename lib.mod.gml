@@ -71,8 +71,6 @@ Usage:
 while(!mod_sideload()){wait 1;}
 while(GlobalGet("canLoad") == undefined){wait(1)}
 if(GlobalGet("canLoad")){
-	//trace(GlobalGet("loadedPackages"));
-	//trace(mod_exists("mod", package));
 	if((!lq_exists(GlobalGet("loadedPackages"), package) || lq_get(GlobalGet("loadedPackages"), package) == 0) && !mod_exists("mod", package)){
 		lq_set(GlobalGet("loadedPackages"), package, 1);
 		file_delete("../../mods/lib/" + package + ".mod.gml");
@@ -84,11 +82,9 @@ if(GlobalGet("canLoad")){
 
 		if(file_exists("../../mods/lib/" + package + ".mod.gml")){
 			mod_load("../../mods/lib/" + package);
-			while(!mod_exists("mod", package)){wait(1);}
-			while(!mod_variable_get("mod", package, "isLoaded")){wait(1);}
-			wait(1);
 		}else{
 			trace("Could not find package " + package);
+			lq_set(GlobalGet("loadedPackages"), package, 3);
 		}
 	}
 }else{
@@ -98,14 +94,13 @@ if(GlobalGet("canLoad")){
 		while (!file_loaded("../../mods/lib/" + package + ".mod.gml")) {wait 1;}
 		if(file_exists("../../mods/lib/" + package + ".mod.gml")){
 			mod_load("../../mods/lib/" + package);
-			while(!mod_exists("mod", package)){wait(1);}
-			while(!mod_variable_get("mod", package, "isLoaded")){wait(1);}
-			wait(1);
 		}else{
 			trace("Could not find package " + package);
+			lq_set(GlobalGet("loadedPackages"), package, 3);
 		}
 	}
 }
+while((!mod_exists("mod", package) || !mod_variable_get("mod", package, "isLoaded")) && lq_get(GlobalGet("loadedPackages"), package) != 3){wait(1);}
 lq_set(GlobalGet("loadedPackages"), package, 2);
 
 #define cleanup
