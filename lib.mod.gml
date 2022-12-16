@@ -422,6 +422,60 @@ mod_loadtext(path);
 	}
 
 #define late_step
+	create_update();
+	
+	//late step
+	with(GlobalGet("activeHooks")){
+		switch(self[0]){
+			case "skill":
+				with(GameCont){
+					if(skill_get(other[1])){
+						script_ref_call([other[0], other[1], "late_step"]);
+					}
+				}
+				break;
+			case "race":
+				with(Player){
+					if(race == other[1]){
+						script_ref_call([other[0], other[1], "late_step"]);
+					}
+				}
+				break;
+			default:
+				with(GameCont){
+					script_ref_call([other[0], other[1], "late_step"]);
+				}
+		}
+	}
+	
+#define end_step
+	create_end_update();
+	
+	//end step
+	with(GlobalGet("activeHooks")){
+		switch(self[0]){
+			case "skill":
+				with(GameCont){
+					if(skill_get(other[1])){
+						script_ref_call([other[0], other[1], "end_step"]);
+					}
+				}
+				break;
+			case "race":
+				with(Player){
+					if(race == other[1]){
+						script_ref_call([other[0], other[1], "end_step"]);
+					}
+				}
+				break;
+			default:
+				with(GameCont){
+					script_ref_call([other[0], other[1], "end_step"]);
+				}
+		}
+	}
+	
+#define create_update
 	//update
 	var newID = instance_create(0, 0, DramaCamera);
 	var updateid = GlobalGet("updateid");
@@ -466,31 +520,7 @@ mod_loadtext(path);
 	}
 	GlobalSet("updateid", newID);
 	
-	//late step
-	with(GlobalGet("activeHooks")){
-		switch(self[0]){
-			case "skill":
-				with(GameCont){
-					if(skill_get(other[1])){
-						script_ref_call([other[0], other[1], "late_step"]);
-					}
-				}
-				break;
-			case "race":
-				with(Player){
-					if(race == other[1]){
-						script_ref_call([other[0], other[1], "late_step"]);
-					}
-				}
-				break;
-			default:
-				with(GameCont){
-					script_ref_call([other[0], other[1], "late_step"]);
-				}
-		}
-	}
-	
-#define end_step
+#define create_end_update
 	//end_update
 	var newID = instance_create(0, 0, DramaCamera);
 	var updateid = GlobalGet("endupdateid");
@@ -535,29 +565,9 @@ mod_loadtext(path);
 	}
 	GlobalSet("endupdateid", newID);
 	
-	//end step
-	with(GlobalGet("activeHooks")){
-		switch(self[0]){
-			case "skill":
-				with(GameCont){
-					if(skill_get(other[1])){
-						script_ref_call([other[0], other[1], "end_step"]);
-					}
-				}
-				break;
-			case "race":
-				with(Player){
-					if(race == other[1]){
-						script_ref_call([other[0], other[1], "end_step"]);
-					}
-				}
-				break;
-			default:
-				with(GameCont){
-					script_ref_call([other[0], other[1], "end_step"]);
-				}
-		}
-	}
+#define draw_pause
+	create_update();
+	create_end_update();
 
 #define chat_command(command, parameter, player)
 
