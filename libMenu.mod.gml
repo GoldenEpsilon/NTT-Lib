@@ -19,6 +19,8 @@
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
 	
+	wait(script_ref_call(["mod", "lib", "import"], "libGeneral"));
+	
 	script_ref_call(["mod", "libGeneral", "obj_setup"], "libMenu", "libButton");
 	
 #define create_button
