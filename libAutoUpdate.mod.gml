@@ -186,9 +186,6 @@ return 0;
 			file_delete(_name+"branches.json");
 			trace_color("ERROR. Were you downloading too much at once?", global.update_color);
 		}
-		if("message" in branches){
-			trace_color(branches.message, global.update_color);
-		}
 	}
 	trace_color("Update for " + _name + " complete!", global.update_color);
 
