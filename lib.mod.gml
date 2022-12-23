@@ -16,8 +16,8 @@ if(array_length(instances_matching(CustomObject, "name", "libGlobal")) != 1){
 		scriptReferences = {};
 		activeReferences = [];
 		activeHooks = [];
-		updateid = instance_create(0, 0, DramaCamera);
-		endupdateid = instance_create(0, 0, DramaCamera);
+		updateid = instance_create(0, 0, DramaCamera).id;
+		endupdateid = updateid;
 		level_loading = false;
 		canLoad = undefined;
 		bind_late_step = noone;
@@ -477,7 +477,7 @@ mod_loadtext(path);
 	
 #define create_update
 	//update
-	var newID = instance_create(0, 0, DramaCamera);
+	var newID = instance_create(0, 0, DramaCamera).id;
 	var updateid = GlobalGet("updateid");
 	var lastid = GlobalGet("updateid");
 	while(updateid++ < newID){
@@ -522,7 +522,7 @@ mod_loadtext(path);
 	
 #define create_end_update
 	//end_update
-	var newID = instance_create(0, 0, DramaCamera);
+	var newID = instance_create(0, 0, DramaCamera).id;
 	var updateid = GlobalGet("endupdateid");
 	var lastid = GlobalGet("endupdateid");
 	while(updateid++ < newID){
