@@ -30,10 +30,11 @@
 	addScript("unlock_splat");
 	addScript("unlock_splat_ext");
 	script_ref_call(["mod", "lib", "updateRef"]);
-	global.isLoaded = true;
 	
+	while(!mod_exists("mod", "libGeneral")){wait(1);}
 	script_ref_call(["mod", "libGeneral", "obj_setup"], "libSaves", "UnlockCont");
 	global.saves = {};
+	global.isLoaded = true;
 	
 #define save_load
 	//(_mod, ?default)
