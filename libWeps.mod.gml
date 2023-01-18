@@ -113,6 +113,7 @@
 		{
 			if creator == argument[0]
 			{
+				other.or_maxspeed == or_maxspeed;
 				if(argument_count > 7){
 					script_ref_call(argument[7], other, self);
 				}
