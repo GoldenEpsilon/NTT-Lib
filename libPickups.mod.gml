@@ -402,3 +402,4 @@
 	
 	
 #macro infinity 1/0
+#macro player_active                                                                           visible && !instance_exists(GenCont) && !instance_exists(LevCont) && !instance_exists(SitDown) && !instance_exists(PlayerSit)
