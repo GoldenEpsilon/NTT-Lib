@@ -69,6 +69,7 @@
 		#define obj_fire(_gunangle, _wep, _x, _y, _creator, _affectcreator)
 		#define seeded_random(_seed, _min, _max, _irandom)
 		#define object_get_mouse(inst)
+		#define run_movescan(_object, _mod)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -139,6 +140,7 @@
 	addScript("obj_fire");
 	addScript("seeded_random");
 	addScript("object_get_mouse");
+	addScript("run_movescan");
 	
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
@@ -2351,3 +2353,112 @@ return rand;
     }
 
     return {x: inst.x + lengthdir_x(_length, _dir), y: inst.y + lengthdir_y(_length, _dir), is_input: false}
+	
+#define run_movescan(_object, _mod)
+with(_object){
+	var _obj = self;
+	var size = 0.8;
+	repeat(_mod){
+		if(!instance_exists(self)){continue;}
+		event_perform(ev_step, ev_step_begin);
+		if(!instance_exists(self)){continue;}
+		event_perform(ev_step, ev_step_normal);
+		if(!instance_exists(self)){continue;}
+		for(var i = 0; i < 4; i++){//alarms for projectiles don't go past 3
+			if(alarm_get(i) > 0){
+				alarm_set(i, alarm_get(i) - current_time_scale);
+				if(alarm_get(i) <= 0){
+					event_perform(ev_alarm, i);
+				}
+			}
+		}
+		if(!instance_exists(self)){continue;}
+		if(image_index >= image_number){
+			event_perform(ev_other, ev_animation_end)
+		}
+		image_index += image_speed_raw;
+		with(instance_create(x,y,Effect)){
+			sprite_index = other.sprite_index;
+			image_index = other.image_index;
+			image_speed = 0;
+			image_xscale = other.image_xscale * ("right" in other ? other.right : 1)// * size;
+			image_yscale = other.image_yscale// * size;
+			image_alpha = other.image_alpha * size;
+			image_angle = other.image_angle;
+			if(fork()){
+				if(instance_exists(self)){
+					image_alpha *= 0.5;
+					//image_xscale *= 0.8;
+					//image_yscale *= 0.8;
+				}
+				wait(1);
+				if(instance_exists(self)){
+					image_alpha *= 0.5;
+					//image_xscale *= 0.8;
+					//image_yscale *= 0.8;
+				}
+				wait(1);
+				if(instance_exists(self)){
+					image_alpha *= 0.5;
+					//image_xscale *= 0.8;
+					//image_yscale *= 0.8;
+				}
+				wait(1);
+				if(instance_exists(self)){
+					instance_destroy();
+				}
+				exit;
+			}
+		}
+		xprevious = x;
+		yprevious = y;
+		x += hspeed_raw;
+		y += vspeed_raw;
+		var _inst = call(scr.instances_meeting, x, y, [projectile, hitme, Wall]);
+		with(_inst){
+			if(!instance_exists(_obj)){continue;}
+			if("nexthurt" in self){nexthurt -= current_time_scale;}
+			with(_obj){
+				event_perform(ev_collision, other.object_index);
+				if(!instance_exists(self)){continue;}
+			}
+		}
+		if(!instance_exists(self)){continue;}
+		event_perform(ev_step, ev_step_end);
+		size += 0.2/_mod
+	}
+	if(!instance_exists(self)){continue;}
+	with(instance_create(x,y,Effect)){
+		sprite_index = other.sprite_index;
+		image_index = other.image_index;
+		image_speed = 0;
+		image_xscale = other.image_xscale * ("right" in other ? other.right : 1)// * size;
+		image_yscale = other.image_yscale// * size;
+		image_alpha = other.image_alpha * size;
+		image_angle = other.image_angle;
+		if(fork()){
+			if(instance_exists(self)){
+				image_alpha *= 0.5;
+				//image_xscale *= 0.8;
+				//image_yscale *= 0.8;
+			}
+			wait(1);
+			if(instance_exists(self)){
+				image_alpha *= 0.5;
+				//image_xscale *= 0.8;
+				//image_yscale *= 0.8;
+			}
+			wait(1);
+			if(instance_exists(self)){
+				image_alpha *= 0.5;
+				//image_xscale *= 0.8;
+				//image_yscale *= 0.8;
+			}
+			wait(1);
+			if(instance_exists(self)){
+				instance_destroy();
+			}
+			exit;
+		}
+	}
+}
