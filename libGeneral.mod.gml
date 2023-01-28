@@ -2414,7 +2414,7 @@ with(_object){
 		yprevious = y;
 		x += hspeed_raw;
 		y += vspeed_raw;
-		var _inst = call(scr.instances_meeting, x, y, [projectile, hitme, Wall]);
+		var _inst = instances_meeting(x, y, [projectile, hitme, Wall]);
 		with(_inst){
 			if(!instance_exists(_obj)){continue;}
 			if("nexthurt" in self){nexthurt -= current_time_scale;}
