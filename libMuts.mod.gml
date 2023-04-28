@@ -56,10 +56,28 @@
 		}
 	}
 	if(is_string(mut) and mod_script_call("skill", mut, "skill_type") != undefined) {
-		if(is_string(mod_script_call("skill", mut, "skill_type"))) {
-			return string_lower(mod_script_call("skill", mut, "skill_type"));
+		var skill_type = mod_script_call("skill", mut, "skill_type");
+		if(is_string(skill_type)) {
+			return string_lower(skill_type);
+		}else if(is_real(skill_type)){
+			switch(argument[2]){
+				case 0:
+					return "offensive";
+					break;
+				case 1:
+					return "defensive";
+					break;
+				case 2:
+					return "utility";
+					break;
+				case 3:
+					return "ammo";
+					break;
+				default: 
+					return skill_type;
+			}
 		}else{
-			return mod_script_call("skill", mut, "skill_type");
+			return skill_type;
 		}
 	}else if(is_string(mut) and skill_is_ultra(mut)){
 		return "ultra";
@@ -156,12 +174,27 @@ var allskills=[]
 var modskills = mod_get_names("skill");
 var categories = [];
 if(argument_count > 2){
-	if(is_string(argument[2])){
-		categories = [argument[2]];
-	}else if(is_array(argument[2])){
+	if(is_array(argument[2])){
 		categories = argument[2];
-	}else{
-		trace("Lib error! When calling get_skills with the optional variable category, please make sure it is either a string or array.");
+	}else if(is_real(argument[2])){
+		switch(argument[2]){
+			case 0:
+				categories = ["offensive"];
+				break;
+			case 1:
+				categories = ["defensive"];
+				break;
+			case 2:
+				categories = ["utility"];
+				break;
+			case 3:
+				categories = ["ammo"];
+				break;
+			default: 
+				categories = [argument[2]];
+		}
+	} else {
+		categories = [argument[2]];
 	}
 }
 for (var i = 1; i <= 29; i += 1){
@@ -192,10 +225,10 @@ for (var i = 1; i <= 29; i += 1){
 for(i = 0; i < array_length_1d(modskills); i++){
 	if(mod_exists("skill", modskills[i])){
 		if(mod_script_exists("skill", modskills[i], "skill_ultra")){
-			var ult = mod_script_call("skill", modskills[i], "skill_ultra");
-			if(is_string(ult) && (mod_exists("race", ult) || string_count(string_lower(ult), "fish crystal eyes melting plant venuz steroids robot chicken rebel horror rogue skeleton frog")) || is_real(ult) && ult != -1){
+			//var ult = mod_script_call("skill", modskills[i], "skill_ultra");
+			//if(is_string(ult) && (mod_exists("race", ult) || string_count(string_lower(ult), "fish crystal eyes melting plant venuz steroids robot chicken rebel horror rogue skeleton frog")) || is_real(ult) && ult != -1){
 				continue;
-			}
+			//}
 		}
 		
 		var whitelist = false;
@@ -279,6 +312,11 @@ if(argument_count >= 3){
 }else{
 	skills = get_skills(true);
 }
+
+if(array_length(skills) == 0){
+	return mut_last_wish;
+}
+
 return skills[irandom(array_length(skills) - 1)];
 
 #define skill_get_image(_mut)

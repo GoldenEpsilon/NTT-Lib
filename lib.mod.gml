@@ -38,15 +38,15 @@ global.bind_late_step = GlobalGet("bind_late_step");
 global.bind_end_step = GlobalGet("bind_end_step");
 global.previousmutations = GlobalGet("previousmutations");
 
+addScript("import");
+addScript("getRef");
+
 for(var i = 0; i < lq_size(global.loadedPackages); i++){
 	if(lq_get_value(global.loadedPackages, i) == 1 || !mod_exists("mod", lq_get_key(global.loadedPackages, i))){
 		lq_set(global.loadedPackages, lq_get_key(global.loadedPackages, i), 0)
 		import(lq_get_key(global.loadedPackages, i));
 	}
 }
-
-addScript("import");
-addScript("getRef");
 
 //wait for sideloading
 while(!mod_sideload()){wait 1;}
