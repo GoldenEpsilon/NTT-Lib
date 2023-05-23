@@ -60,7 +60,7 @@
 		if(is_string(skill_type)) {
 			return string_lower(skill_type);
 		}else if(is_real(skill_type)){
-			switch(argument[2]){
+			switch(skill_type){
 				case 0:
 					return "offensive";
 					break;
