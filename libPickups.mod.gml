@@ -5,6 +5,7 @@
 
 /*
 	Scripts:
+		#define pickup_text(text, ?type, ?num)
 	
 	Objects:
 		LibChest
@@ -16,6 +17,8 @@
 	lq_set(instances_matching(CustomObject, "name", "libGlobal")[0].scriptReferences, name, ["mod", mod_current, name]);
 
 #define init
+	addScript("pickup_text");
+	
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
 	
@@ -381,14 +384,182 @@
 	
 	return _time;
 	
-#define pickup_text(_text, _num)
+#define pickup_text // text, ?type, ?num
 	/*
-		Creates a PopupText with the given text, with all mentions of '%' in the text replaced by the given number
-		If called from a Player it will only appear on their screen
+		Creates a PopupText with the given text modified by the given type (and number if using type "add")
+		If called from a Player, the text will only appear on that Player's screen
+		Automatically supports the current locale
+		
+		Args:
+			text - The main text
+			type - The modifier, can be "add", "max", "low", "ins", "out", or "got" (leave undefined for none)
+			num  - The number to be used with type "add"
+			
+		Ex:
+			pickup_text("BULLETS", "add", 32)                == "+32 BULLETS"
+			pickup_text("HP", "max")                         == "MAX HP"
+			pickup_text("RADS", "low")                       == "LOW RADS"
+			pickup_text("RADS", "ins")                       == "NOT ENOUGH RADS"
+			pickup_text("BOLTS", "out")                      == "EMPTY"
+			pickup_text(weapon_get_name(wep_slugger), "got") == "SLUGGER!"
 	*/
 	
+	var	_text     = argument[0],
+		_type     = ((argument_count > 1) ? argument[1] : undefined),
+		_num      = ((argument_count > 2) ? argument[2] : undefined),
+		_ammo     = ["MELEE", "BULLETS", "SHELLS", "BOLTS", "EXPLOSIVES", "ENERGY"],
+		_ammoType = -1;
+		
+	 // Determine Ammo Type (Auto-Locale Support):
+	for(var i = array_length(_ammo) - 1; i >= 0; i--){
+		if(_text == loc(`Ammo:Type:${i}`, _ammo[i])){
+			_ammoType = i;
+		}
+	}
+	
+	 // Create Popup Text:
 	with(instance_create(x, y, PopupText)){
-		text = string_replace_all(_text, "%", ((_num < 0) ? "" : "+") + string(_num));
+		switch(_type){
+			
+			case "add": // +# TEXT
+			
+				switch(_text){
+					
+					case "HP":
+					
+						text = call(scr.loc_format, "Pickups:AddHealth", "+% HP", _num);
+						
+						break;
+						
+					case "PORTAL STRIKES":
+					
+						text = loc(
+							`Pickups:AddStrikes:${_num}`,
+							call(scr.loc_format, "Pickups:AddStrikes", "+% PORTAL STRIKES", _num)
+						);
+						
+						break;
+						
+					default:
+					
+						 // Ammo Types:
+						if(_ammoType >= 0){
+							text = call(scr.loc_format,
+								`Pickups:AddAmmo:${_ammoType}`,
+								call(scr.loc_format, "Pickups:AddAmmo", "+%1 %2", "%", _text),
+								_num
+							);
+						}
+						
+						 // Normal:
+						else text = call(scr.loc_format, "Pickups:AddAmmo", "+%1 %2", _num, _text);
+						
+				}
+				
+				 // Flip Sign:
+				if(_num < 0){
+					text = string_replace_all(text, "+", "");
+				}
+				
+				break;
+				
+			case "max": // MAX TEXT
+			
+				switch(_text){
+					
+					case "HP":
+					
+						text = loc("Pickups:MaxHealth", "MAX HP");
+						
+						break;
+						
+					case "PORTAL STRIKES":
+					
+						text = loc("Pickups:MaxStrikes", "MAX PORTAL STRIKES");
+						
+						break;
+						
+					default:
+					
+						text = call(scr.loc_format, "Pickups:MaxAmmo", "MAX %", _text);
+						
+						 // Ammo Types:
+						if(_ammoType >= 0){
+							text = loc(`Pickups:MaxAmmo:${_ammoType}`, text);
+						}
+						
+				}
+				
+				break;
+				
+			case "low": // LOW TEXT
+			
+				switch(_text){
+					
+					case "HP":
+					
+						text = loc("HUD:LowHealth", "LOW HP");
+						
+						break;
+						
+					default:
+					
+						text = call(scr.loc_format, "HUD:LowAmmo", "LOW %", _text);
+						
+						 // Ammo Types:
+						if(_ammoType >= 0){
+							text = loc(`HUD:LowAmmo:${_ammoType}`, text);
+						}
+						
+				}
+				
+				break;
+				
+			case "ins": // NOT ENOUGH TEXT
+			
+				switch(_text){
+					
+					case "RADS":
+					
+						text = loc("HUD:InsRads", "NOT ENOUGH RADS");
+						
+						break;
+						
+					default:
+					
+						text = call(scr.loc_format, "HUD:InsAmmo", "NOT ENOUGH %", _text);
+						
+						 // Ammo Types:
+						if(_ammoType >= 0){
+							text = loc(`HUD:InsAmmo:${_ammoType}`, text);
+						}
+						
+				}
+				
+				break;
+				
+			case "out": // EMPTY
+			
+				text = call(scr.loc_format, "HUD:NoAmmo", "EMPTY", _text);
+				
+				 // Ammo Types:
+				if(_ammoType >= 0){
+					text = loc(`HUD:NoAmmo:${_ammoType}`, text);
+				}
+				
+				break;
+				
+			case "got": // TEXT!
+			
+				text = call(scr.loc_format, "HUD:GotWeapon", "%!", _text);
+				
+				break;
+				
+			default: // TEXT
+			
+				text = _text;
+				
+		}
 		
 		 // Target Player's Screen:
 		if(instance_is(other, Player)){
@@ -399,7 +570,6 @@
 	}
 	
 	return noone;
-	
-	
+
 #macro infinity 1/0
 #macro player_active                                                                           visible && !instance_exists(GenCont) && !instance_exists(LevCont) && !instance_exists(SitDown) && !instance_exists(PlayerSit)

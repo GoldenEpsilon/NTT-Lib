@@ -70,6 +70,7 @@
 		#define seeded_random(_seed, _min, _max, _irandom)
 		#define object_get_mouse(inst)
 		#define run_movescan(_object, _mod)
+		#define loc_format(key, default, values...)
 */
 
 //For internal use, adds the script to be easily usable.
@@ -141,6 +142,7 @@
 	addScript("seeded_random");
 	addScript("object_get_mouse");
 	addScript("run_movescan");
+	addScript("loc_format");
 	
 	script_ref_call(["mod", "lib", "updateRef"]);
 	global.isLoaded = true;
@@ -2462,3 +2464,35 @@ with(_object){
 		}
 	}
 }
+	
+#define loc_format // key, default, ...values
+	/*
+		Like 'loc', but replaces "%" with a value argument if provided, or "%#" if multiple value arguments are provided
+		
+		Ex:
+			loc_format("HUD:Health", "%1/%2", my_health, maxhealth)
+			loc_format("HUD:InsAmmo:1", loc("HUD:InsAmmo", "NOT ENOUGH %", typ_ammo[1]))
+	*/
+	
+	var _text = loc(argument[0], argument[1]);
+	
+	 // Replace Values:
+	var _valuePos = 2;
+	if(argument_count > _valuePos){
+		 // Single Value:
+		if(argument_count <= _valuePos + 1){
+			_text = string_replace_all(_text, "%", string(argument[_valuePos]));
+		}
+		
+		 // Multiple Values:
+		else{
+			var _split = string_split(_text, "%");
+			for(var i = array_length(_split) - 1; i >= 1; i--){
+				var _num = _valuePos + real(string_char_at(_split[i], 1)) - 1;
+				_split[i] = ((_num >= _valuePos && _num < argument_count) ? string(argument[_num]) : "") + string_delete(_split[i], 1, 1);
+			}
+			_text = array_join(_split, "");
+		}
+	}
+	
+	return _text;

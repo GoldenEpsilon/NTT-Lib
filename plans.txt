@@ -14,6 +14,5 @@ Vehicles (Mix Defpack and my old stuff)
 Spritemashing (Squiddy)
 *maybe* add in GuiPack, CUltras, and Custom Settings - only if it starts getting traction, I don't want to take those mods down with this if it fails
 Hooks (on_eat, on_heal, on_death, on_kill, level_start, etc)
-Autoupdating
 Weapon Modification
 Mutation Scripts (mutations that give more options & other helpers)
