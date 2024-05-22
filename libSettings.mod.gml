@@ -38,6 +38,8 @@
 	add_setting("libSettings", "a", "Test Variable A");
 	add_setting("libSettings", "b", "Test Variable B");
 	add_setting("libSettings", "c", "Test Variable C");
+
+	add_setting("libSettings", ["mod", mod_current, "settings_menu_open"], "Open Settings Menu");
 	*/
 	
 #macro scr global.scr
@@ -71,49 +73,59 @@
 		}
 		offset = global.offset;
 		for(var i = 0; i < array_length(global.settings); i++){
-			var v = mod_variable_get("mod", global.settings[i][1], global.settings[i][2]);
 			draw_set_halign(2);
 			draw_text(game_width/2 + 30, 40 + offset * 10, global.settings[i][3] + " ");
 			draw_set_halign(1);
 			draw_text(game_width/2 + 30, 40 + offset * 10, ":");
 			draw_set_halign(0);
-			if(v == true || v == false){
+			if is_array(global.settings[i][2]) {
 				if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 2, 1) != -1){
 					draw_set_color(c_lime);
 					if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 0, 1) != -1){
-						mod_variable_set("mod", global.settings[i][1], global.settings[i][2], !v);
+						script_ref_call(global.settings[i][2]);
 					}
 				}
-				draw_text(game_width/2 + 30, 40 + offset * 10, " " + (v ? "On":"Off"));
-			}else if(is_string(v)){
-				if(i == global.textInput){
-					draw_set_color(c_aqua);
+				draw_text(game_width/2 + 30, 40 + offset * 10, " Activate");
+			} else {
+				var v = mod_variable_get("mod", global.settings[i][1], global.settings[i][2]);
+				if(v == true || v == false){
 					if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 2, 1) != -1){
-						draw_set_color(c_orange);
+						draw_set_color(c_lime);
 						if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 0, 1) != -1){
-							global.textInput = -1;
+							mod_variable_set("mod", global.settings[i][1], global.settings[i][2], !v);
 						}
 					}
-				}else if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 2, 1) != -1){
-					draw_set_color(c_lime);
-					if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 0, 1) != -1){
-						global.textInput = i;
-					}
-				}
-				draw_text(game_width/2 + 30, 40 + offset * 10, " " + string(v));
-			}else if(is_array(v)){
-				if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 2, 1) != -1){
-					draw_set_color(c_lime);
-					if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 0, 1) != -1){
-						var arr = [];
-						for(i2 = 1; i2 < array_length(v); i2++){
-							array_push(arr, v[i2]);
+					draw_text(game_width/2 + 30, 40 + offset * 10, " " + (v ? "On":"Off"));
+				}else if(is_string(v)){
+					if(i == global.textInput){
+						draw_set_color(c_aqua);
+						if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 2, 1) != -1){
+							draw_set_color(c_orange);
+							if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 0, 1) != -1){
+								global.textInput = -1;
+							}
 						}
-						array_push(arr, v[0]);
-						mod_variable_set("mod", global.settings[i][1], global.settings[i][2], arr);
+					}else if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 2, 1) != -1){
+						draw_set_color(c_lime);
+						if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 0, 1) != -1){
+							global.textInput = i;
+						}
 					}
+					draw_text(game_width/2 + 30, 40 + offset * 10, " " + string(v));
+				}else if(is_array(v)){
+					if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 2, 1) != -1){
+						draw_set_color(c_lime);
+						if(call(scr.menubutton_check, game_width/2 + 30, 40 + offset * 10, 60, 9, 0, 1) != -1){
+							var arr = [];
+							for(i2 = 1; i2 < array_length(v); i2++){
+								array_push(arr, v[i2]);
+							}
+							array_push(arr, v[0]);
+							mod_variable_set("mod", global.settings[i][1], global.settings[i][2], arr);
+						}
+					}
+					draw_text(game_width/2 + 30, 40 + offset * 10, " " + string(v[0]));
 				}
-				draw_text(game_width/2 + 30, 40 + offset * 10, " " + string(v[0]));
 			}
 			draw_set_color(c_white);
 			offset++;
