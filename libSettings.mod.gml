@@ -140,7 +140,17 @@
 	}
 	
 #define add_setting(_modName, _variableName, _visualName)
+	for(var i = 0; i < array_length(global.settings); i++) {
+		if global.settings[i][0] == "mod" && global.settings[i][1] == _modName && global.settings[i][2] == _variableName && global.settings[i][3] == _visualName {
+			return;
+		}
+	}
 	array_push(global.settings, ["mod", _modName, _variableName, _visualName]);
 	
 #define add_setting_ext(_modName, _modType, _variableName, _visualName)
+	for(var i = 0; i < array_length(global.settings); i++) {
+		if global.settings[i][0] == _modType && global.settings[i][1] == _modName && global.settings[i][2] == _variableName && global.settings[i][3] == _visualName {
+			return;
+		}
+	}
 	array_push(global.settings, [_modType, _modName, _variableName, _visualName]);
