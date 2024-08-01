@@ -48,6 +48,8 @@ for(var i = 0; i < lq_size(global.loadedPackages); i++){
 	}
 }
 
+//v100 allow sideloading
+cansideload=1;
 //wait for sideloading
 while(!mod_sideload()){wait 1;}
 
