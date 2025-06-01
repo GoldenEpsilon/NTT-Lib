@@ -40,8 +40,13 @@ Description:
 	Also adds in a chat command to force updating.
 Arguments:
 	_name : The name of the mod. This *must* be the name of the folder the person loads for this system to work correctly.
-	_repo : The github repository for the mod. Other sites don't work. you need to pass in the string in the format "GitHubUsername/RepoName".
+	_repo : The github repository for the mod. Other sites don't work. you need to pass in the string in the format "GitHubUsername/RepoName" or "GitHubUsername/RepoName/BranchName".
 */
+var _branch = "";
+if(array_length(string_split(_repo, "/")) == 3){
+	_repo = string_split(_repo, "/")[0] + "/" + string_split(_repo, "/")[1];
+	_branch = string_split(_repo, "/")[2];
+}
 
 if(array_length(string_split(_repo, "/")) != 2){trace("You need to format the string you pass into autoupdate this way: GitHubUsername/RepoName (it's in the url for the regular repo, there should only be 1 slash)");}
 global.updating++;
@@ -90,7 +95,7 @@ if(oldjson == false){
 		if(newjson != json_error && is_array(newjson) && array_length(newjson) && "commit" in newjson[0] && "message" in newjson[0].commit){
 			trace_color('Latest commit message: '+chr(10)+'"'+newjson[0].commit.message+'"', global.update_color);
 		}
-		updateFiles(_name, _repo);
+		updateFiles(_name, _repo, _branch);
 		script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
 	}else{
 		wait(0);
@@ -110,7 +115,7 @@ if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson 
 		if("commit" in newjson[0] && "message" in newjson[0].commit){
 			trace_color('Latest commit message: '+chr(10)+'"'+newjson[0].commit.message+'"', global.update_color);
 		}
-		updateFiles(_name, _repo);
+		updateFiles(_name, _repo, _branch);
 		script_ref_call(["mod", "lib", "loadText"], "../../mods/" + _name + "/" + "main.txt");
 	}else{
 		wait(0);
@@ -126,7 +131,7 @@ if(oldjson != json_error && is_array(oldjson) && "sha" in oldjson[0] && newjson 
 global.updating--;
 return 0;
 
-#define updateFiles(_name, _repo)
+#define updateFiles(_name, _repo, _branch)
 	trace_color("Updating Files!", global.update_color);
 	
 	file_delete(_name+"branches.json");
@@ -143,6 +148,18 @@ return 0;
 	
 	if(branches != json_error){
 		if(is_array(branches)){
+			if(_branch != ""){
+				with(branches){
+					if(name == _branch){
+						_branch = self;
+						break;
+					}
+				}
+			}
+			if(is_string(_branch)){
+				_branch = branches[0];
+			}
+
 			file_delete(_name+"tree.json");
 			while (file_exists(_name+"tree.json")) {wait 1;}
 			wait file_unload(_name+"tree.json");
@@ -199,6 +216,12 @@ You will still get notified when updates are available."), global.update_color);
 }
 with(global.updatables){
 	if(string_lower(command) == string_lower("update"+self[0])){
+		var _repo = self[1];
+		var _branch = "";
+		if(array_length(string_split(_repo, "/")) == 3){
+			_repo = string_split(_repo, "/")[0] + "/" + string_split(_repo, "/")[1];
+			_branch = string_split(_repo, "/")[2];
+		}
 		if(fork()){
 			global.updating++;
 			if(!mod_variable_get("mod", "lib", "canLoad")){
@@ -208,7 +231,7 @@ with(global.updatables){
 			}
 			trace_color("Updating "+self[0], global.update_color);
 			while(global.forks > 0){wait(1);}
-			updateFiles(self[0], self[1]);
+			updateFiles(self[0], _repo, _branch);
 			script_ref_call(["mod", "lib", "loadText"], "../../mods/" + self[0] + "/" + "main.txt");
 			global.updating--;
 			exit;
