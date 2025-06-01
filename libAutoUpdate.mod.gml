@@ -157,7 +157,7 @@ return 0;
 				}
 			}
 			if(is_string(_branch)){
-				_branch = branches[0];
+				_branch = branches[array_length(branches)-1];
 			}
 
 			file_delete(_name+"tree.json");
