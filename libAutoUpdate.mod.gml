@@ -164,7 +164,7 @@ return 0;
 			while (file_exists(_name+"tree.json")) {wait 1;}
 			wait file_unload(_name+"tree.json");
 			trace_color("Downloading commit data...", global.update_color);
-			wait file_download("https://api.github.com/repos/" + _repo + "/git/trees/"+branches[0].commit.sha+"?recursive=1", _name+"tree.json");
+			wait file_download("https://api.github.com/repos/" + _repo + "/git/trees/"+_branch.commit.sha+"?recursive=1", _name+"tree.json");
 			file_load(_name+"tree.json");
 			trace_color("Commit data downloaded...", global.update_color);
 			while (!file_loaded(_name+"tree.json")) {wait 1;}
@@ -178,7 +178,7 @@ return 0;
 						//Replace a file
 						file_delete("../../mods/" + _name + "/" + path);
 						while (file_exists("../../mods/" + _name + "/" + path)) {wait 1;}
-						wait file_download("https://raw.githubusercontent.com/" + _repo + "/" + branches[0].name + "/" + path, "../../mods/" + _name + "/" + path);
+						wait file_download("https://raw.githubusercontent.com/" + _repo + "/" + _branch.name + "/" + path, "../../mods/" + _name + "/" + path);
 						while (!file_exists("../../mods/" + _name + "/" + path)) {wait 1;}
 						global.forks--;
 						exit;
@@ -219,8 +219,8 @@ with(global.updatables){
 		var _repo = self[1];
 		var _branch = "";
 		if(array_length(string_split(_repo, "/")) == 3){
-			_repo = string_split(_repo, "/")[0] + "/" + string_split(_repo, "/")[1];
 			_branch = string_split(_repo, "/")[2];
+			_repo = string_split(_repo, "/")[0] + "/" + string_split(_repo, "/")[1];
 		}
 		if(fork()){
 			global.updating++;
