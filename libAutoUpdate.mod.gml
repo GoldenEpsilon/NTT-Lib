@@ -44,8 +44,8 @@ Arguments:
 */
 var _branch = "";
 if(array_length(string_split(_repo, "/")) == 3){
-	_repo = string_split(_repo, "/")[0] + "/" + string_split(_repo, "/")[1];
 	_branch = string_split(_repo, "/")[2];
+	_repo = string_split(_repo, "/")[0] + "/" + string_split(_repo, "/")[1];
 }
 
 if(array_length(string_split(_repo, "/")) != 2){trace("You need to format the string you pass into autoupdate this way: GitHubUsername/RepoName (it's in the url for the regular repo, there should only be 1 slash)");}
